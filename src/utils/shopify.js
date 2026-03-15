@@ -62,7 +62,7 @@ async function shopifyAPI(endpoint, method = 'GET', body = null) {
 
   // === Strategy 2: CORS proxy fallback ===
   const customProxy = getCorsProxy();
-  const targetUrl = `https://${store}/admin/api/2025-01${endpoint}`;
+  const targetUrl = `https://${store}/admin/api/2026-01${endpoint}`;
   const bodyStr = (body && method !== 'GET') ? JSON.stringify(body) : null;
 
   // Each proxy has different URL formats and header forwarding capabilities
