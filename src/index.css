@@ -107,6 +107,92 @@
   --shadow-glow: 0 0 20px rgba(230, 57, 70, 0.1);
 }
 
+/* ============================================
+   BEN 10 DARK THEME — Omnitrix Green on Black
+   ============================================ */
+[data-theme="ben10"] {
+  --bg-primary: #0a0e0a;
+  --bg-secondary: #0d150d;
+  --bg-tertiary: #121e12;
+  --bg-elevated: #162816;
+  --card-bg: #162816;
+  --bg-hover: #1e3a1e;
+  --bg-active: #254825;
+
+  --border: #1a3a1a;
+  --border-light: #255025;
+  --border-lighter: #306530;
+
+  --text-primary: #e0f0e0;
+  --text-secondary: #8bab8b;
+  --text-tertiary: #5e825e;
+  --text-muted: #3d653d;
+
+  --accent: #00d100;
+  --accent-hover: #00b800;
+  --accent-light: #33e033;
+  --accent-lighter: rgba(0, 209, 0, 0.1);
+  --accent-glow: rgba(0, 209, 0, 0.25);
+
+  --success: #00d100;
+  --success-bg: rgba(0, 209, 0, 0.1);
+  --warning: #f5a623;
+  --warning-bg: rgba(245, 166, 35, 0.1);
+  --error: #ff4444;
+  --error-bg: rgba(255, 68, 68, 0.1);
+  --info: #47b5ff;
+  --info-bg: rgba(71, 181, 255, 0.1);
+
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.65);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.8);
+  --shadow-glow: 0 0 20px rgba(0, 209, 0, 0.15);
+}
+
+/* ============================================
+   BEN 10 LIGHT THEME — Omnitrix Green, Light
+   ============================================ */
+[data-theme="ben10-light"] {
+  --bg-primary: #f0f8f0;
+  --bg-secondary: #e5f2e5;
+  --bg-tertiary: #d8ead8;
+  --bg-elevated: #ffffff;
+  --card-bg: #ffffff;
+  --bg-hover: #ddefdd;
+  --bg-active: #c8e0c8;
+
+  --border: #b8d8b8;
+  --border-light: #a0c8a0;
+  --border-lighter: #90b890;
+
+  --text-primary: #0a2e0a;
+  --text-secondary: #2e5e2e;
+  --text-tertiary: #4a804a;
+  --text-muted: #80a880;
+
+  --accent: #00a000;
+  --accent-hover: #008800;
+  --accent-light: #33b833;
+  --accent-lighter: rgba(0, 160, 0, 0.08);
+  --accent-glow: rgba(0, 160, 0, 0.15);
+
+  --success: #059669;
+  --success-bg: rgba(5, 150, 105, 0.08);
+  --warning: #d97706;
+  --warning-bg: rgba(217, 119, 6, 0.08);
+  --error: #dc2626;
+  --error-bg: rgba(220, 38, 38, 0.08);
+  --info: #2563eb;
+  --info-bg: rgba(37, 99, 235, 0.08);
+
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 20px rgba(0, 160, 0, 0.1);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -129,6 +215,23 @@ body {
   background-image:
     linear-gradient(rgba(255,70,85,0.015) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,70,85,0.015) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
+/* Ben 10 grid pattern override */
+[data-theme="ben10"] body,
+[data-theme="ben10"] {
+  background-image:
+    linear-gradient(rgba(0,209,0,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,209,0,0.02) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
+[data-theme="ben10-light"] body,
+[data-theme="ben10-light"] {
+  background-image:
+    linear-gradient(rgba(0,160,0,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,160,0,0.02) 1px, transparent 1px);
   background-size: 80px 80px;
 }
 

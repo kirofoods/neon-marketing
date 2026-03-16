@@ -26,7 +26,8 @@ import {
   Ghost, TreePine, Bird, FolderKanban, Milestone, BriefcaseBusiness, StickyNote, GitBranch,
   Code, TerminalSquare, FolderGit2, Upload, AtSign, MailOpen, Reply, Forward, Archive, Paperclip,
   Terminal, Code2, GitCommit, GitPullRequest, Rocket,
-  Landmark, ScrollText, Coins, HandCoins, FileSearch, Gavel, GraduationCap
+  Landmark, ScrollText, Coins, HandCoins, FileSearch, Gavel, GraduationCap,
+  Bug, Snowflake, Atom, Dna, CircleDot, Hexagon, Power, Timer, Cpu
 } from 'lucide-react';
 import { callClaude, isApiKeySet, AI_PROVIDERS, getActiveProvider, setActiveProvider, SYSTEM_PROMPTS, KIRO_CONTEXT, MARKETING_SKILLS, getMarketingPrompt, getSkillsByCategory, detectSkill, getSkillListForAI } from './utils/api';
 import {
@@ -63,6 +64,80 @@ import {
 } from './utils/userStorage';
 import ReactMarkdown from 'react-markdown';
 
+// ===== THEME SYSTEM — Valorant & Ben 10 =====
+const THEMES = {
+  valorant: {
+    id: 'valorant',
+    name: 'VALORANT',
+    tagline: 'Tactical Agent Protocol',
+    logo: 'PROTOCOL',
+    cssClass: '', // default
+    agents: {
+      astra: { name: 'Astra', role: 'Media', icon: Orbit },
+      breach: { name: 'Breach', role: 'PR', icon: Siren },
+      brimstone: { name: 'Brimstone', role: 'Strategy', icon: LayoutDashboard },
+      chamber: { name: 'Chamber', role: 'Social Intel', icon: Instagram },
+      clove: { name: 'Clove', role: 'Finance', icon: BadgeDollarSign },
+      cypher: { name: 'Cypher', role: 'Leads', icon: Crosshair },
+      deadlock: { name: 'Deadlock', role: 'Production', icon: Factory },
+      fade: { name: 'Fade', role: 'Analytics', icon: Waypoints },
+      gekko: { name: 'Gekko', role: 'Community', icon: Bot },
+      harbor: { name: 'Harbor', role: 'Distribution', icon: Anchor },
+      jett: { name: 'Jett', role: 'Ads', icon: Flame },
+      kayo: { name: 'KAY/O', role: 'Dev Agent', icon: Terminal },
+      killjoy: { name: 'Killjoy', role: 'SEO', icon: Globe },
+      neon: { name: 'Neon', role: 'Content', icon: Wand2 },
+      omen: { name: 'Omen', role: 'Tasks', icon: Ghost },
+      phoenix: { name: 'Phoenix', role: 'Social', icon: CalendarDays },
+      sage: { name: 'Sage', role: 'CRM', icon: Heart },
+      skye: { name: 'Skye', role: 'Influencers', icon: Bird },
+      sova: { name: 'Sova', role: 'Research', icon: Microscope },
+      tejo: { name: 'Tejo', role: 'Govt Schemes', icon: Landmark },
+      viper: { name: 'Viper', role: 'Email', icon: Send },
+      waylay: { name: 'Waylay', role: 'GBP & SEO', icon: MapPinned },
+      yoru: { name: 'Yoru', role: 'Automation', icon: Waypoints },
+      lobby: { name: 'Lobby', role: 'Settings', icon: Settings },
+    },
+  },
+  ben10: {
+    id: 'ben10',
+    name: 'BEN 10',
+    tagline: 'Omnitrix Alien Force',
+    logo: 'OMNITRIX',
+    cssClass: 'ben10',
+    agents: {
+      astra: { name: 'Upgrade', role: 'Media', icon: Cpu },
+      breach: { name: 'Echo Echo', role: 'PR', icon: Volume2 },
+      brimstone: { name: 'Heatblast', role: 'Strategy', icon: Flame },
+      chamber: { name: 'Brainstorm', role: 'Social Intel', icon: Zap },
+      clove: { name: 'Diamondhead', role: 'Finance', icon: Hexagon },
+      cypher: { name: 'Wildmutt', role: 'Leads', icon: Crosshair },
+      deadlock: { name: 'Cannonbolt', role: 'Production', icon: CircleDot },
+      fade: { name: 'Ghostfreak', role: 'Analytics', icon: Ghost },
+      gekko: { name: 'Stinkfly', role: 'Community', icon: Bug },
+      harbor: { name: 'Ripjaws', role: 'Distribution', icon: Anchor },
+      jett: { name: 'XLR8', role: 'Ads', icon: Timer },
+      kayo: { name: 'Grey Matter', role: 'Dev Agent', icon: Atom },
+      killjoy: { name: 'Four Arms', role: 'SEO', icon: Shield },
+      neon: { name: 'Swampfire', role: 'Content', icon: Dna },
+      omen: { name: 'Big Chill', role: 'Tasks', icon: Snowflake },
+      phoenix: { name: 'Jetray', role: 'Social', icon: Send },
+      sage: { name: 'Goop', role: 'CRM', icon: Scan },
+      skye: { name: 'Humungousaur', role: 'Influencers', icon: Swords },
+      sova: { name: 'Eye Guy', role: 'Research', icon: Eye },
+      tejo: { name: 'Rath', role: 'Govt Schemes', icon: Power },
+      viper: { name: 'Chromastone', role: 'Email', icon: Sparkles },
+      waylay: { name: 'Spidermonkey', role: 'GBP & SEO', icon: Globe },
+      yoru: { name: 'Clockwork', role: 'Automation', icon: Clock },
+      lobby: { name: 'Omnitrix', role: 'Settings', icon: Settings },
+    },
+  },
+};
+
+const getActiveTheme = () => localStorage.getItem('protocol_universe') || 'valorant';
+const getThemeAgents = (themeId) => THEMES[themeId]?.agents || THEMES.valorant.agents;
+const getThemeConfig = (themeId) => THEMES[themeId] || THEMES.valorant;
+
 // ---- ERROR BOUNDARY — catches render errors in dashboard after login ----
 class AppErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { hasError: false, error: null }; }
@@ -70,10 +145,13 @@ class AppErrorBoundary extends React.Component {
   componentDidCatch(error, info) { console.error('[PROTOCOL] Render error caught:', error, info); }
   render() {
     if (this.state.hasError) {
+      const themeId = getActiveTheme();
+      const themeConfig = getThemeConfig(themeId);
+      const isActive = themeId === 'ben10' ? '#00d100' : '#ff4655';
       return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif', flexDirection: 'column', gap: 16 }}>
-          <div style={{ fontSize: 48, fontWeight: 900, color: '#ff4655', letterSpacing: 4 }}>PROTOCOL</div>
+          <div style={{ fontSize: 48, fontWeight: 900, color: isActive, letterSpacing: 4 }}>{themeConfig.logo}</div>
           <div style={{ fontSize: 14, opacity: 0.7, letterSpacing: 2, textTransform: 'uppercase' }}>System Error — Reloading</div>
           <div style={{ fontSize: 11, opacity: 0.4, maxWidth: 400, textAlign: 'center' }}>
             {this.state.error?.message || 'Unknown render error'}
@@ -11927,13 +12005,76 @@ function SettingsPage() {
             </div>
           </div>
 
-          {/* Theme Settings */}
+          {/* Theme Universe */}
+          <div className="card">
+            <h3 className="card-title" style={{ marginBottom: 4 }}>Theme Universe</h3>
+            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 16 }}>
+              Choose your universe — agent names, colors, and sounds will transform
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              {Object.values(THEMES).map(theme => {
+                const currentUniverse = localStorage.getItem('protocol_universe') || 'valorant';
+                const isActive = currentUniverse === theme.id;
+                return (
+                  <button key={theme.id}
+                    onClick={() => {
+                      localStorage.setItem('protocol_universe', theme.id);
+                      // Apply Ben 10 or Valorant CSS
+                      const mode = localStorage.getItem('protocol_theme') || 'dark';
+                      if (theme.id === 'ben10') {
+                        document.documentElement.setAttribute('data-theme', mode === 'dark' ? 'ben10' : 'ben10-light');
+                      } else {
+                        document.documentElement.setAttribute('data-theme', mode === 'dark' ? '' : 'light');
+                      }
+                      setToast({ message: `${theme.name} theme activated! Reloading...`, type: 'success' });
+                      setTimeout(() => window.location.reload(), 500);
+                    }}
+                    style={{
+                      flex: 1, padding: '20px 16px', borderRadius: 12, cursor: 'pointer',
+                      border: isActive ? `2px solid ${theme.id === 'ben10' ? '#00d100' : '#ff4655'}` : '2px solid var(--border)',
+                      background: isActive
+                        ? (theme.id === 'ben10' ? 'rgba(0,209,0,0.08)' : 'rgba(255,70,85,0.08)')
+                        : 'var(--bg-secondary)',
+                      transition: 'all 0.2s', textAlign: 'center',
+                    }}
+                  >
+                    <div style={{
+                      fontSize: 28, marginBottom: 8,
+                      filter: isActive ? 'none' : 'grayscale(0.5) opacity(0.6)',
+                    }}>
+                      {theme.id === 'valorant' ? '⚔️' : '👽'}
+                    </div>
+                    <div style={{
+                      fontSize: 14, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase',
+                      color: isActive ? (theme.id === 'ben10' ? '#00d100' : '#ff4655') : 'var(--text-secondary)',
+                      marginBottom: 4,
+                    }}>
+                      {theme.name}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                      {theme.tagline}
+                    </div>
+                    {isActive && (
+                      <div style={{
+                        marginTop: 8, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1,
+                        color: theme.id === 'ben10' ? '#00d100' : '#ff4655',
+                      }}>
+                        ● Active
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Light / Dark Mode */}
           <div className="card">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <h3 className="card-title">Theme</h3>
+                <h3 className="card-title">Appearance</h3>
                 <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>
-                  Switch between dark tactical mode and light mode
+                  Switch between dark and light mode
                 </p>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -11944,9 +12085,13 @@ function SettingsPage() {
                     <button key={t}
                       onClick={() => {
                         localStorage.setItem('protocol_theme', t);
-                        document.documentElement.setAttribute('data-theme', t === 'dark' ? '' : t);
+                        const universe = localStorage.getItem('protocol_universe') || 'valorant';
+                        if (universe === 'ben10') {
+                          document.documentElement.setAttribute('data-theme', t === 'dark' ? 'ben10' : 'ben10-light');
+                        } else {
+                          document.documentElement.setAttribute('data-theme', t === 'dark' ? '' : t);
+                        }
                         setToast({ message: t === 'dark' ? 'Dark mode activated' : 'Light mode activated', type: 'info' });
-                        // Force re-render
                         window.location.reload();
                       }}
                       className={`btn ${isActive ? 'btn-primary' : 'btn-secondary'}`}
@@ -14954,15 +15099,23 @@ function PinLogin({ onSuccess }) {
       <div className={`pin-login-card ${shake ? 'shake' : ''} ${lockedIn ? 'locked-in' : ''}`}>
         {/* Valorant-style logo mark */}
         <div className="pin-login-logo">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <path d="M24 4 L44 14 L44 34 L24 44 L4 34 L4 14Z" fill="none" stroke="#ff4655" strokeWidth="1.5" opacity="0.6"/>
-            <path d="M24 10 L38 17 L38 31 L24 38 L10 31 L10 17Z" fill="rgba(255,70,85,0.08)" stroke="#ff4655" strokeWidth="1"/>
-            <text x="24" y="28" textAnchor="middle" fill="#ff4655" fontSize="18" fontWeight="900" fontFamily="Inter, sans-serif">P</text>
-          </svg>
+          {(() => {
+            const themeId = getActiveTheme();
+            const color = themeId === 'ben10' ? '#00d100' : '#ff4655';
+            const bgColor = themeId === 'ben10' ? 'rgba(0,209,0,0.08)' : 'rgba(255,70,85,0.08)';
+            const logo = getThemeConfig(themeId).logo;
+            return (
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <path d="M24 4 L44 14 L44 34 L24 44 L4 34 L4 14Z" fill="none" stroke={color} strokeWidth="1.5" opacity="0.6"/>
+                <path d="M24 10 L38 17 L38 31 L24 38 L10 31 L10 17Z" fill={bgColor} stroke={color} strokeWidth="1"/>
+                <text x="24" y="28" textAnchor="middle" fill={color} fontSize="18" fontWeight="900" fontFamily="Inter, sans-serif">{logo[0]}</text>
+              </svg>
+            );
+          })()}
         </div>
 
-        <h1 className="pin-login-title">PROTOCOL</h1>
-        <p className="pin-login-subtitle">Tactical Marketing Engine</p>
+        <h1 className="pin-login-title">{getThemeConfig(getActiveTheme()).logo}</h1>
+        <p className="pin-login-subtitle">{getThemeConfig(getActiveTheme()).tagline}</p>
         <div className="pin-login-divider" />
 
         <div className="pin-login-lock"><Lock size={18} /></div>
@@ -14977,15 +15130,20 @@ function PinLogin({ onSuccess }) {
           ))}
         </div>
 
-        {welcomeUser && (
-          <p style={{
-            color: '#ff4655', fontSize: 14, marginTop: 8, fontWeight: 800,
-            letterSpacing: 4, textTransform: 'uppercase',
-            textShadow: '0 0 20px rgba(255,70,85,0.5)'
-          }}>
-            Agent {welcomeUser} — Locked In
-          </p>
-        )}
+        {welcomeUser && (() => {
+          const themeId = getActiveTheme();
+          const color = themeId === 'ben10' ? '#00d100' : '#ff4655';
+          const shadow = themeId === 'ben10' ? '0 0 20px rgba(0,209,0,0.5)' : '0 0 20px rgba(255,70,85,0.5)';
+          return (
+            <p style={{
+              color: color, fontSize: 14, marginTop: 8, fontWeight: 800,
+              letterSpacing: 4, textTransform: 'uppercase',
+              textShadow: shadow
+            }}>
+              Agent {welcomeUser} — Locked In
+            </p>
+          );
+        })()}
         {error && <p className="pin-error">Access Denied — Invalid PIN</p>}
         <p className="pin-login-footer">Each agent has a unique access code</p>
       </div>
@@ -15264,6 +15422,17 @@ export default function App() {
 
   // Migrate old data on first load
   useEffect(() => { migrateOldData(); }, []);
+
+  // Apply theme universe CSS on mount
+  useEffect(() => {
+    const universe = localStorage.getItem('protocol_universe') || 'valorant';
+    const mode = localStorage.getItem('protocol_theme') || 'dark';
+    if (universe === 'ben10') {
+      document.documentElement.setAttribute('data-theme', mode === 'dark' ? 'ben10' : 'ben10-light');
+    } else {
+      document.documentElement.setAttribute('data-theme', mode === 'dark' ? '' : 'light');
+    }
+  }, []);
 
   // Auto-sync: connect Firebase and enable auto-sync on login (zero-setup — built-in config)
   useEffect(() => {
@@ -16279,7 +16448,367 @@ export default function App() {
         },
       };
 
-      if (sounds[agent]) sounds[agent]();
+      // Ben 10 Omnitrix-style sounds
+      const ben10Sounds = {
+        brimstone: () => {
+          // HEATBLAST: Omnitrix dial → fire ignition burst
+          const dial = ctx.createOscillator(); const dG = ctx.createGain();
+          dial.type = 'sine'; dial.frequency.setValueAtTime(800, now);
+          dial.frequency.exponentialRampToValueAtTime(1600, now + 0.08);
+          dG.gain.setValueAtTime(0.12, now); dG.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+          dial.connect(dG); dG.connect(ctx.destination);
+          dial.start(now); dial.stop(now + 0.1);
+          const fire = ctx.createOscillator(); const fG = ctx.createGain();
+          const fF = ctx.createBiquadFilter();
+          fire.type = 'sawtooth'; fire.frequency.setValueAtTime(200, now + 0.1);
+          fire.frequency.exponentialRampToValueAtTime(80, now + 0.4);
+          fF.type = 'lowpass'; fF.frequency.setValueAtTime(400, now + 0.1);
+          fG.gain.setValueAtTime(0.15, now + 0.1); fG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          fire.connect(fF); fF.connect(fG); fG.connect(ctx.destination);
+          fire.start(now + 0.1); fire.stop(now + 0.4);
+        },
+        chamber: () => {
+          // BRAINSTORM: Electric brain zap + neural crackle
+          const zap = ctx.createOscillator(); const zG = ctx.createGain();
+          zap.type = 'sawtooth'; zap.frequency.setValueAtTime(3000, now);
+          zap.frequency.exponentialRampToValueAtTime(500, now + 0.06);
+          zG.gain.setValueAtTime(0.1, now); zG.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          zap.connect(zG); zG.connect(ctx.destination);
+          zap.start(now); zap.stop(now + 0.08);
+          [0.06, 0.1, 0.14].forEach(d => {
+            const c = ctx.createOscillator(); const cG = ctx.createGain();
+            c.type = 'square'; c.frequency.setValueAtTime(1200 + Math.random() * 2000, now + d);
+            cG.gain.setValueAtTime(0.05, now + d); cG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.02);
+            c.connect(cG); cG.connect(ctx.destination);
+            c.start(now + d); c.stop(now + d + 0.02);
+          });
+        },
+        cypher: () => {
+          // WILDMUTT: Growl bass + sniff chirps
+          const growl = ctx.createOscillator(); const gG = ctx.createGain();
+          growl.type = 'sawtooth'; growl.frequency.setValueAtTime(80, now);
+          growl.frequency.linearRampToValueAtTime(60, now + 0.2);
+          gG.gain.setValueAtTime(0.12, now); gG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          growl.connect(gG); gG.connect(ctx.destination);
+          growl.start(now); growl.stop(now + 0.25);
+          [0.1, 0.15, 0.2].forEach(d => {
+            const s = ctx.createOscillator(); const sG = ctx.createGain();
+            s.type = 'sine'; s.frequency.setValueAtTime(600 + Math.random() * 400, now + d);
+            sG.gain.setValueAtTime(0.06, now + d); sG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.03);
+            s.connect(sG); sG.connect(ctx.destination);
+            s.start(now + d); s.stop(now + d + 0.03);
+          });
+        },
+        sova: () => {
+          // EYE GUY: Multiple eye-open blinks + laser scan
+          [0, 0.06, 0.12].forEach(d => {
+            const blink = ctx.createOscillator(); const bG = ctx.createGain();
+            blink.type = 'sine'; blink.frequency.setValueAtTime(1400, now + d);
+            blink.frequency.exponentialRampToValueAtTime(1800, now + d + 0.04);
+            bG.gain.setValueAtTime(0.08, now + d); bG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.05);
+            blink.connect(bG); bG.connect(ctx.destination);
+            blink.start(now + d); blink.stop(now + d + 0.05);
+          });
+          const scan = ctx.createOscillator(); const scG = ctx.createGain();
+          scan.type = 'sine'; scan.frequency.setValueAtTime(400, now + 0.15);
+          scan.frequency.linearRampToValueAtTime(2000, now + 0.35);
+          scG.gain.setValueAtTime(0.06, now + 0.15); scG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          scan.connect(scG); scG.connect(ctx.destination);
+          scan.start(now + 0.15); scan.stop(now + 0.4);
+        },
+        neon: () => {
+          // SWAMPFIRE: Organic growth bubbles + fire crackle
+          [0, 0.05, 0.1, 0.15].forEach(d => {
+            const bub = ctx.createOscillator(); const bG = ctx.createGain();
+            bub.type = 'sine'; bub.frequency.setValueAtTime(300 + Math.random() * 400, now + d);
+            bG.gain.setValueAtTime(0.07, now + d); bG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.04);
+            bub.connect(bG); bG.connect(ctx.destination);
+            bub.start(now + d); bub.stop(now + d + 0.04);
+          });
+          const crackle = ctx.createOscillator(); const cG = ctx.createGain();
+          const cF = ctx.createBiquadFilter();
+          crackle.type = 'sawtooth'; crackle.frequency.setValueAtTime(100, now + 0.12);
+          cF.type = 'bandpass'; cF.frequency.setValueAtTime(200, now); cF.Q.setValueAtTime(5, now);
+          cG.gain.setValueAtTime(0.08, now + 0.12); cG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          crackle.connect(cF); cF.connect(cG); cG.connect(ctx.destination);
+          crackle.start(now + 0.12); crackle.stop(now + 0.35);
+        },
+        killjoy: () => {
+          // FOUR ARMS: Heavy ground pound + power-up
+          const pound = ctx.createOscillator(); const pG = ctx.createGain();
+          pound.type = 'sine'; pound.frequency.setValueAtTime(60, now);
+          pound.frequency.exponentialRampToValueAtTime(30, now + 0.2);
+          pG.gain.setValueAtTime(0.2, now); pG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          pound.connect(pG); pG.connect(ctx.destination);
+          pound.start(now); pound.stop(now + 0.25);
+          const power = ctx.createOscillator(); const pwG = ctx.createGain();
+          power.type = 'sine'; power.frequency.setValueAtTime(200, now + 0.1);
+          power.frequency.exponentialRampToValueAtTime(400, now + 0.3);
+          pwG.gain.setValueAtTime(0.08, now + 0.1); pwG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          power.connect(pwG); pwG.connect(ctx.destination);
+          power.start(now + 0.1); power.stop(now + 0.35);
+        },
+        jett: () => {
+          // XLR8: Speed blur whoosh + rapid footsteps
+          const whoosh = ctx.createOscillator(); const wG = ctx.createGain();
+          const wF = ctx.createBiquadFilter();
+          whoosh.type = 'sawtooth'; whoosh.frequency.setValueAtTime(200, now);
+          whoosh.frequency.exponentialRampToValueAtTime(4000, now + 0.12);
+          wF.type = 'bandpass'; wF.frequency.setValueAtTime(2000, now); wF.Q.setValueAtTime(1, now);
+          wG.gain.setValueAtTime(0.1, now); wG.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          whoosh.connect(wF); wF.connect(wG); wG.connect(ctx.destination);
+          whoosh.start(now); whoosh.stop(now + 0.15);
+          [0.08, 0.12, 0.16, 0.2].forEach(d => {
+            const step = ctx.createOscillator(); const sG = ctx.createGain();
+            step.type = 'sine'; step.frequency.setValueAtTime(800, now + d);
+            sG.gain.setValueAtTime(0.04, now + d); sG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.02);
+            step.connect(sG); sG.connect(ctx.destination);
+            step.start(now + d); step.stop(now + d + 0.02);
+          });
+        },
+        sage: () => {
+          // GOOP: Liquid morph squelch
+          const morph = ctx.createOscillator(); const mG = ctx.createGain();
+          morph.type = 'sine'; morph.frequency.setValueAtTime(300, now);
+          morph.frequency.linearRampToValueAtTime(150, now + 0.1);
+          morph.frequency.linearRampToValueAtTime(500, now + 0.2);
+          morph.frequency.linearRampToValueAtTime(200, now + 0.3);
+          mG.gain.setValueAtTime(0.12, now); mG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          morph.connect(mG); mG.connect(ctx.destination);
+          morph.start(now); morph.stop(now + 0.35);
+        },
+        viper: () => {
+          // CHROMASTONE: Crystal chime + energy absorption
+          [0, 0.05, 0.1].forEach((d, i) => {
+            const chime = ctx.createOscillator(); const chG = ctx.createGain();
+            chime.type = 'sine'; chime.frequency.setValueAtTime(2000 + i * 500, now + d);
+            chG.gain.setValueAtTime(0.08, now + d); chG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.08);
+            chime.connect(chG); chG.connect(ctx.destination);
+            chime.start(now + d); chime.stop(now + d + 0.08);
+          });
+          const absorb = ctx.createOscillator(); const aG = ctx.createGain();
+          absorb.type = 'sine'; absorb.frequency.setValueAtTime(1200, now + 0.12);
+          absorb.frequency.exponentialRampToValueAtTime(300, now + 0.35);
+          aG.gain.setValueAtTime(0.06, now + 0.12); aG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          absorb.connect(aG); aG.connect(ctx.destination);
+          absorb.start(now + 0.12); absorb.stop(now + 0.4);
+        },
+        phoenix: () => {
+          // JETRAY: Neural beam + jet propulsion
+          const beam = ctx.createOscillator(); const bG = ctx.createGain();
+          beam.type = 'sine'; beam.frequency.setValueAtTime(800, now);
+          beam.frequency.exponentialRampToValueAtTime(3000, now + 0.1);
+          bG.gain.setValueAtTime(0.1, now); bG.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          beam.connect(bG); bG.connect(ctx.destination);
+          beam.start(now); beam.stop(now + 0.12);
+          const jet = ctx.createOscillator(); const jG = ctx.createGain();
+          const jF = ctx.createBiquadFilter();
+          jet.type = 'sawtooth'; jet.frequency.setValueAtTime(150, now + 0.08);
+          jF.type = 'bandpass'; jF.frequency.setValueAtTime(300, now); jF.Q.setValueAtTime(2, now);
+          jG.gain.setValueAtTime(0.06, now + 0.08); jG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          jet.connect(jF); jF.connect(jG); jG.connect(ctx.destination);
+          jet.start(now + 0.08); jet.stop(now + 0.3);
+        },
+        astra: () => {
+          // UPGRADE: Digital merge + tech takeover
+          [0, 0.04, 0.08, 0.12].forEach((d, i) => {
+            const bit = ctx.createOscillator(); const bG = ctx.createGain();
+            bit.type = 'square'; bit.frequency.setValueAtTime(500 + i * 300, now + d);
+            bG.gain.setValueAtTime(0.06, now + d); bG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.03);
+            bit.connect(bG); bG.connect(ctx.destination);
+            bit.start(now + d); bit.stop(now + d + 0.03);
+          });
+          const merge = ctx.createOscillator(); const mG = ctx.createGain();
+          merge.type = 'sine'; merge.frequency.setValueAtTime(600, now + 0.15);
+          merge.frequency.exponentialRampToValueAtTime(1200, now + 0.3);
+          mG.gain.setValueAtTime(0.08, now + 0.15); mG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          merge.connect(mG); mG.connect(ctx.destination);
+          merge.start(now + 0.15); merge.stop(now + 0.35);
+        },
+        fade: () => {
+          // GHOSTFREAK: Ghostly wail + phase shift
+          const wail = ctx.createOscillator(); const wG = ctx.createGain();
+          wail.type = 'sine'; wail.frequency.setValueAtTime(500, now);
+          wail.frequency.linearRampToValueAtTime(200, now + 0.15);
+          wail.frequency.linearRampToValueAtTime(700, now + 0.3);
+          wG.gain.setValueAtTime(0.08, now); wG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          wail.connect(wG); wG.connect(ctx.destination);
+          wail.start(now); wail.stop(now + 0.35);
+        },
+        gekko: () => {
+          // STINKFLY: Wing buzz
+          const buzz = ctx.createOscillator(); const bG = ctx.createGain();
+          buzz.type = 'sawtooth'; buzz.frequency.setValueAtTime(180, now);
+          buzz.frequency.linearRampToValueAtTime(220, now + 0.15);
+          buzz.frequency.linearRampToValueAtTime(180, now + 0.3);
+          bG.gain.setValueAtTime(0.06, now); bG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          buzz.connect(bG); bG.connect(ctx.destination);
+          buzz.start(now); buzz.stop(now + 0.35);
+        },
+        breach: () => {
+          // ECHO ECHO: Sonic echo multiplication
+          [0, 0.08, 0.16, 0.24].forEach((d, i) => {
+            const echo = ctx.createOscillator(); const eG = ctx.createGain();
+            echo.type = 'sine'; echo.frequency.setValueAtTime(1000, now + d);
+            eG.gain.setValueAtTime(0.1 - i * 0.02, now + d);
+            eG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.06);
+            echo.connect(eG); eG.connect(ctx.destination);
+            echo.start(now + d); echo.stop(now + d + 0.06);
+          });
+        },
+        harbor: () => {
+          // RIPJAWS: Underwater bubbles + jaw snap
+          [0, 0.04, 0.08, 0.12, 0.16].forEach(d => {
+            const bub = ctx.createOscillator(); const bG = ctx.createGain();
+            bub.type = 'sine'; bub.frequency.setValueAtTime(200 + Math.random() * 300, now + d);
+            bG.gain.setValueAtTime(0.06, now + d); bG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.03);
+            bub.connect(bG); bG.connect(ctx.destination);
+            bub.start(now + d); bub.stop(now + d + 0.03);
+          });
+          const snap = ctx.createOscillator(); const sG = ctx.createGain();
+          snap.type = 'square'; snap.frequency.setValueAtTime(2000, now + 0.18);
+          snap.frequency.exponentialRampToValueAtTime(500, now + 0.22);
+          sG.gain.setValueAtTime(0.12, now + 0.18); sG.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+          snap.connect(sG); sG.connect(ctx.destination);
+          snap.start(now + 0.18); snap.stop(now + 0.24);
+        },
+        deadlock: () => {
+          // CANNONBOLT: Roll-up → impact
+          const roll = ctx.createOscillator(); const rG = ctx.createGain();
+          roll.type = 'sine'; roll.frequency.setValueAtTime(100, now);
+          roll.frequency.exponentialRampToValueAtTime(400, now + 0.2);
+          rG.gain.setValueAtTime(0.1, now); rG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          roll.connect(rG); rG.connect(ctx.destination);
+          roll.start(now); roll.stop(now + 0.25);
+          const impact = ctx.createOscillator(); const iG = ctx.createGain();
+          impact.type = 'sine'; impact.frequency.setValueAtTime(50, now + 0.22);
+          iG.gain.setValueAtTime(0.18, now + 0.22); iG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          impact.connect(iG); iG.connect(ctx.destination);
+          impact.start(now + 0.22); impact.stop(now + 0.4);
+        },
+        clove: () => {
+          // DIAMONDHEAD: Crystal formation chimes
+          [0, 0.06, 0.12, 0.18].forEach((d, i) => {
+            const crystal = ctx.createOscillator(); const cG = ctx.createGain();
+            crystal.type = 'sine'; crystal.frequency.setValueAtTime(2000 + i * 400, now + d);
+            cG.gain.setValueAtTime(0.07, now + d); cG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.1);
+            crystal.connect(cG); cG.connect(ctx.destination);
+            crystal.start(now + d); crystal.stop(now + d + 0.1);
+          });
+        },
+        omen: () => {
+          // BIG CHILL: Frost breath + ice crystallize
+          const breath = ctx.createOscillator(); const brG = ctx.createGain();
+          const brF = ctx.createBiquadFilter();
+          breath.type = 'sawtooth'; breath.frequency.setValueAtTime(100, now);
+          brF.type = 'lowpass'; brF.frequency.setValueAtTime(200, now);
+          brG.gain.setValueAtTime(0.08, now); brG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          breath.connect(brF); brF.connect(brG); brG.connect(ctx.destination);
+          breath.start(now); breath.stop(now + 0.3);
+          const ice = ctx.createOscillator(); const iG = ctx.createGain();
+          ice.type = 'sine'; ice.frequency.setValueAtTime(3000, now + 0.15);
+          ice.frequency.exponentialRampToValueAtTime(4000, now + 0.3);
+          iG.gain.setValueAtTime(0.05, now + 0.15); iG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          ice.connect(iG); iG.connect(ctx.destination);
+          ice.start(now + 0.15); ice.stop(now + 0.35);
+        },
+        skye: () => {
+          // HUMUNGOUSAUR: Dinosaur roar + stomp
+          const roar = ctx.createOscillator(); const rG = ctx.createGain();
+          roar.type = 'sawtooth'; roar.frequency.setValueAtTime(150, now);
+          roar.frequency.exponentialRampToValueAtTime(60, now + 0.3);
+          rG.gain.setValueAtTime(0.15, now); rG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          roar.connect(rG); rG.connect(ctx.destination);
+          roar.start(now); roar.stop(now + 0.35);
+          const stomp = ctx.createOscillator(); const stG = ctx.createGain();
+          stomp.type = 'sine'; stomp.frequency.setValueAtTime(40, now + 0.15);
+          stG.gain.setValueAtTime(0.2, now + 0.15); stG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          stomp.connect(stG); stG.connect(ctx.destination);
+          stomp.start(now + 0.15); stomp.stop(now + 0.35);
+        },
+        tejo: () => {
+          // RATH: Angry roar + claw slash
+          const roar = ctx.createOscillator(); const rG = ctx.createGain();
+          roar.type = 'sawtooth'; roar.frequency.setValueAtTime(200, now);
+          roar.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+          rG.gain.setValueAtTime(0.12, now); rG.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          roar.connect(rG); rG.connect(ctx.destination);
+          roar.start(now); roar.stop(now + 0.2);
+          const slash = ctx.createOscillator(); const slG = ctx.createGain();
+          slash.type = 'sawtooth'; slash.frequency.setValueAtTime(3000, now + 0.12);
+          slash.frequency.exponentialRampToValueAtTime(800, now + 0.18);
+          slG.gain.setValueAtTime(0.1, now + 0.12); slG.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          slash.connect(slG); slG.connect(ctx.destination);
+          slash.start(now + 0.12); slash.stop(now + 0.2);
+        },
+        waylay: () => {
+          // SPIDERMONKEY: Chattering + web sling whoosh
+          [0, 0.04, 0.08].forEach(d => {
+            const chatter = ctx.createOscillator(); const chG = ctx.createGain();
+            chatter.type = 'sine'; chatter.frequency.setValueAtTime(1500 + Math.random() * 500, now + d);
+            chG.gain.setValueAtTime(0.06, now + d); chG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.03);
+            chatter.connect(chG); chG.connect(ctx.destination);
+            chatter.start(now + d); chatter.stop(now + d + 0.03);
+          });
+          const web = ctx.createOscillator(); const wG = ctx.createGain();
+          web.type = 'sine'; web.frequency.setValueAtTime(500, now + 0.1);
+          web.frequency.exponentialRampToValueAtTime(2000, now + 0.2);
+          wG.gain.setValueAtTime(0.08, now + 0.1); wG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          web.connect(wG); wG.connect(ctx.destination);
+          web.start(now + 0.1); web.stop(now + 0.25);
+        },
+        yoru: () => {
+          // CLOCKWORK: Time gear ticking + temporal shift
+          [0, 0.08, 0.16].forEach(d => {
+            const tick = ctx.createOscillator(); const tG = ctx.createGain();
+            tick.type = 'sine'; tick.frequency.setValueAtTime(1200, now + d);
+            tG.gain.setValueAtTime(0.08, now + d); tG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.02);
+            tick.connect(tG); tG.connect(ctx.destination);
+            tick.start(now + d); tick.stop(now + d + 0.02);
+          });
+          const shift = ctx.createOscillator(); const shG = ctx.createGain();
+          shift.type = 'sine'; shift.frequency.setValueAtTime(600, now + 0.2);
+          shift.frequency.exponentialRampToValueAtTime(300, now + 0.4);
+          shG.gain.setValueAtTime(0.06, now + 0.2); shG.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          shift.connect(shG); shG.connect(ctx.destination);
+          shift.start(now + 0.2); shift.stop(now + 0.45);
+        },
+        kayo: () => {
+          // GREY MATTER: Tiny intelligence chirps + brain spark
+          [0, 0.03, 0.06, 0.09, 0.12].forEach((d, i) => {
+            const chirp = ctx.createOscillator(); const cG = ctx.createGain();
+            chirp.type = 'sine'; chirp.frequency.setValueAtTime(2500 + i * 200, now + d);
+            cG.gain.setValueAtTime(0.05, now + d); cG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.02);
+            chirp.connect(cG); cG.connect(ctx.destination);
+            chirp.start(now + d); chirp.stop(now + d + 0.02);
+          });
+          const spark = ctx.createOscillator(); const spG = ctx.createGain();
+          spark.type = 'sine'; spark.frequency.setValueAtTime(3500, now + 0.15);
+          spG.gain.setValueAtTime(0.07, now + 0.15); spG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          spark.connect(spG); spG.connect(ctx.destination);
+          spark.start(now + 0.15); spark.stop(now + 0.25);
+        },
+        lobby: () => {
+          // OMNITRIX: Classic Omnitrix activation — dial spin + green flash
+          const spin = ctx.createOscillator(); const spG = ctx.createGain();
+          spin.type = 'sine'; spin.frequency.setValueAtTime(400, now);
+          spin.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
+          spG.gain.setValueAtTime(0.1, now); spG.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          spin.connect(spG); spG.connect(ctx.destination);
+          spin.start(now); spin.stop(now + 0.18);
+          const flash = ctx.createOscillator(); const flG = ctx.createGain();
+          flash.type = 'sine'; flash.frequency.setValueAtTime(1500, now + 0.12);
+          flash.frequency.exponentialRampToValueAtTime(2500, now + 0.25);
+          flG.gain.setValueAtTime(0.12, now + 0.12); flG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          flash.connect(flG); flG.connect(ctx.destination);
+          flash.start(now + 0.12); flash.stop(now + 0.3);
+        },
+      };
+
+      // Use themed sounds based on active universe
+      const activeUniverse = getActiveTheme();
+      const activeSounds = activeUniverse === 'ben10' ? ben10Sounds : sounds;
+      if (activeSounds[agent]) activeSounds[agent]();
     } catch (e) { /* Audio not supported */ }
   };
 
@@ -16314,10 +16843,14 @@ export default function App() {
     return faces[agent] || null;
   };
 
+  const themeId = getActiveTheme();
+  const TA = getThemeAgents(themeId);
+  const TC = getThemeConfig(themeId);
+
   const navSections = [
-    // Alphabetical order — Lobby (Settings) always last
+    // Alphabetical order by internal agent key — Lobby always last
     {
-      title: 'Astra (Media)', icon: Orbit, agent: 'astra',
+      title: `${TA.astra.name} (${TA.astra.role})`, icon: TA.astra.icon, agent: 'astra',
       items: [
         { path: '/astra-planner', icon: Tv, label: 'Media Planner' },
         { path: '/astra-grp', icon: Calculator, label: 'GRP Calculator' },
@@ -16325,7 +16858,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Breach (PR)', icon: Siren, agent: 'breach',
+      title: `${TA.breach.name} (${TA.breach.role})`, icon: TA.breach.icon, agent: 'breach',
       items: [
         { path: '/breach-press', icon: Newspaper, label: 'Press Releases' },
         { path: '/breach-medialist', icon: Users, label: 'Media List' },
@@ -16334,7 +16867,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Brimstone (Strategy)', icon: LayoutDashboard, agent: 'brimstone',
+      title: `${TA.brimstone.name} (${TA.brimstone.role})`, icon: TA.brimstone.icon, agent: 'brimstone',
       items: [
         { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { path: '/leads-dashboard', icon: PieChart, label: 'Leads Analytics' },
@@ -16342,7 +16875,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Chamber (Social Intel)', icon: Instagram, agent: 'chamber',
+      title: `${TA.chamber.name} (${TA.chamber.role})`, icon: TA.chamber.icon, agent: 'chamber',
       items: [
         { path: '/instagram', icon: Instagram, label: 'Instagram' },
         { path: '/facebook', icon: Facebook, label: 'Facebook / Meta' },
@@ -16352,7 +16885,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Clove (Finance)', icon: BadgeDollarSign, agent: 'clove',
+      title: `${TA.clove.name} (${TA.clove.role})`, icon: TA.clove.icon, agent: 'clove',
       items: [
         { path: '/clove-pnl', icon: FileBarChart, label: 'Profit & Loss' },
         { path: '/clove-expenses', icon: Wallet, label: 'Expense Tracker' },
@@ -16364,7 +16897,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Cypher (Leads)', icon: Crosshair, agent: 'cypher',
+      title: `${TA.cypher.name} (${TA.cypher.role})`, icon: TA.cypher.icon, agent: 'cypher',
       items: [
         { path: '/search', icon: Search, label: 'Lead Search' },
         { path: '/emails', icon: Mail, label: 'Email Extractor' },
@@ -16373,7 +16906,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Deadlock (Production)', icon: Factory, agent: 'deadlock',
+      title: `${TA.deadlock.name} (${TA.deadlock.role})`, icon: TA.deadlock.icon, agent: 'deadlock',
       items: [
         { path: '/deadlock-production', icon: Factory, label: 'Production Planner' },
         { path: '/deadlock-inventory', icon: Boxes, label: 'Raw Materials' },
@@ -16386,7 +16919,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Fade (Analytics)', icon: Waypoints, agent: 'fade',
+      title: `${TA.fade.name} (${TA.fade.role})`, icon: TA.fade.icon, agent: 'fade',
       items: [
         { path: '/fade-utm', icon: Link, label: 'UTM Builder' },
         { path: '/fade-attribution', icon: Waypoints, label: 'Attribution Model' },
@@ -16394,7 +16927,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Gekko (Community)', icon: Bot, agent: 'gekko',
+      title: `${TA.gekko.name} (${TA.gekko.role})`, icon: TA.gekko.icon, agent: 'gekko',
       items: [
         { path: '/gekko-broadcast', icon: SmartphoneNfc, label: 'WhatsApp Broadcast' },
         { path: '/gekko-chatbot', icon: Bot, label: 'Chatbot Builder' },
@@ -16402,7 +16935,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Harbor (Distribution)', icon: Anchor, agent: 'harbor',
+      title: `${TA.harbor.name} (${TA.harbor.role})`, icon: TA.harbor.icon, agent: 'harbor',
       items: [
         { path: '/harbor-distributors', icon: Building2, label: 'Distributor DB' },
         { path: '/harbor-onboarding', icon: ClipboardList, label: 'Onboarding' },
@@ -16415,7 +16948,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Jett (Ads)', icon: Flame, agent: 'jett',
+      title: `${TA.jett.name} (${TA.jett.role})`, icon: TA.jett.icon, agent: 'jett',
       items: [
         { path: '/jett-campaigns', icon: Flame, label: 'Campaign Manager' },
         { path: '/jett-budget', icon: Wallet, label: 'Budget Optimizer' },
@@ -16424,16 +16957,16 @@ export default function App() {
       ]
     },
     {
-      title: 'KAY/O (Dev Agent)', icon: Terminal, agent: 'kayo',
+      title: `${TA.kayo.name} (${TA.kayo.role})`, icon: TA.kayo.icon, agent: 'kayo',
       items: [
-        { path: '/kayo-chat', icon: MessageCircle, label: 'KAY/O Chat' },
+        { path: '/kayo-chat', icon: MessageCircle, label: `${TA.kayo.name} Chat` },
         { path: '/kayo-code-review', icon: Eye, label: 'Code Review' },
         { path: '/kayo-git', icon: GitBranch, label: 'Git Dashboard' },
         { path: '/kayo-deploy', icon: Rocket, label: 'Deploy Manager' },
       ]
     },
     {
-      title: 'Killjoy (SEO)', icon: Globe, agent: 'killjoy',
+      title: `${TA.killjoy.name} (${TA.killjoy.role})`, icon: TA.killjoy.icon, agent: 'killjoy',
       items: [
         { path: '/website-analysis', icon: Radar, label: 'Full Analysis' },
         { path: '/seo-dashboard', icon: BarChart3, label: 'SEO Dashboard' },
@@ -16444,7 +16977,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Neon (Content)', icon: Wand2, agent: 'neon',
+      title: `${TA.neon.name} (${TA.neon.role})`, icon: TA.neon.icon, agent: 'neon',
       items: [
         { path: '/content-hub', icon: Layers, label: 'Content Hub' },
         { path: '/blog', icon: BookOpen, label: 'Blog Writer' },
@@ -16458,7 +16991,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Omen (Tasks)', icon: Ghost, agent: 'omen',
+      title: `${TA.omen.name} (${TA.omen.role})`, icon: TA.omen.icon, agent: 'omen',
       items: [
         { path: '/omen-tasks', icon: FolderKanban, label: 'Task Board' },
         { path: '/omen-projects', icon: Layers, label: 'Project Tracker' },
@@ -16470,7 +17003,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Phoenix (Social)', icon: CalendarDays, agent: 'phoenix',
+      title: `${TA.phoenix.name} (${TA.phoenix.role})`, icon: TA.phoenix.icon, agent: 'phoenix',
       items: [
         { path: '/phoenix-calendar', icon: CalendarDays, label: 'Content Calendar' },
         { path: '/phoenix-scheduler', icon: Clock, label: 'Smart Scheduler' },
@@ -16479,7 +17012,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Sage (CRM)', icon: Heart, agent: 'sage',
+      title: `${TA.sage.name} (${TA.sage.role})`, icon: TA.sage.icon, agent: 'sage',
       items: [
         { path: '/sage-customers', icon: Users, label: 'Customer Database' },
         { path: '/sage-lifecycle', icon: Repeat2, label: 'Lifecycle Tracker' },
@@ -16488,7 +17021,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Skye (Influencers)', icon: Bird, agent: 'skye',
+      title: `${TA.skye.name} (${TA.skye.role})`, icon: TA.skye.icon, agent: 'skye',
       items: [
         { path: '/skye-influencers', icon: Users, label: 'Influencer DB' },
         { path: '/skye-campaigns', icon: Megaphone, label: 'Campaigns' },
@@ -16501,7 +17034,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Sova (Research)', icon: Microscope, agent: 'sova',
+      title: `${TA.sova.name} (${TA.sova.role})`, icon: TA.sova.icon, agent: 'sova',
       items: [
         { path: '/keyword-research', icon: Hash, label: 'Keyword Discovery' },
         { path: '/keyword-gap', icon: Target, label: 'Content Gaps' },
@@ -16516,7 +17049,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Tejo (Govt Schemes)', icon: Landmark, agent: 'tejo',
+      title: `${TA.tejo.name} (${TA.tejo.role})`, icon: TA.tejo.icon, agent: 'tejo',
       items: [
         { path: '/tejo-schemes', icon: Landmark, label: 'Scheme Explorer' },
         { path: '/tejo-db', icon: ScrollText, label: 'Scheme Database' },
@@ -16528,7 +17061,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Viper (Email)', icon: Send, agent: 'viper',
+      title: `${TA.viper.name} (${TA.viper.role})`, icon: TA.viper.icon, agent: 'viper',
       items: [
         { path: '/viper-drip', icon: Send, label: 'Drip Campaigns' },
         { path: '/viper-newsletter', icon: Mail, label: 'Newsletter Editor' },
@@ -16536,7 +17069,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Waylay (GBP & SEO)', icon: MapPinned, agent: 'waylay',
+      title: `${TA.waylay.name} (${TA.waylay.role})`, icon: TA.waylay.icon, agent: 'waylay',
       items: [
         { path: '/waylay-gbp', icon: MapPinned, label: 'GBP Manager' },
         { path: '/waylay-keywords', icon: Hash, label: 'Keyword Planner' },
@@ -16548,7 +17081,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Yoru (Automation)', icon: Waypoints, agent: 'yoru',
+      title: `${TA.yoru.name} (${TA.yoru.role})`, icon: TA.yoru.icon, agent: 'yoru',
       items: [
         { path: '/yoru-workflow', icon: Waypoints, label: 'Rift Engine' },
         { path: '/yoru-automations', icon: FolderKanban, label: 'Saved Rifts' },
@@ -16557,7 +17090,7 @@ export default function App() {
     },
     // Settings always last
     {
-      title: 'Lobby (Settings)', icon: Settings, agent: 'lobby',
+      title: `${TA.lobby.name} (${TA.lobby.role})`, icon: TA.lobby.icon, agent: 'lobby',
       items: [
         ...(isAdmin ? [
           { path: '/admin-panel', icon: Shield, label: 'Admin Panel' },
@@ -16575,7 +17108,7 @@ export default function App() {
       <NotificationBell />
       <div className="mobile-header">
         <button className="hamburger" onClick={() => setSidebarOpen(true)}><Menu size={22} /></button>
-        <span style={{ fontWeight: 700, fontSize: 16 }}>PROTOCOL</span>
+        <span style={{ fontWeight: 700, fontSize: 16 }}>{TC.logo}</span>
       </div>
 
       <div className="app-layout">
@@ -16584,11 +17117,19 @@ export default function App() {
         <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
           <div className="sidebar-header">
             <div className="sidebar-logo">
-              <div className="sidebar-logo-icon" style={{ background: 'transparent', border: '1.5px solid #ff4655', borderRadius: 2, clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', color: '#ff4655' }}>P</div>
-              <div>
-                <div className="sidebar-logo-text" style={{ letterSpacing: 3 }}>PROTOCOL</div>
-                <div className="sidebar-logo-badge" style={{ color: '#ff4655', opacity: 0.7 }}>TACTICAL MARKETING</div>
-              </div>
+              {(() => {
+                const color = themeId === 'ben10' ? '#00d100' : '#ff4655';
+                const badgeText = themeId === 'ben10' ? 'OMNITRIX FORCE' : 'TACTICAL MARKETING';
+                return (
+                  <>
+                    <div className="sidebar-logo-icon" style={{ background: 'transparent', border: `1.5px solid ${color}`, borderRadius: 2, clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', color: color }}>{TC.logo[0]}</div>
+                    <div>
+                      <div className="sidebar-logo-text" style={{ letterSpacing: 3 }}>{TC.logo}</div>
+                      <div className="sidebar-logo-badge" style={{ color: color, opacity: 0.7 }}>{badgeText}</div>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
 
