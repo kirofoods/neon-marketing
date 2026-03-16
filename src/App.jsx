@@ -132,6 +132,39 @@ const THEMES = {
       lobby: { name: 'Omnitrix', role: 'Settings', icon: Settings },
     },
   },
+  pokemon: {
+    id: 'pokemon',
+    name: 'POKÉMON',
+    tagline: 'Gotta Catch \'Em All',
+    logo: 'POKÉDEX',
+    cssClass: 'pokemon',
+    agents: {
+      astra: { name: 'Starmie', role: 'Media', icon: Star },
+      breach: { name: 'Machamp', role: 'PR', icon: Swords },
+      brimstone: { name: 'Charizard', role: 'Strategy', icon: Flame },
+      chamber: { name: 'Mr. Mime', role: 'Social Intel', icon: Eye },
+      clove: { name: 'Meowth', role: 'Finance', icon: CircleDollarSign },
+      cypher: { name: 'Alakazam', role: 'Leads', icon: Crosshair },
+      deadlock: { name: 'Snorlax', role: 'Production', icon: Package },
+      fade: { name: 'Gengar', role: 'Analytics', icon: Ghost },
+      gekko: { name: 'Pikachu', role: 'Community', icon: Zap },
+      harbor: { name: 'Lapras', role: 'Distribution', icon: Anchor },
+      jett: { name: 'Pidgeot', role: 'Ads', icon: Bird },
+      kayo: { name: 'Voltorb', role: 'Dev Agent', icon: CircleDot },
+      killjoy: { name: 'Porygon', role: 'SEO', icon: Globe },
+      neon: { name: 'Jigglypuff', role: 'Content', icon: Mic },
+      omen: { name: 'Haunter', role: 'Tasks', icon: Ghost },
+      phoenix: { name: 'Moltres', role: 'Social', icon: Flame },
+      sage: { name: 'Chansey', role: 'CRM', icon: Heart },
+      skye: { name: 'Dragonite', role: 'Influencers', icon: Crown },
+      sova: { name: 'Mewtwo', role: 'Research', icon: Microscope },
+      tejo: { name: 'Blastoise', role: 'Govt Schemes', icon: Shield },
+      viper: { name: 'Arbok', role: 'Email', icon: Send },
+      waylay: { name: 'Geodude', role: 'GBP & SEO', icon: MapPinned },
+      yoru: { name: 'Abra', role: 'Automation', icon: Sparkles },
+      lobby: { name: 'Pokédex', role: 'Settings', icon: Settings },
+    },
+  },
 };
 
 const getActiveTheme = () => localStorage.getItem('protocol_universe') || 'valorant';
@@ -147,7 +180,7 @@ class AppErrorBoundary extends React.Component {
     if (this.state.hasError) {
       const themeId = getActiveTheme();
       const themeConfig = getThemeConfig(themeId);
-      const isActive = themeId === 'ben10' ? '#00d100' : '#ff4655';
+      const isActive = ({valorant:'#ff4655',ben10:'#00d100',pokemon:'#E3350D'})[themeId] || '#ff4655';
       return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif', flexDirection: 'column', gap: 16 }}>
@@ -12019,10 +12052,12 @@ function SettingsPage() {
                   <button key={theme.id}
                     onClick={() => {
                       localStorage.setItem('protocol_universe', theme.id);
-                      // Apply Ben 10 or Valorant CSS
+                      // Apply theme CSS based on universe
                       const mode = localStorage.getItem('protocol_theme') || 'dark';
                       if (theme.id === 'ben10') {
                         document.documentElement.setAttribute('data-theme', mode === 'dark' ? 'ben10' : 'ben10-light');
+                      } else if (theme.id === 'pokemon') {
+                        document.documentElement.setAttribute('data-theme', mode === 'dark' ? 'pokemon' : 'pokemon-light');
                       } else {
                         document.documentElement.setAttribute('data-theme', mode === 'dark' ? '' : 'light');
                       }
@@ -12031,9 +12066,9 @@ function SettingsPage() {
                     }}
                     style={{
                       flex: 1, padding: '20px 16px', borderRadius: 12, cursor: 'pointer',
-                      border: isActive ? `2px solid ${theme.id === 'ben10' ? '#00d100' : '#ff4655'}` : '2px solid var(--border)',
+                      border: isActive ? `2px solid ${({valorant:'#ff4655',ben10:'#00d100',pokemon:'#E3350D'})[theme.id]}` : '2px solid var(--border)',
                       background: isActive
-                        ? (theme.id === 'ben10' ? 'rgba(0,209,0,0.08)' : 'rgba(255,70,85,0.08)')
+                        ? `rgba(${({valorant:[255,70,85],ben10:[0,209,0],pokemon:[227,53,13]})[theme.id].join(',')},0.08)`
                         : 'var(--bg-secondary)',
                       transition: 'all 0.2s', textAlign: 'center',
                     }}
@@ -12042,11 +12077,11 @@ function SettingsPage() {
                       fontSize: 28, marginBottom: 8,
                       filter: isActive ? 'none' : 'grayscale(0.5) opacity(0.6)',
                     }}>
-                      {theme.id === 'valorant' ? '⚔️' : '👽'}
+                      {theme.id === 'valorant' ? '⚔️' : theme.id === 'ben10' ? '👽' : '🔴'}
                     </div>
                     <div style={{
                       fontSize: 14, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase',
-                      color: isActive ? (theme.id === 'ben10' ? '#00d100' : '#ff4655') : 'var(--text-secondary)',
+                      color: isActive ? ({valorant:'#ff4655',ben10:'#00d100',pokemon:'#E3350D'})[theme.id] : 'var(--text-secondary)',
                       marginBottom: 4,
                     }}>
                       {theme.name}
@@ -12057,7 +12092,7 @@ function SettingsPage() {
                     {isActive && (
                       <div style={{
                         marginTop: 8, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1,
-                        color: theme.id === 'ben10' ? '#00d100' : '#ff4655',
+                        color: ({valorant:'#ff4655',ben10:'#00d100',pokemon:'#E3350D'})[theme.id],
                       }}>
                         ● Active
                       </div>
@@ -12088,6 +12123,8 @@ function SettingsPage() {
                         const universe = localStorage.getItem('protocol_universe') || 'valorant';
                         if (universe === 'ben10') {
                           document.documentElement.setAttribute('data-theme', t === 'dark' ? 'ben10' : 'ben10-light');
+                        } else if (universe === 'pokemon') {
+                          document.documentElement.setAttribute('data-theme', t === 'dark' ? 'pokemon' : 'pokemon-light');
                         } else {
                           document.documentElement.setAttribute('data-theme', t === 'dark' ? '' : t);
                         }
@@ -15429,6 +15466,8 @@ export default function App() {
     const mode = localStorage.getItem('protocol_theme') || 'dark';
     if (universe === 'ben10') {
       document.documentElement.setAttribute('data-theme', mode === 'dark' ? 'ben10' : 'ben10-light');
+    } else if (universe === 'pokemon') {
+      document.documentElement.setAttribute('data-theme', mode === 'dark' ? 'pokemon' : 'pokemon-light');
     } else {
       document.documentElement.setAttribute('data-theme', mode === 'dark' ? '' : 'light');
     }
@@ -15767,8 +15806,9 @@ export default function App() {
     } catch (e) {}
   };
 
-  // Agent ult voicelines — MP3/OGG audio file playback
-  // Place real Valorant agent voice files in public/voicelines/{agent}.mp3 or .ogg
+  // Agent voicelines — MP3/OGG audio file playback
+  // Valorant: public/voicelines/{agent}.mp3
+  // Ben 10:   public/voicelines/ben10/{agent}.mp3
   const voicelineAudioRef = React.useRef(null);
   const playUltVoiceline = (agent) => {
     try {
@@ -15778,18 +15818,23 @@ export default function App() {
         voicelineAudioRef.current.currentTime = 0;
       }
 
-      // Try MP3 first, then OGG
-      const audio = new Audio(`./voicelines/${agent}.mp3`);
+      // Theme-aware voiceline path
+      const universe = getActiveTheme();
+      const voiceDir = universe === 'ben10' ? 'ben10' : universe === 'pokemon' ? 'pokemon' : '';
+      const basePath = voiceDir ? `./voicelines/${voiceDir}/${agent}.mp3` : `./voicelines/${agent}.mp3`;
+      const oggPath = voiceDir ? `./voicelines/${voiceDir}/${agent}.ogg` : `./voicelines/${agent}.ogg`;
+
+      const audio = new Audio(basePath);
       audio.volume = 0.85;
       voicelineAudioRef.current = audio;
 
       audio.play().catch(() => {
         // Try OGG format
-        const ogg = new Audio(`./voicelines/${agent}.ogg`);
+        const ogg = new Audio(oggPath);
         ogg.volume = 0.85;
         voicelineAudioRef.current = ogg;
         ogg.play().catch(() => {
-          // No audio file found — silent (no TTS fallback, user wants real voices only)
+          // No audio file found — silent
         });
       });
     } catch (e) {}
@@ -16805,9 +16850,267 @@ export default function App() {
         },
       };
 
+      // Pokemon — 8-bit retro cries + battle sounds
+      const pokemonSounds = {
+        brimstone: () => {
+          // CHARIZARD: Fire roar + wing flap
+          const roar = ctx.createOscillator(); const rG = ctx.createGain();
+          roar.type = 'sawtooth'; roar.frequency.setValueAtTime(180, now);
+          roar.frequency.exponentialRampToValueAtTime(60, now + 0.25);
+          rG.gain.setValueAtTime(0.15, now); rG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          roar.connect(rG); rG.connect(ctx.destination);
+          roar.start(now); roar.stop(now + 0.3);
+          const wing = ctx.createOscillator(); const wG = ctx.createGain();
+          wing.type = 'sine'; wing.frequency.setValueAtTime(400, now + 0.15);
+          wing.frequency.exponentialRampToValueAtTime(200, now + 0.3);
+          wG.gain.setValueAtTime(0.06, now + 0.15); wG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          wing.connect(wG); wG.connect(ctx.destination);
+          wing.start(now + 0.15); wing.stop(now + 0.35);
+        },
+        cypher: () => {
+          // ALAKAZAM: Psychic wave + spoon bend
+          const psy = ctx.createOscillator(); const pG = ctx.createGain();
+          psy.type = 'sine'; psy.frequency.setValueAtTime(800, now);
+          psy.frequency.exponentialRampToValueAtTime(2000, now + 0.15);
+          psy.frequency.exponentialRampToValueAtTime(600, now + 0.3);
+          pG.gain.setValueAtTime(0.1, now); pG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          psy.connect(pG); pG.connect(ctx.destination);
+          psy.start(now); psy.stop(now + 0.35);
+        },
+        chamber: () => {
+          // MR. MIME: Mime barrier shimmer
+          [0, 0.06, 0.12, 0.18].forEach((d, i) => {
+            const sh = ctx.createOscillator(); const sG = ctx.createGain();
+            sh.type = 'sine'; sh.frequency.setValueAtTime(1500 + i * 300, now + d);
+            sG.gain.setValueAtTime(0.07, now + d); sG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.05);
+            sh.connect(sG); sG.connect(ctx.destination);
+            sh.start(now + d); sh.stop(now + d + 0.05);
+          });
+        },
+        killjoy: () => {
+          // PORYGON: Digital glitch + data processing
+          [0, 0.03, 0.06, 0.09, 0.12, 0.15].forEach((d, i) => {
+            const bit = ctx.createOscillator(); const bG = ctx.createGain();
+            bit.type = 'square'; bit.frequency.setValueAtTime(800 + (i % 3) * 400, now + d);
+            bG.gain.setValueAtTime(0.06, now + d); bG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.02);
+            bit.connect(bG); bG.connect(ctx.destination);
+            bit.start(now + d); bit.stop(now + d + 0.02);
+          });
+        },
+        sova: () => {
+          // MEWTWO: Psychic power surge
+          const surge = ctx.createOscillator(); const sG = ctx.createGain();
+          surge.type = 'sine'; surge.frequency.setValueAtTime(200, now);
+          surge.frequency.exponentialRampToValueAtTime(1500, now + 0.2);
+          surge.frequency.exponentialRampToValueAtTime(400, now + 0.4);
+          sG.gain.setValueAtTime(0.12, now); sG.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          surge.connect(sG); sG.connect(ctx.destination);
+          surge.start(now); surge.stop(now + 0.45);
+        },
+        neon: () => {
+          // JIGGLYPUFF: Singing melody
+          [261, 329, 392, 329, 261].forEach((freq, i) => {
+            const note = ctx.createOscillator(); const nG = ctx.createGain();
+            note.type = 'sine'; note.frequency.setValueAtTime(freq, now + i * 0.08);
+            nG.gain.setValueAtTime(0.08, now + i * 0.08); nG.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.07);
+            note.connect(nG); nG.connect(ctx.destination);
+            note.start(now + i * 0.08); note.stop(now + i * 0.08 + 0.07);
+          });
+        },
+        jett: () => {
+          // PIDGEOT: Wing gust whoosh
+          const gust = ctx.createOscillator(); const gG = ctx.createGain();
+          const gF = ctx.createBiquadFilter();
+          gust.type = 'sawtooth'; gust.frequency.setValueAtTime(300, now);
+          gust.frequency.exponentialRampToValueAtTime(3000, now + 0.15);
+          gF.type = 'bandpass'; gF.frequency.setValueAtTime(1500, now); gF.Q.setValueAtTime(1, now);
+          gG.gain.setValueAtTime(0.1, now); gG.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          gust.connect(gF); gF.connect(gG); gG.connect(ctx.destination);
+          gust.start(now); gust.stop(now + 0.2);
+        },
+        sage: () => {
+          // CHANSEY: Healing chime
+          [523, 659, 784, 1047].forEach((freq, i) => {
+            const ch = ctx.createOscillator(); const cG = ctx.createGain();
+            ch.type = 'sine'; ch.frequency.setValueAtTime(freq, now + i * 0.06);
+            cG.gain.setValueAtTime(0.07, now + i * 0.06); cG.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.1);
+            ch.connect(cG); cG.connect(ctx.destination);
+            ch.start(now + i * 0.06); ch.stop(now + i * 0.06 + 0.1);
+          });
+        },
+        viper: () => {
+          // ARBOK: Hiss + poison spit
+          const hiss = ctx.createOscillator(); const hG = ctx.createGain();
+          const hF = ctx.createBiquadFilter();
+          hiss.type = 'sawtooth'; hiss.frequency.setValueAtTime(3000, now);
+          hF.type = 'highpass'; hF.frequency.setValueAtTime(2000, now);
+          hG.gain.setValueAtTime(0.06, now); hG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          hiss.connect(hF); hF.connect(hG); hG.connect(ctx.destination);
+          hiss.start(now); hiss.stop(now + 0.25);
+        },
+        phoenix: () => {
+          // MOLTRES: Legendary fire bird screech
+          const screech = ctx.createOscillator(); const scG = ctx.createGain();
+          screech.type = 'sawtooth'; screech.frequency.setValueAtTime(1200, now);
+          screech.frequency.exponentialRampToValueAtTime(2400, now + 0.1);
+          screech.frequency.exponentialRampToValueAtTime(800, now + 0.3);
+          scG.gain.setValueAtTime(0.12, now); scG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          screech.connect(scG); scG.connect(ctx.destination);
+          screech.start(now); screech.stop(now + 0.35);
+        },
+        astra: () => {
+          // STARMIE: Cosmic jewel sparkle
+          [0, 0.05, 0.1].forEach((d, i) => {
+            const sp = ctx.createOscillator(); const sG = ctx.createGain();
+            sp.type = 'sine'; sp.frequency.setValueAtTime(2500 + i * 500, now + d);
+            sG.gain.setValueAtTime(0.06, now + d); sG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.08);
+            sp.connect(sG); sG.connect(ctx.destination);
+            sp.start(now + d); sp.stop(now + d + 0.08);
+          });
+        },
+        fade: () => {
+          // GENGAR: Shadow laugh
+          const laugh = ctx.createOscillator(); const lG = ctx.createGain();
+          laugh.type = 'square'; laugh.frequency.setValueAtTime(200, now);
+          laugh.frequency.linearRampToValueAtTime(150, now + 0.1);
+          laugh.frequency.linearRampToValueAtTime(250, now + 0.2);
+          laugh.frequency.linearRampToValueAtTime(130, now + 0.3);
+          lG.gain.setValueAtTime(0.08, now); lG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          laugh.connect(lG); lG.connect(ctx.destination);
+          laugh.start(now); laugh.stop(now + 0.35);
+        },
+        gekko: () => {
+          // PIKACHU: Electric zap
+          const zap = ctx.createOscillator(); const zG = ctx.createGain();
+          zap.type = 'sawtooth'; zap.frequency.setValueAtTime(2000, now);
+          zap.frequency.exponentialRampToValueAtTime(500, now + 0.05);
+          zG.gain.setValueAtTime(0.12, now); zG.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          zap.connect(zG); zG.connect(ctx.destination);
+          zap.start(now); zap.stop(now + 0.08);
+          const thunder = ctx.createOscillator(); const tG = ctx.createGain();
+          thunder.type = 'sawtooth'; thunder.frequency.setValueAtTime(100, now + 0.06);
+          thunder.frequency.exponentialRampToValueAtTime(50, now + 0.2);
+          tG.gain.setValueAtTime(0.1, now + 0.06); tG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          thunder.connect(tG); tG.connect(ctx.destination);
+          thunder.start(now + 0.06); thunder.stop(now + 0.25);
+        },
+        breach: () => {
+          // MACHAMP: Power-up punch
+          const punch = ctx.createOscillator(); const pG = ctx.createGain();
+          punch.type = 'sine'; punch.frequency.setValueAtTime(80, now);
+          pG.gain.setValueAtTime(0.18, now); pG.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          punch.connect(pG); pG.connect(ctx.destination);
+          punch.start(now); punch.stop(now + 0.15);
+          const crack = ctx.createOscillator(); const cG = ctx.createGain();
+          crack.type = 'square'; crack.frequency.setValueAtTime(2000, now + 0.05);
+          crack.frequency.exponentialRampToValueAtTime(500, now + 0.1);
+          cG.gain.setValueAtTime(0.08, now + 0.05); cG.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          crack.connect(cG); cG.connect(ctx.destination);
+          crack.start(now + 0.05); crack.stop(now + 0.12);
+        },
+        harbor: () => {
+          // LAPRAS: Ocean song
+          const song = ctx.createOscillator(); const sG = ctx.createGain();
+          song.type = 'sine'; song.frequency.setValueAtTime(400, now);
+          song.frequency.linearRampToValueAtTime(500, now + 0.15);
+          song.frequency.linearRampToValueAtTime(350, now + 0.3);
+          sG.gain.setValueAtTime(0.1, now); sG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          song.connect(sG); sG.connect(ctx.destination);
+          song.start(now); song.stop(now + 0.4);
+        },
+        deadlock: () => {
+          // SNORLAX: Heavy snore + thud
+          const snore = ctx.createOscillator(); const snG = ctx.createGain();
+          snore.type = 'sine'; snore.frequency.setValueAtTime(100, now);
+          snore.frequency.linearRampToValueAtTime(80, now + 0.2);
+          snore.frequency.linearRampToValueAtTime(120, now + 0.4);
+          snG.gain.setValueAtTime(0.12, now); snG.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          snore.connect(snG); snG.connect(ctx.destination);
+          snore.start(now); snore.stop(now + 0.45);
+        },
+        clove: () => {
+          // MEOWTH: Pay Day coin toss
+          [0, 0.06, 0.12, 0.18, 0.24].forEach(d => {
+            const coin = ctx.createOscillator(); const cG = ctx.createGain();
+            coin.type = 'sine'; coin.frequency.setValueAtTime(3000 + Math.random() * 1000, now + d);
+            cG.gain.setValueAtTime(0.06, now + d); cG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.04);
+            coin.connect(cG); cG.connect(ctx.destination);
+            coin.start(now + d); coin.stop(now + d + 0.04);
+          });
+        },
+        omen: () => {
+          // HAUNTER: Ghost lick
+          const lick = ctx.createOscillator(); const lG = ctx.createGain();
+          lick.type = 'sine'; lick.frequency.setValueAtTime(500, now);
+          lick.frequency.exponentialRampToValueAtTime(200, now + 0.15);
+          lick.frequency.exponentialRampToValueAtTime(800, now + 0.25);
+          lG.gain.setValueAtTime(0.1, now); lG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          lick.connect(lG); lG.connect(ctx.destination);
+          lick.start(now); lick.stop(now + 0.3);
+        },
+        skye: () => {
+          // DRAGONITE: Dragon pulse
+          const pulse = ctx.createOscillator(); const pG = ctx.createGain();
+          pulse.type = 'sawtooth'; pulse.frequency.setValueAtTime(150, now);
+          pulse.frequency.exponentialRampToValueAtTime(600, now + 0.2);
+          pG.gain.setValueAtTime(0.12, now); pG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          pulse.connect(pG); pG.connect(ctx.destination);
+          pulse.start(now); pulse.stop(now + 0.3);
+        },
+        tejo: () => {
+          // BLASTOISE: Hydro pump blast
+          const hydro = ctx.createOscillator(); const hG = ctx.createGain();
+          const hF = ctx.createBiquadFilter();
+          hydro.type = 'sawtooth'; hydro.frequency.setValueAtTime(100, now);
+          hF.type = 'bandpass'; hF.frequency.setValueAtTime(300, now); hF.Q.setValueAtTime(3, now);
+          hG.gain.setValueAtTime(0.12, now); hG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          hydro.connect(hF); hF.connect(hG); hG.connect(ctx.destination);
+          hydro.start(now); hydro.stop(now + 0.35);
+        },
+        waylay: () => {
+          // GEODUDE: Rock slide
+          [0, 0.05, 0.1, 0.15, 0.2].forEach(d => {
+            const rock = ctx.createOscillator(); const rG = ctx.createGain();
+            rock.type = 'sine'; rock.frequency.setValueAtTime(60 + Math.random() * 100, now + d);
+            rG.gain.setValueAtTime(0.08, now + d); rG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.04);
+            rock.connect(rG); rG.connect(ctx.destination);
+            rock.start(now + d); rock.stop(now + d + 0.04);
+          });
+        },
+        yoru: () => {
+          // ABRA: Teleport
+          const tp = ctx.createOscillator(); const tG = ctx.createGain();
+          tp.type = 'sine'; tp.frequency.setValueAtTime(1000, now);
+          tp.frequency.exponentialRampToValueAtTime(4000, now + 0.1);
+          tG.gain.setValueAtTime(0.1, now); tG.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          tp.connect(tG); tG.connect(ctx.destination);
+          tp.start(now); tp.stop(now + 0.12);
+        },
+        kayo: () => {
+          // VOLTORB: Self-destruct charge
+          const charge = ctx.createOscillator(); const chG = ctx.createGain();
+          charge.type = 'sine'; charge.frequency.setValueAtTime(300, now);
+          charge.frequency.exponentialRampToValueAtTime(3000, now + 0.25);
+          chG.gain.setValueAtTime(0.08, now); chG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          charge.connect(chG); chG.connect(ctx.destination);
+          charge.start(now); charge.stop(now + 0.3);
+        },
+        lobby: () => {
+          // DITTO: Transform wobble
+          const wobble = ctx.createOscillator(); const wG = ctx.createGain();
+          wobble.type = 'sine'; wobble.frequency.setValueAtTime(400, now);
+          wobble.frequency.linearRampToValueAtTime(600, now + 0.1);
+          wobble.frequency.linearRampToValueAtTime(300, now + 0.2);
+          wobble.frequency.linearRampToValueAtTime(500, now + 0.3);
+          wG.gain.setValueAtTime(0.1, now); wG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          wobble.connect(wG); wG.connect(ctx.destination);
+          wobble.start(now); wobble.stop(now + 0.35);
+        },
+      };
+
       // Use themed sounds based on active universe
       const activeUniverse = getActiveTheme();
-      const activeSounds = activeUniverse === 'ben10' ? ben10Sounds : sounds;
+      const activeSounds = activeUniverse === 'ben10' ? ben10Sounds : activeUniverse === 'pokemon' ? pokemonSounds : sounds;
       if (activeSounds[agent]) activeSounds[agent]();
     } catch (e) { /* Audio not supported */ }
   };

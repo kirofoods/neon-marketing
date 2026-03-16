@@ -193,6 +193,92 @@
   --shadow-glow: 0 0 20px rgba(0, 160, 0, 0.1);
 }
 
+/* ============================================
+   POKÉMON DARK THEME — Pokédex Red on Dark
+   ============================================ */
+[data-theme="pokemon"] {
+  --bg-primary: #1a0a0e;
+  --bg-secondary: #241018;
+  --bg-tertiary: #2e1520;
+  --bg-elevated: #381a28;
+  --card-bg: #381a28;
+  --bg-hover: #4a2535;
+  --bg-active: #5c3045;
+
+  --border: #3a1525;
+  --border-light: #502035;
+  --border-lighter: #653045;
+
+  --text-primary: #f5e8ec;
+  --text-secondary: #b08898;
+  --text-tertiary: #886878;
+  --text-muted: #604858;
+
+  --accent: #E3350D;
+  --accent-hover: #cc2e0b;
+  --accent-light: #ff5533;
+  --accent-lighter: rgba(227, 53, 13, 0.1);
+  --accent-glow: rgba(227, 53, 13, 0.25);
+
+  --success: #4CAF50;
+  --success-bg: rgba(76, 175, 80, 0.1);
+  --warning: #FFB300;
+  --warning-bg: rgba(255, 179, 0, 0.1);
+  --error: #E3350D;
+  --error-bg: rgba(227, 53, 13, 0.1);
+  --info: #3B4CCA;
+  --info-bg: rgba(59, 76, 202, 0.1);
+
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.65);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.8);
+  --shadow-glow: 0 0 20px rgba(227, 53, 13, 0.15);
+}
+
+/* ============================================
+   POKÉMON LIGHT THEME — Pokédex Red, Light
+   ============================================ */
+[data-theme="pokemon-light"] {
+  --bg-primary: #fef5f3;
+  --bg-secondary: #fce8e4;
+  --bg-tertiary: #f8d8d2;
+  --bg-elevated: #ffffff;
+  --card-bg: #ffffff;
+  --bg-hover: #fde0da;
+  --bg-active: #f5c8be;
+
+  --border: #e8b8b0;
+  --border-light: #d8a098;
+  --border-lighter: #c89088;
+
+  --text-primary: #2e0a0a;
+  --text-secondary: #6e2e2e;
+  --text-tertiary: #8e5050;
+  --text-muted: #b08080;
+
+  --accent: #CC0000;
+  --accent-hover: #aa0000;
+  --accent-light: #ff3333;
+  --accent-lighter: rgba(204, 0, 0, 0.08);
+  --accent-glow: rgba(204, 0, 0, 0.15);
+
+  --success: #388E3C;
+  --success-bg: rgba(56, 142, 60, 0.08);
+  --warning: #F57F17;
+  --warning-bg: rgba(245, 127, 23, 0.08);
+  --error: #CC0000;
+  --error-bg: rgba(204, 0, 0, 0.08);
+  --info: #1565C0;
+  --info-bg: rgba(21, 101, 192, 0.08);
+
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 20px rgba(204, 0, 0, 0.1);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -232,6 +318,23 @@ body {
   background-image:
     linear-gradient(rgba(0,160,0,0.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0,160,0,0.02) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
+/* Pokemon grid pattern override */
+[data-theme="pokemon"] body,
+[data-theme="pokemon"] {
+  background-image:
+    linear-gradient(rgba(227,53,13,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(227,53,13,0.02) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
+[data-theme="pokemon-light"] body,
+[data-theme="pokemon-light"] {
+  background-image:
+    linear-gradient(rgba(204,0,0,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(204,0,0,0.02) 1px, transparent 1px);
   background-size: 80px 80px;
 }
 
