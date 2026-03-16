@@ -8,21 +8,60 @@ let app = null;
 let db = null;
 let syncListener = null;
 let syncEnabled = false;
+let autoSyncTimer = null;
+let autoSyncPin = null;
+let autoSyncEnabled = false;
 
-// Keys to sync across devices
+// Keys to sync across devices — ALL agent data
 const SYNC_KEYS = [
-  'protocol_leads',
-  'protocol_lead_folders',
-  'kj_claude_key',
-  'kj_openai_key',
-  'kj_gemini_key',
-  'kj_apify_token',
-  'kj_google_api_key',
-  'kj_google_cx',
-  'kj_shopify_store',
-  'kj_shopify_token',
-  'kj_ai_provider',
-  'kj_brand_voice',
+  // API Keys & Config
+  'kj_claude_key', 'kj_openai_key', 'kj_gemini_key', 'kj_apify_token',
+  'kj_google_api_key', 'kj_google_cx', 'kj_shopify_store', 'kj_shopify_token',
+  'kj_ai_provider', 'kj_brand_voice',
+  // Leads & Folders
+  'protocol_leads', 'protocol_lead_folders',
+  // SEO bridge
+  'protocol_seo_to_content',
+  // Jett — Paid Ads
+  'protocol_jett_campaigns', 'protocol_jett_abtests',
+  // Sage — CRM
+  'protocol_sage_customers',
+  // Viper — Email
+  'protocol_viper_sequences',
+  // Reyna — Influencer
+  'protocol_reyna_campaigns',
+  // Phoenix — Social
+  'protocol_phoenix_posts',
+  // Fade — Attribution
+  'protocol_fade_utms',
+  // Breach — PR
+  'protocol_breach_medialist',
+  // Harbor — Distribution
+  'protocol_harbor_partners', 'protocol_harbor_onboarding', 'protocol_harbor_schemes',
+  'protocol_harbor_orders', 'protocol_harbor_claims',
+  // Deadlock — Production
+  'protocol_deadlock_plans', 'protocol_deadlock_inventory', 'protocol_deadlock_vendors',
+  'protocol_deadlock_qc', 'protocol_deadlock_batches', 'protocol_deadlock_fssai',
+  'protocol_deadlock_recipes',
+  // Clove — Finance (stored as protocol_kayo_ for legacy reasons)
+  'protocol_kayo_pnl', 'protocol_kayo_expenses', 'protocol_kayo_payments',
+  'protocol_kayo_budgets',
+  // Omen — Task Mgmt
+  'protocol_omen_tasks', 'protocol_omen_projects', 'protocol_omen_meetings',
+  // Skye — Influencer Relations
+  'protocol_skye_influencers', 'protocol_skye_campaigns', 'protocol_skye_roi',
+  'protocol_skye_approvals',
+  // Yoru — Automation
+  'protocol_yoru_messages', 'protocol_yoru_workflows',
+  // KAY/O — Dev Agent
+  'protocol_kayo_messages', 'protocol_kayo_deploys',
+  'protocol_kayo_gh_token', 'protocol_kayo_gh_repo', 'protocol_kayo_gh_branch',
+  // Email
+  'protocol_email_accounts',
+  // Firebase config (so other devices can auto-connect)
+  'protocol_firebase_config',
+  // Sound preferences
+  'protocol_sounds_muted',
 ];
 
 export function initSync(firebaseConfig) {
@@ -184,4 +223,75 @@ export function parseFirebaseConfig(configStr) {
   } catch {
     return null;
   }
+}
+
+// ======= AUTO-SYNC =======
+// Debounced auto-push: whenever localStorage changes, push to cloud after 3s idle
+
+export function enableAutoSync(userPin) {
+  if (!isSyncEnabled()) return false;
+  autoSyncPin = userPin;
+  autoSyncEnabled = true;
+  localStorage.setItem('protocol_auto_sync', 'true');
+
+  // Listen for storage events (changes from other tabs or same tab writes)
+  window.addEventListener('storage', handleStorageChange);
+
+  // Also patch localStorage.setItem to detect same-tab writes
+  if (!window._originalSetItem) {
+    window._originalSetItem = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function(key, value) {
+      window._originalSetItem(key, value);
+      // Only trigger sync for protocol/kj keys
+      if (key.startsWith('protocol_') || key.startsWith('kj_')) {
+        debouncedPush();
+      }
+    };
+  }
+
+  console.log('[PROTOCOL Sync] Auto-sync enabled');
+  return true;
+}
+
+export function disableAutoSync() {
+  autoSyncEnabled = false;
+  autoSyncPin = null;
+  localStorage.setItem('protocol_auto_sync', 'false');
+  window.removeEventListener('storage', handleStorageChange);
+  if (autoSyncTimer) { clearTimeout(autoSyncTimer); autoSyncTimer = null; }
+
+  // Restore original setItem
+  if (window._originalSetItem) {
+    localStorage.setItem = window._originalSetItem;
+    window._originalSetItem = null;
+  }
+
+  console.log('[PROTOCOL Sync] Auto-sync disabled');
+}
+
+export function isAutoSyncEnabled() {
+  return autoSyncEnabled && isSyncEnabled();
+}
+
+function handleStorageChange(e) {
+  if (!autoSyncEnabled) return;
+  if (e.key && (e.key.startsWith('protocol_') || e.key.startsWith('kj_'))) {
+    debouncedPush();
+  }
+}
+
+function debouncedPush() {
+  if (!autoSyncEnabled || !autoSyncPin) return;
+  if (autoSyncTimer) clearTimeout(autoSyncTimer);
+  autoSyncTimer = setTimeout(async () => {
+    try {
+      const result = await pushToCloud(autoSyncPin);
+      if (result.success) {
+        console.log(`[PROTOCOL Sync] Auto-pushed ${result.keys} keys`);
+        localStorage.setItem('_protocol_last_local_sync', String(Date.now()));
+      }
+    } catch (e) {
+      console.error('[PROTOCOL Sync] Auto-push failed:', e);
+    }
+  }, 3000); // 3 second debounce
 }

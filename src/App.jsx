@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { PieChart as RechartsPieChart, Pie, Cell, BarChart as RechartsBarChart, Bar, LineChart as RechartsLineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
-import { initSync, isSyncEnabled, pushToCloud, pullFromCloud, parseFirebaseConfig, getSyncStatus } from './utils/sync.js';
+import { initSync, isSyncEnabled, pushToCloud, pullFromCloud, parseFirebaseConfig, getSyncStatus, enableAutoSync, disableAutoSync, isAutoSyncEnabled, startRealtimeSync } from './utils/sync.js';
 import {
   LayoutDashboard, Search, Settings, Menu, X, Check,
   AlertCircle, ExternalLink, Zap, TrendingUp, Clock, BarChart3,
@@ -10179,6 +10179,8 @@ function SyncPanel({ toast }) {
   const [syncing, setSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState(null);
   const [connected, setConnected] = useState(isSyncEnabled());
+  const [autoSync, setAutoSync] = useState(() => isAutoSyncEnabled());
+  const [showSetup, setShowSetup] = useState(false);
 
   useEffect(() => {
     // Try to auto-connect if config exists
@@ -10198,6 +10200,7 @@ function SyncPanel({ toast }) {
       if (pin) {
         getSyncStatus(pin).then(s => setSyncStatus(s));
       }
+      setAutoSync(isAutoSyncEnabled());
     }
   }, [connected]);
 
@@ -10210,8 +10213,37 @@ function SyncPanel({ toast }) {
     localStorage.setItem('protocol_firebase_config', firebaseConfigStr.trim());
     const ok = initSync(config);
     setConnected(ok);
-    if (ok) toast({ message: 'Firebase connected! You can now sync data across devices.', type: 'success' });
-    else toast({ message: 'Failed to connect to Firebase. Check your config.', type: 'error' });
+    if (ok) {
+      toast({ message: 'Firebase connected! Auto-sync is now active.', type: 'success' });
+      // Enable auto-sync automatically on connect
+      const pin = sessionStorage.getItem('kj_current_user') || localStorage.getItem('kj_last_user');
+      if (pin) {
+        enableAutoSync(pin);
+        startRealtimeSync(pin, (update) => {
+          console.log(`[PROTOCOL Sync] Received ${update.keys} updates from ${update.from}`);
+        });
+        setAutoSync(true);
+      }
+    } else {
+      toast({ message: 'Failed to connect to Firebase. Check your config.', type: 'error' });
+    }
+  };
+
+  const handleToggleAutoSync = () => {
+    const pin = sessionStorage.getItem('kj_current_user') || localStorage.getItem('kj_last_user');
+    if (!pin) { toast({ message: 'No user session found', type: 'error' }); return; }
+    if (autoSync) {
+      disableAutoSync();
+      setAutoSync(false);
+      toast({ message: 'Auto-sync disabled. Use manual push/pull.', type: 'info' });
+    } else {
+      enableAutoSync(pin);
+      startRealtimeSync(pin, (update) => {
+        console.log(`[PROTOCOL Sync] Received ${update.keys} updates from ${update.from}`);
+      });
+      setAutoSync(true);
+      toast({ message: 'Auto-sync enabled! Changes sync automatically across devices.', type: 'success' });
+    }
   };
 
   const handlePush = async () => {
@@ -10235,7 +10267,8 @@ function SyncPanel({ toast }) {
     if (!pin) { toast({ message: 'No user session found', type: 'error' }); setSyncing(false); return; }
     const result = await pullFromCloud(pin);
     if (result.success) {
-      toast({ message: result.keys > 0 ? `Pulled ${result.keys} items from cloud` : 'No cloud data found for this user', type: result.keys > 0 ? 'success' : 'info' });
+      toast({ message: result.keys > 0 ? `Pulled ${result.keys} items — reloading...` : 'No cloud data found for this user', type: result.keys > 0 ? 'success' : 'info' });
+      if (result.keys > 0) setTimeout(() => window.location.reload(), 1500);
     } else {
       toast({ message: `Pull failed: ${result.error}`, type: 'error' });
     }
@@ -10246,6 +10279,25 @@ function SyncPanel({ toast }) {
     <div>
       {!connected ? (
         <>
+          {/* Setup Guide */}
+          <button className="btn btn-sm" onClick={() => setShowSetup(!showSetup)}
+            style={{ marginBottom: 12, fontSize: 11, color: 'var(--info)', background: 'transparent', border: '1px solid rgba(56,189,248,0.3)' }}>
+            <BookOpen size={12} /> {showSetup ? 'Hide' : 'Show'} Setup Guide
+          </button>
+          {showSetup && (
+            <div style={{ padding: '12px 14px', background: 'rgba(56,189,248,0.05)', border: '1px solid rgba(56,189,248,0.15)', borderRadius: 'var(--radius-sm)', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 14, lineHeight: 1.7 }}>
+              <div style={{ fontWeight: 700, color: 'var(--info)', marginBottom: 6, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Quick Setup (2 min)</div>
+              <div>1. Go to <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--info)' }}>console.firebase.google.com</a> → Create Project</div>
+              <div>2. Go to <strong>Build → Realtime Database → Create Database</strong></div>
+              <div>3. Choose any region → Start in <strong>test mode</strong></div>
+              <div>4. Go to <strong>Project Settings (gear icon) → General → Your apps → Web app (&lt;/&gt;)</strong></div>
+              <div>5. Register app (any name) → Copy the <strong>firebaseConfig</strong> JSON object</div>
+              <div>6. Paste it below and click Connect</div>
+              <div style={{ marginTop: 8, padding: '6px 10px', background: 'rgba(255,70,85,0.1)', borderRadius: 4, color: 'var(--accent)' }}>
+                <strong>Same config on all devices</strong> — paste the same Firebase config on every device to sync between them. Data is linked to your PIN.
+              </div>
+            </div>
+          )}
           <label className="label">Firebase Config (JSON)</label>
           <textarea className="input" rows={5} value={firebaseConfigStr} onChange={e => setFirebaseConfigStr(e.target.value)}
             placeholder={'{\n  "apiKey": "...",\n  "authDomain": "...",\n  "projectId": "...",\n  "databaseURL": "https://....firebaseio.com",\n  "storageBucket": "...",\n  "messagingSenderId": "...",\n  "appId": "..."\n}'}
@@ -10254,6 +10306,28 @@ function SyncPanel({ toast }) {
         </>
       ) : (
         <div>
+          {/* Auto-Sync Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', marginBottom: 12,
+            background: autoSync ? 'rgba(34,197,94,0.08)' : 'var(--bg-tertiary)', border: `1px solid ${autoSync ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.05)'}`,
+            borderRadius: 'var(--radius-sm)', transition: 'all 0.3s ease' }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: autoSync ? 'var(--success)' : 'var(--text-secondary)' }}>
+                <RefreshCw size={13} style={{ marginRight: 6, verticalAlign: -2 }} />
+                Auto-Sync {autoSync ? 'Active' : 'Off'}
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                {autoSync ? 'Changes sync to cloud automatically (3s debounce)' : 'Enable to sync data across all devices in real-time'}
+              </div>
+            </div>
+            <button onClick={handleToggleAutoSync}
+              style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.3s',
+                background: autoSync ? 'var(--success)' : 'rgba(255,255,255,0.15)' }}>
+              <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3,
+                left: autoSync ? 23 : 3, transition: 'left 0.3s ease', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+            </button>
+          </div>
+
+          {/* Manual Sync Buttons */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             <button className="btn btn-primary" onClick={handlePush} disabled={syncing} style={{ flex: 1 }}>
               {syncing ? <><LoadingDots /> Syncing...</> : <><Send size={14} /> Push to Cloud</>}
@@ -10262,15 +10336,27 @@ function SyncPanel({ toast }) {
               {syncing ? <><LoadingDots /> Pulling...</> : <><Download size={14} /> Pull from Cloud</>}
             </button>
           </div>
+
+          {/* Sync Status */}
           {syncStatus && syncStatus.hasCloudData && (
-            <div style={{ padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', fontSize: 12, color: 'var(--text-secondary)' }}>
+            <div style={{ padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', fontSize: 12, color: 'var(--text-secondary)', marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)', animation: autoSync ? 'pulse 2s infinite' : 'none' }} />
+                <span style={{ fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>Cloud Status</span>
+              </div>
               <div>Last synced: <strong>{new Date(syncStatus.lastSync).toLocaleString()}</strong></div>
               <div>From: {syncStatus.device}</div>
-              <div>Cloud items: {syncStatus.keyCount}</div>
+              <div>Cloud items: <strong>{syncStatus.keyCount}</strong></div>
             </div>
           )}
-          <button className="btn btn-sm" onClick={() => { localStorage.removeItem('protocol_firebase_config'); setConnected(false); setFirebaseConfigStr(''); }}
-            style={{ marginTop: 10, fontSize: 11, color: 'var(--text-tertiary)' }}>
+
+          {/* What Syncs */}
+          <div style={{ padding: '8px 12px', background: 'rgba(124,58,237,0.05)', border: '1px solid rgba(124,58,237,0.15)', borderRadius: 'var(--radius-sm)', fontSize: 10, color: 'var(--text-tertiary)', marginBottom: 10, lineHeight: 1.6 }}>
+            <strong style={{ color: 'var(--accent)', fontSize: 11 }}>What syncs:</strong> API keys, leads, all agent data (Jett, Sage, Viper, Reyna, Phoenix, Fade, Breach, Harbor, Deadlock, Clove, Omen, Skye, Yoru, KAY/O), email accounts, sound preferences, and more — linked to your PIN.
+          </div>
+
+          <button className="btn btn-sm" onClick={() => { localStorage.removeItem('protocol_firebase_config'); disableAutoSync(); setConnected(false); setFirebaseConfigStr(''); setAutoSync(false); }}
+            style={{ marginTop: 4, fontSize: 11, color: 'var(--text-tertiary)' }}>
             Disconnect Firebase
           </button>
         </div>
@@ -10453,9 +10539,7 @@ function SettingsPage() {
               </span>
             </div>
             <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 14 }}>
-              Sync your data across devices using Firebase. Create a free Firebase project at{' '}
-              <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--info)' }}>console.firebase.google.com</a>.
-              Enable Realtime Database, then paste your Firebase config JSON below.
+              Access your data from any device, anywhere. All agent data syncs automatically via Firebase — just use the same PIN on each device.
             </p>
             <SyncPanel toast={setToast} />
           </div>
@@ -12184,6 +12268,33 @@ export default function App() {
 
   // Migrate old data on first load
   useEffect(() => { migrateOldData(); }, []);
+
+  // Auto-sync: connect Firebase and enable auto-sync on login
+  useEffect(() => {
+    if (!authenticated) return;
+    const savedConfig = localStorage.getItem('protocol_firebase_config');
+    if (!savedConfig) return;
+    const config = parseFirebaseConfig(savedConfig);
+    if (!config) return;
+    // Initialize Firebase if not already
+    if (!isSyncEnabled()) initSync(config);
+    if (!isSyncEnabled()) return;
+    const pin = sessionStorage.getItem('kj_current_user') || localStorage.getItem('kj_last_user');
+    if (!pin) return;
+    // Enable auto-sync (debounced push on every localStorage write)
+    enableAutoSync(pin);
+    // Start real-time listener (receive updates from other devices)
+    startRealtimeSync(pin, (update) => {
+      console.log(`[PROTOCOL Sync] Received ${update.keys} updates from another device`);
+    });
+    // Pull latest data from cloud on login
+    pullFromCloud(pin).then(result => {
+      if (result.success && result.keys > 0) {
+        console.log(`[PROTOCOL Sync] Pulled ${result.keys} items from cloud on login`);
+      }
+    });
+    console.log('[PROTOCOL Sync] Auto-sync activated on login');
+  }, [authenticated]);
 
   useEffect(() => { setSidebarOpen(false); }, [location]);
 
