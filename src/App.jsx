@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
+import { PieChart as RechartsPieChart, Pie, Cell, BarChart as RechartsBarChart, Bar, LineChart as RechartsLineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 import {
   LayoutDashboard, Search, Settings, Menu, X, Check,
   AlertCircle, ExternalLink, Zap, TrendingUp, Clock, BarChart3,
@@ -942,8 +943,8 @@ function VoiceAssistant() {
     setLoading(true);
     try {
       const result = await callClaude(
-        `You are NEON, an AI marketing and SEO assistant. You give concise, helpful spoken responses. Keep responses under 3 sentences unless the user asks for detail. Be warm and professional.\n\nUser: ${query.trim()}`,
-        'You are NEON voice assistant.'
+        `You are Protocol, an AI marketing and SEO assistant. You give concise, helpful spoken responses. Keep responses under 3 sentences unless the user asks for detail. Be warm and professional.\n\nUser: ${query.trim()}`,
+        'You are Protocol voice assistant.'
       );
       const aiMsg = { role: 'assistant', text: result, time: new Date() };
       setHistory(prev => [...prev, aiMsg]);
@@ -962,7 +963,7 @@ function VoiceAssistant() {
     <div className="card" style={{ marginTop: 16, overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
         <Volume2 size={18} style={{ color: 'var(--accent)' }} />
-        <h3 className="card-title" style={{ margin: 0 }}>NEON Voice Assistant</h3>
+        <h3 className="card-title" style={{ margin: 0 }}>Protocol Voice Assistant</h3>
         {speaking && <span className="badge" style={{ background: '#059669', color: '#fff', fontSize: 10 }}>Speaking...</span>}
       </div>
 
@@ -1036,91 +1037,147 @@ function VoiceAssistant() {
 function Dashboard() {
   const [leads, setLeads] = useState(() => getAllLeads());
   const [history, setHistory] = useState(() => getSearchHistory());
+  const [seoData] = useState(() => getSEODashboardData());
 
   const stats = {
     totalLeads: leads.length,
     withEmail: leads.filter(l => l.email).length,
     withPhone: leads.filter(l => l.phone).length,
-    withWebsite: leads.filter(l => l.website).length,
-    totalSearches: history.length,
+    emailCoverage: leads.length > 0 ? Math.round((leads.filter(l => l.email).length / leads.length) * 100) : 0,
+    conversionRate: leads.length > 0 ? Math.round((leads.filter(l => l.email && l.phone).length / leads.length) * 100) : 0,
     thisWeek: leads.filter(l => Date.now() - l.scrapedAt < 7 * 86400000).length,
   };
 
-  const topTypes = {};
-  leads.forEach(l => { if (l.type) topTypes[l.type] = (topTypes[l.type] || 0) + 1; });
-  const sortedTypes = Object.entries(topTypes).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  // Lead sources for pie chart
+  const leadSources = {};
+  leads.forEach(l => { const src = l.source || l.type || 'Direct'; leadSources[src] = (leadSources[src] || 0) + 1; });
+  const leadSourceData = Object.entries(leadSources).slice(0, 6).map(([name, value]) => ({ name: name.replace(/_/g, ' '), value }));
+
+  // SEO health score
+  const seoHealth = Math.min(100, (seoData.trackedDomains * 25) + (seoData.totalKeywords * 0.5));
+
+  // Content stats
+  const contentStats = {
+    blogPosts: (() => { try { return JSON.parse(localStorage.getItem('protocol_blog_posts') || '[]').length; } catch { return 0; } })(),
+    aiUsed: parseInt(localStorage.getItem('protocol_ai_skills_used') || '0'),
+  };
+
+  // Chart data
+  const contentUsageData = [
+    { week: 'W1', blog: Math.ceil(contentStats.blogPosts * 0.2), ai: Math.ceil(contentStats.aiUsed * 0.3) },
+    { week: 'W2', blog: Math.ceil(contentStats.blogPosts * 0.4), ai: Math.ceil(contentStats.aiUsed * 0.5) },
+    { week: 'W3', blog: Math.ceil(contentStats.blogPosts * 0.7), ai: Math.ceil(contentStats.aiUsed * 0.7) },
+    { week: 'W4', blog: contentStats.blogPosts, ai: contentStats.aiUsed },
+  ];
+
+  const brandMentions = parseInt(localStorage.getItem('protocol_brand_mentions') || '0');
+  const socialData = [
+    { day: 'Mon', mentions: Math.ceil(brandMentions * 0.4), scrapes: Math.ceil(history.length * 0.3) },
+    { day: 'Tue', mentions: Math.ceil(brandMentions * 0.5), scrapes: Math.ceil(history.length * 0.4) },
+    { day: 'Wed', mentions: Math.ceil(brandMentions * 0.7), scrapes: Math.ceil(history.length * 0.6) },
+    { day: 'Thu', mentions: Math.ceil(brandMentions * 0.8), scrapes: Math.ceil(history.length * 0.7) },
+    { day: 'Fri', mentions: brandMentions, scrapes: history.length },
+  ];
+
+  const chartColors = ['#7c3aed', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
 
   return (
     <>
       <div className="page-header">
         <div>
           <h1>Dashboard</h1>
-          <p className="page-header-sub">Your lead generation overview</p>
+          <p className="page-header-sub">Your complete marketing command center</p>
         </div>
       </div>
       <div className="page-body">
         <div className="grid-4" style={{ marginBottom: 28 }}>
-          <div className="stat-card">
-            <span className="stat-card-label">Total Leads</span>
-            <span className="stat-card-value">{stats.totalLeads}</span>
-            <span className="stat-card-change positive"><Database size={12} /> All time</span>
+          <div className="stat-card"><span className="stat-card-label">Total Leads</span><span className="stat-card-value">{stats.totalLeads}</span><span className="stat-card-change positive"><Database size={12} /> {stats.thisWeek} this week</span></div>
+          <div className="stat-card"><span className="stat-card-label">Email Coverage</span><span className="stat-card-value">{stats.emailCoverage}%</span><span className="stat-card-change positive"><Mail size={12} /> {stats.withEmail} leads</span></div>
+          <div className="stat-card"><span className="stat-card-label">Conversion Rate</span><span className="stat-card-value">{stats.conversionRate}%</span><span className="stat-card-change positive"><TrendingUp size={12} /> Complete data</span></div>
+          <div className="stat-card"><span className="stat-card-label">SEO Health</span><span className="stat-card-value">{Math.round(seoHealth)}</span><span className="stat-card-change positive"><Globe size={12} /> {seoData.trackedDomains} domains</span></div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+          <div className="glass-card">
+            <div style={{ padding: 16, borderBottom: '1px solid var(--border)' }}><h3 className="card-title">Lead Sources</h3></div>
+            <div style={{ padding: 16, minHeight: 280 }}>
+              {leadSourceData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={240}>
+                  <RechartsPieChart><Pie data={leadSourceData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={2} dataKey="value">
+                    {leadSourceData.map((_, i) => (<Cell key={`cell-${i}`} fill={chartColors[i % chartColors.length]} />))}
+                  </Pie><RechartsTooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)' }} /><Legend wrapperStyle={{ paddingTop: 16, fontSize: 12 }} /></RechartsPieChart>
+                </ResponsiveContainer>
+              ) : (<div style={{ height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>Search for leads to see source breakdown</div>)}
+            </div>
           </div>
-          <div className="stat-card">
-            <span className="stat-card-label">With Email</span>
-            <span className="stat-card-value">{stats.withEmail}</span>
-            <span className="stat-card-change positive"><Mail size={12} /> {stats.totalLeads > 0 ? Math.round((stats.withEmail / stats.totalLeads) * 100) : 0}% coverage</span>
+
+          <div className="glass-card">
+            <div style={{ padding: 16, borderBottom: '1px solid var(--border)' }}><h3 className="card-title">SEO Performance</h3></div>
+            <div style={{ padding: 16, minHeight: 280 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div style={{ background: 'var(--bg-tertiary)', padding: 12, borderRadius: 8, textAlign: 'center' }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Tracked Domains</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: '#7c3aed' }}>{seoData.trackedDomains}</div>
+                </div>
+                <div style={{ background: 'var(--bg-tertiary)', padding: 12, borderRadius: 8, textAlign: 'center' }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Total Keywords</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: '#06b6d4' }}>{seoData.totalKeywords}</div>
+                </div>
+              </div>
+              <div style={{ padding: 12, background: 'var(--bg-tertiary)', borderRadius: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Health Score</div>
+                <div className="score-bar"><div className="score-bar-fill" style={{ width: `${Math.min(100, seoHealth)}%`, background: 'linear-gradient(90deg, #7c3aed, #06b6d4)' }} /></div>
+              </div>
+            </div>
           </div>
-          <div className="stat-card">
-            <span className="stat-card-label">With Phone</span>
-            <span className="stat-card-value">{stats.withPhone}</span>
-            <span className="stat-card-change positive"><Phone size={12} /> {stats.totalLeads > 0 ? Math.round((stats.withPhone / stats.totalLeads) * 100) : 0}% coverage</span>
+
+          <div className="glass-card">
+            <div style={{ padding: 16, borderBottom: '1px solid var(--border)' }}><h3 className="card-title">Content & AI Usage</h3></div>
+            <div style={{ padding: 16, minHeight: 280 }}>
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart data={contentUsageData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorBlog" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#7c3aed" stopOpacity={0.8} /><stop offset="95%" stopColor="#7c3aed" stopOpacity={0} /></linearGradient>
+                    <linearGradient id="colorAI" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#06b6d4" stopOpacity={0.8} /><stop offset="95%" stopColor="#06b6d4" stopOpacity={0} /></linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" /><XAxis dataKey="week" stroke="#64748b" style={{ fontSize: 12 }} /><YAxis stroke="#64748b" style={{ fontSize: 12 }} />
+                  <RechartsTooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8 }} />
+                  <Area type="monotone" dataKey="blog" stackId="1" stroke="#7c3aed" fillOpacity={1} fill="url(#colorBlog)" name="Blog Posts" />
+                  <Area type="monotone" dataKey="ai" stackId="1" stroke="#06b6d4" fillOpacity={1} fill="url(#colorAI)" name="AI Skills" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="stat-card">
-            <span className="stat-card-label">This Week</span>
-            <span className="stat-card-value">{stats.thisWeek}</span>
-            <span className="stat-card-change positive"><TrendingUp size={12} /> Last 7 days</span>
+
+          <div className="glass-card">
+            <div style={{ padding: 16, borderBottom: '1px solid var(--border)' }}><h3 className="card-title">Brand & Social</h3></div>
+            <div style={{ padding: 16, minHeight: 280 }}>
+              <ResponsiveContainer width="100%" height={240}>
+                <RechartsLineChart data={socialData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" /><XAxis dataKey="day" stroke="#64748b" style={{ fontSize: 12 }} /><YAxis stroke="#64748b" style={{ fontSize: 12 }} />
+                  <RechartsTooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8 }} /><Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Line type="monotone" dataKey="mentions" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b', r: 4 }} name="Mentions" />
+                  <Line type="monotone" dataKey="scrapes" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981', r: 4 }} name="Scrapes" />
+                </RechartsLineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-          {/* Recent Searches */}
-          <div className="card">
-            <div className="card-header"><h3 className="card-title">Recent Searches</h3></div>
-            {history.length === 0 ? (
-              <div className="empty-state" style={{ padding: 40 }}><Search /><h3>No searches yet</h3><p>Search for businesses to start collecting leads.</p></div>
-            ) : (
-              history.slice(0, 8).map((h, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', background: i % 2 === 0 ? 'var(--bg-tertiary)' : 'transparent', borderRadius: 'var(--radius-sm)' }}>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 500 }}>{h.query}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{h.location || 'No location'} • {h.resultCount} results</div>
-                  </div>
-                  <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{new Date(h.date).toLocaleDateString()}</span>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Top Business Types */}
-          <div className="card">
-            <div className="card-header"><h3 className="card-title">Top Business Types</h3></div>
-            {sortedTypes.length === 0 ? (
-              <div className="empty-state" style={{ padding: 40 }}><Building2 /><h3>No data yet</h3><p>Collected leads will be categorized here.</p></div>
-            ) : (
-              sortedTypes.map(([type, count], i) => (
-                <div key={i} style={{ padding: '10px 16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 13, textTransform: 'capitalize' }}>{type.replace(/_/g, ' ')}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>{count}</span>
-                  </div>
-                  <div className="score-bar"><div className="score-bar-fill" style={{ width: `${(count / sortedTypes[0][1]) * 100}%`, background: 'var(--accent)' }} /></div>
-                </div>
-              ))
-            )}
-          </div>
+        <div className="card" style={{ padding: 20, marginBottom: 20 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Recent Searches</h3>
+          {history.length === 0 ? (
+            <p style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>No searches yet. Start searching for leads!</p>
+          ) : (
+            history.slice(0, 5).map((h, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: i % 2 === 0 ? 'var(--bg-tertiary)' : 'transparent', borderRadius: 'var(--radius-sm)', marginBottom: 2 }}>
+                <div><div style={{ fontSize: 13, fontWeight: 500 }}>{h.query}</div><div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{h.location || 'No location'} • {h.resultCount} results</div></div>
+                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{new Date(h.date).toLocaleDateString()}</span>
+              </div>
+            ))
+          )}
         </div>
 
-        {/* Voice Assistant */}
         <VoiceAssistant />
       </div>
     </>
@@ -1201,6 +1258,27 @@ function LeadSearch() {
       ? results.filter(r => selected.has(r.id))
       : results;
     const { total, added } = saveLeads(toSave);
+
+    // Auto-create lead folder (date + name combo)
+    if (added > 0 && query.trim()) {
+      try {
+        const folders = JSON.parse(localStorage.getItem('protocol_lead_folders') || '[]');
+        const today = new Date().toISOString().split('T')[0];
+        const folderName = query.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const newFolder = {
+          id: `${today}-${folderName}-${Date.now()}`,
+          name: folderName,
+          date: today,
+          query: query.trim(),
+          location: location || 'No location',
+          leadCount: toSave.length,
+          leads: toSave,
+        };
+        folders.push(newFolder);
+        localStorage.setItem('protocol_lead_folders', JSON.stringify(folders));
+      } catch (e) { console.error('Folder save error:', e); }
+    }
+
     setToast({ message: `${added} new leads saved (${total} total)`, type: 'success' });
   };
 
@@ -3207,559 +3285,6 @@ function KeywordGap() {
 }
 
 // =============================================
-// SHOPIFY SEO FIXER
-// =============================================
-function ShopifySEOFixer() {
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState('');
-  const [audit, setAudit] = useState(null);
-  const [toast, setToast] = useState(null);
-  const [fixing, setFixing] = useState({}); // Track which issues are being fixed
-  const [fixed, setFixed] = useState(new Set()); // Track successfully fixed issues
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [filterSeverity, setFilterSeverity] = useState('all');
-
-  const connected = isShopifyConnected();
-  const storeName = getShopifyStoreName();
-
-  const handleAudit = async () => {
-    setLoading(true);
-    setAudit(null);
-    setFixed(new Set());
-    try {
-      const result = await auditShopifySEO((step, total, msg) => {
-        setProgress(`Step ${step}/${total}: ${msg}`);
-      });
-      setAudit(result);
-      setToast({ message: `Found ${result.totalIssues} issues (${result.fixable} auto-fixable)`, type: result.totalIssues > 0 ? 'error' : 'success' });
-    } catch (e) {
-      setToast({ message: e.message, type: 'error' });
-    }
-    setLoading(false);
-    setProgress('');
-  };
-
-  const handleFixIssue = async (issue, index) => {
-    if (!issue.fixType) return;
-    setFixing(prev => ({ ...prev, [index]: true }));
-    try {
-      await fixSEOIssue(issue);
-      setFixed(prev => new Set([...prev, index]));
-      setToast({ message: `Fixed: ${issue.issue} on ${issue.resource}`, type: 'success' });
-    } catch (e) {
-      setToast({ message: `Fix failed: ${e.message}`, type: 'error' });
-    }
-    setFixing(prev => ({ ...prev, [index]: false }));
-  };
-
-  const handleFixAll = async () => {
-    if (!audit) return;
-    const fixable = audit.issues.filter((issue, i) => issue.fixType && !fixed.has(i));
-    if (fixable.length === 0) {
-      setToast({ message: 'No more issues to fix', type: 'info' });
-      return;
-    }
-
-    for (let i = 0; i < audit.issues.length; i++) {
-      const issue = audit.issues[i];
-      if (!issue.fixType || fixed.has(i)) continue;
-
-      setFixing(prev => ({ ...prev, [i]: true }));
-      try {
-        await fixSEOIssue(issue);
-        setFixed(prev => new Set([...prev, i]));
-      } catch { /* continue to next */ }
-      setFixing(prev => ({ ...prev, [i]: false }));
-
-      // Small delay between API calls
-      await new Promise(r => setTimeout(r, 500));
-    }
-    setToast({ message: `Fixed ${fixed.size} issues!`, type: 'success' });
-  };
-
-  const categories = audit ? ['all', ...new Set(audit.issues.map(i => i.category))] : ['all'];
-  const filteredIssues = audit ? audit.issues.filter(issue => {
-    if (filterCategory !== 'all' && issue.category !== filterCategory) return false;
-    if (filterSeverity !== 'all' && issue.severity !== filterSeverity) return false;
-    return true;
-  }) : [];
-
-  const severityColor = (s) => s === 'critical' ? '#dc2626' : s === 'warning' ? '#f59e0b' : s === 'info' ? '#3b82f6' : '#059669';
-  const severityBg = (s) => s === 'critical' ? 'rgba(220,38,38,0.12)' : s === 'warning' ? 'rgba(245,158,11,0.12)' : s === 'info' ? 'rgba(59,130,246,0.12)' : 'rgba(5,150,105,0.12)';
-
-  // Export audit to CSV
-  const exportAudit = () => {
-    if (!audit) return;
-    const rows = audit.issues.map((issue, i) => [
-      i + 1, issue.severity, issue.category, issue.resource, issue.issue,
-      issue.details || '', issue.currentValue || '', issue.suggestedFix || '',
-      issue.fixType ? 'Auto-fixable' : 'Manual', fixed.has(i) ? 'FIXED' : 'Pending'
-    ]);
-    const csv = [['#', 'Severity', 'Category', 'Resource', 'Issue', 'Details', 'Current Value', 'Suggested Fix', 'Fix Type', 'Status'], ...rows]
-      .map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `shopify-seo-audit-${new Date().toISOString().split('T')[0]}.csv`; a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  return (
-    <>
-      <div className="page-header">
-        <div>
-          <h1>Shopify SEO Fixer</h1>
-          <p className="page-header-sub">Scan your Shopify store for SEO issues and auto-fix them with one click</p>
-        </div>
-        {connected && <span className="badge" style={{ background: '#059669', color: '#fff', padding: '6px 14px', fontSize: 12 }}>{storeName}</span>}
-      </div>
-      <div className="page-body">
-        {!connected ? (
-          <div className="card">
-            <div className="empty-state">
-              <Shield />
-              <h3>Connect Your Shopify Store</h3>
-              <p>Go to Settings and enter your Shopify store URL and Admin API access token.</p>
-              <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 8 }}>
-                You need a Custom App with read/write access to Products, Pages, Blogs, Themes, and Redirects.
-              </p>
-              <button
-                className="btn btn-primary"
-                style={{ marginTop: 16 }}
-                onClick={() => {
-                  const store = prompt('Enter your Shopify store URL (e.g., mystore.myshopify.com):');
-                  if (store) {
-                    const cleanStore = store.replace(/^https?:\/\//, '').replace(/\/$/, '');
-                    window.open(`https://${cleanStore}/admin/settings/apps/development`, '_blank');
-                    setToast({ message: 'Shopify admin opened! Create a Custom App → set API scopes → copy the Admin API access token → paste in Settings.', type: 'info' });
-                  }
-                }}
-              >
-                <Zap size={16} /> One-Click Setup — Create Shopify App
-              </button>
-              <p style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 8 }}>
-                Opens your Shopify admin → App Development. Create a custom app, enable all scopes, install it, and copy the token.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Scan Button */}
-            <div className="card" style={{ marginBottom: 20, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-              <button className="btn btn-primary" onClick={handleAudit} disabled={loading} style={{ flex: 1 }}>
-                {loading ? <><LoadingDots /> Scanning store...</> : <><Shield size={16} /> Run Full SEO Audit</>}
-              </button>
-              {audit && (
-                <>
-                  <button className="btn btn-secondary" onClick={handleFixAll} disabled={loading || audit.fixable === 0}
-                    style={{ background: '#059669', color: '#fff', borderColor: '#059669' }}>
-                    <Zap size={16} /> Fix All ({audit.fixable - fixed.size} remaining)
-                  </button>
-                  <button className="btn btn-sm" onClick={exportAudit}><Download size={14} /> Export CSV</button>
-                </>
-              )}
-            </div>
-
-            {loading && progress && (
-              <div style={{ marginBottom: 16, padding: '10px 16px', background: 'var(--accent-light)', borderRadius: 'var(--radius-sm)', fontSize: 12, color: 'var(--accent)' }}>
-                <RefreshCw size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} className="spin" />{progress}
-              </div>
-            )}
-
-            {/* Summary Stats */}
-            {audit && (
-              <>
-                <div className="grid-4" style={{ marginBottom: 16 }}>
-                  <div className="stat-card">
-                    <span className="stat-card-label">Total Issues</span>
-                    <span className="stat-card-value" style={{ color: audit.totalIssues > 0 ? '#dc2626' : '#059669' }}>{audit.totalIssues}</span>
-                  </div>
-                  <div className="stat-card">
-                    <span className="stat-card-label">Critical</span>
-                    <span className="stat-card-value" style={{ color: '#dc2626' }}>{audit.critical}</span>
-                  </div>
-                  <div className="stat-card">
-                    <span className="stat-card-label">Warnings</span>
-                    <span className="stat-card-value" style={{ color: '#f59e0b' }}>{audit.warnings}</span>
-                  </div>
-                  <div className="stat-card">
-                    <span className="stat-card-label">Auto-Fixed</span>
-                    <span className="stat-card-value" style={{ color: '#059669' }}>{fixed.size}/{audit.fixable}</span>
-                  </div>
-                </div>
-
-                {/* Filters */}
-                <div className="card" style={{ marginBottom: 12, padding: '10px 16px', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <select className="input" value={filterCategory} onChange={e => setFilterCategory(e.target.value)} style={{ width: 'auto' }}>
-                    {categories.map(c => <option key={c} value={c}>{c === 'all' ? 'All Categories' : c}</option>)}
-                  </select>
-                  <select className="input" value={filterSeverity} onChange={e => setFilterSeverity(e.target.value)} style={{ width: 'auto' }}>
-                    <option value="all">All Severity</option>
-                    <option value="critical">Critical</option>
-                    <option value="warning">Warning</option>
-                    <option value="info">Info</option>
-                  </select>
-                  <span style={{ fontSize: 12, color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
-                    Showing {filteredIssues.length} of {audit.issues.length} issues
-                  </span>
-                </div>
-
-                {/* Issues List — Each with details & Fix It button */}
-                <div className="card" style={{ overflow: 'auto' }}>
-                  {filteredIssues.length === 0 ? (
-                    <div className="empty-state" style={{ padding: 40 }}>
-                      <Check /><h3>All clear!</h3><p>No issues match your filters.</p>
-                    </div>
-                  ) : (
-                    filteredIssues.map((issue, _fi) => {
-                      // Find original index for fix tracking
-                      const idx = audit.issues.indexOf(issue);
-                      const isFixed = fixed.has(idx);
-                      const isFixing = fixing[idx];
-
-                      return (
-                        <div key={idx} style={{
-                          display: 'flex', gap: 16, padding: '14px 16px',
-                          borderBottom: '1px solid var(--border)',
-                          background: isFixed ? 'rgba(5,150,105,0.06)' : 'transparent',
-                          opacity: isFixed ? 0.65 : 1,
-                          alignItems: 'flex-start'
-                        }}>
-                          {/* Left: Severity + Issue Details */}
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                              <span style={{
-                                display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700,
-                                background: severityBg(issue.severity), color: severityColor(issue.severity), textTransform: 'uppercase'
-                              }}>
-                                {issue.severity}
-                              </span>
-                              <span style={{ fontSize: 10, color: 'var(--text-tertiary)', background: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: 4 }}>
-                                {issue.category}
-                              </span>
-                              {isFixed && <span style={{ fontSize: 10, color: '#059669', fontWeight: 700 }}>✓ FIXED</span>}
-                            </div>
-
-                            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 2 }}>{issue.resource}</div>
-                            <div style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 4 }}>{issue.issue}</div>
-
-                            {issue.details && (
-                              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 6 }}>{issue.details}</div>
-                            )}
-
-                            {/* Current → Suggested */}
-                            {issue.currentValue && issue.suggestedFix && (
-                              <div style={{ fontSize: 11, background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', padding: '8px 10px', marginTop: 4 }}>
-                                <div style={{ color: '#dc2626', marginBottom: 4 }}>
-                                  <strong>Current:</strong> <span style={{ wordBreak: 'break-all' }}>{issue.currentValue.substring(0, 120)}{issue.currentValue.length > 120 ? '...' : ''}</span>
-                                </div>
-                                <div style={{ color: '#059669' }}>
-                                  <strong>Fix to:</strong> <span style={{ wordBreak: 'break-all' }}>{issue.suggestedFix.substring(0, 120)}{issue.suggestedFix.length > 120 ? '...' : ''}</span>
-                                </div>
-                              </div>
-                            )}
-
-                            {issue.url && (
-                              <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 4 }}>{issue.url}</div>
-                            )}
-                          </div>
-
-                          {/* Right: Fix It Button */}
-                          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-                            {issue.fixType ? (
-                              isFixed ? (
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 8, background: 'rgba(5,150,105,0.15)', color: '#059669', fontSize: 12, fontWeight: 700 }}>
-                                  <Check size={14} /> Fixed
-                                </span>
-                              ) : (
-                                <button
-                                  className="btn btn-sm"
-                                  onClick={() => handleFixIssue(issue, idx)}
-                                  disabled={isFixing}
-                                  style={{
-                                    background: '#059669', color: '#fff', border: 'none',
-                                    padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600,
-                                    cursor: isFixing ? 'wait' : 'pointer', whiteSpace: 'nowrap'
-                                  }}
-                                >
-                                  {isFixing ? <LoadingDots /> : <><Zap size={12} /> Fix It</>}
-                                </button>
-                              )
-                            ) : (
-                              <span style={{ fontSize: 11, color: 'var(--text-tertiary)', padding: '8px 12px' }}>Manual fix</span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </>
-            )}
-          </>
-        )}
-
-        {audit && <AnalysisSummary title="Shopify SEO Analysis" insights={generateShopifyInsights(audit)} summary={`Store audit: ${audit.totalIssues || 0} total issues (${audit.critical || 0} critical, ${audit.warnings || 0} warnings). ${audit.fixable || 0} auto-fixable.`} />}
-        {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-      </div>
-    </>
-  );
-}
-
-// =============================================
-// SHOPIFY MEDIA ALT TEXT MANAGER
-// =============================================
-function ShopifyMediaManager() {
-  const [images, setImages] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState('');
-  const [toast, setToast] = useState(null);
-  const [filter, setFilter] = useState('all'); // all, missing, has_alt
-  const [updating, setUpdating] = useState({}); // Track individual updates
-  const [updated, setUpdated] = useState(new Set());
-  const [editAlt, setEditAlt] = useState({}); // Inline edits { imageId: altText }
-  const [generating, setGenerating] = useState({}); // AI generating alt text
-  const [fixAllRunning, setFixAllRunning] = useState(false);
-  const [fixAllProgress, setFixAllProgress] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const connected = isShopifyConnected();
-  const storeName = getShopifyStoreName();
-
-  const fetchImages = async () => {
-    setLoading(true);
-    setImages([]);
-    try {
-      const allImages = await getAllProductImages((msg) => setProgress(msg));
-      setImages(allImages);
-      const missing = allImages.filter(i => !i.alt || !i.alt.trim()).length;
-      setToast({ message: `Found ${allImages.length} images (${missing} missing alt text)`, type: missing > 0 ? 'warning' : 'success' });
-    } catch (e) {
-      setToast({ message: e.message, type: 'error' });
-    }
-    setLoading(false);
-    setProgress('');
-  };
-
-  const handleGenerateAlt = async (img) => {
-    setGenerating(prev => ({ ...prev, [img.id]: true }));
-    try {
-      const result = await callClaude(
-        `Generate a concise, SEO-optimized alt text for a product image. Product: "${img.productTitle}". Image position: ${img.position || 1}. Dimensions: ${img.width}x${img.height}. The alt text should be descriptive, include the product name, and be under 125 characters. Return ONLY the alt text, nothing else.`,
-        'You are an SEO expert specializing in image optimization and alt text.'
-      );
-      const cleaned = result.replace(/^["']|["']$/g, '').trim();
-      setEditAlt(prev => ({ ...prev, [img.id]: cleaned }));
-    } catch (e) {
-      setToast({ message: `AI generation failed: ${e.message}`, type: 'error' });
-    }
-    setGenerating(prev => ({ ...prev, [img.id]: false }));
-  };
-
-  const handleSaveAlt = async (img) => {
-    const alt = editAlt[img.id] ?? img.alt;
-    if (!alt || !alt.trim()) return;
-    setUpdating(prev => ({ ...prev, [img.id]: true }));
-    try {
-      await updateProductImageAlt(img.productId, img.id, alt.trim());
-      setImages(prev => prev.map(i => i.id === img.id ? { ...i, alt: alt.trim() } : i));
-      setUpdated(prev => new Set([...prev, img.id]));
-      setToast({ message: `Alt text updated for ${img.productTitle}`, type: 'success' });
-    } catch (e) {
-      setToast({ message: `Failed: ${e.message}`, type: 'error' });
-    }
-    setUpdating(prev => ({ ...prev, [img.id]: false }));
-  };
-
-  const handleFixAll = async () => {
-    const missingAlt = images.filter(i => (!i.alt || !i.alt.trim()) && !updated.has(i.id));
-    if (missingAlt.length === 0) {
-      setToast({ message: 'All images already have alt text!', type: 'success' });
-      return;
-    }
-    setFixAllRunning(true);
-    let completed = 0;
-    for (const img of missingAlt) {
-      setFixAllProgress(`${completed + 1}/${missingAlt.length}: Generating for ${img.productTitle}...`);
-      try {
-        // Generate alt text
-        const result = await callClaude(
-          `Generate a concise SEO alt text for product image. Product: "${img.productTitle}". Position: ${img.position || 1}. Return ONLY the alt text under 125 chars.`,
-          'SEO image alt text expert.'
-        );
-        const cleaned = result.replace(/^["']|["']$/g, '').trim();
-        // Save it
-        await updateProductImageAlt(img.productId, img.id, cleaned);
-        setImages(prev => prev.map(i => i.id === img.id ? { ...i, alt: cleaned } : i));
-        setUpdated(prev => new Set([...prev, img.id]));
-        setEditAlt(prev => ({ ...prev, [img.id]: cleaned }));
-      } catch (e) {
-        // Skip failed ones
-      }
-      completed++;
-    }
-    setFixAllProgress('');
-    setFixAllRunning(false);
-    setToast({ message: `Updated alt text for ${completed} images`, type: 'success' });
-  };
-
-  const filteredImages = images.filter(img => {
-    const matchesFilter = filter === 'all' || (filter === 'missing' ? (!img.alt || !img.alt.trim()) : (img.alt && img.alt.trim()));
-    const matchesSearch = !searchTerm || img.productTitle.toLowerCase().includes(searchTerm.toLowerCase()) || (img.alt || '').toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
-
-  const missingCount = images.filter(i => !i.alt || !i.alt.trim()).length;
-  const hasAltCount = images.length - missingCount;
-
-  return (
-    <>
-      <div className="page-header">
-        <div>
-          <h1>Media Alt Text Manager</h1>
-          <p className="page-header-sub">View all store media files and add/edit alt text individually or in bulk</p>
-        </div>
-        {connected && <span className="badge" style={{ background: '#059669', color: '#fff', padding: '6px 14px', fontSize: 12 }}>{storeName}</span>}
-      </div>
-      <div className="page-body">
-        {!connected ? (
-          <div className="card">
-            <div className="empty-state">
-              <Shield />
-              <h3>Connect Your Shopify Store</h3>
-              <p>Go to Settings and enter your Shopify store URL and Admin API access token.</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Controls */}
-            <div className="card" style={{ marginBottom: 20, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-              <button className="btn btn-primary" onClick={fetchImages} disabled={loading || fixAllRunning} style={{ flex: 1 }}>
-                {loading ? <><LoadingDots /> Scanning media...</> : <><ImageIcon size={16} /> Fetch All Media</>}
-              </button>
-              {images.length > 0 && (
-                <>
-                  <button className="btn btn-secondary" onClick={handleFixAll} disabled={loading || fixAllRunning || missingCount === 0}
-                    style={{ background: '#059669', color: '#fff', borderColor: '#059669' }}>
-                    {fixAllRunning ? <><LoadingDots /> Fixing...</> : <><Wand2 size={16} /> AI Fix All ({missingCount} missing)</>}
-                  </button>
-                </>
-              )}
-            </div>
-
-            {(loading && progress) && (
-              <div style={{ marginBottom: 16, padding: '10px 16px', background: 'var(--accent-light)', borderRadius: 'var(--radius-sm)', fontSize: 12, color: 'var(--accent)' }}>
-                <RefreshCw size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} className="spin" />{progress}
-              </div>
-            )}
-
-            {fixAllRunning && fixAllProgress && (
-              <div style={{ marginBottom: 16, padding: '10px 16px', background: 'var(--accent-light)', borderRadius: 'var(--radius-sm)', fontSize: 12, color: 'var(--accent)' }}>
-                <Wand2 size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />{fixAllProgress}
-              </div>
-            )}
-
-            {/* Stats */}
-            {images.length > 0 && (
-              <>
-                <div className="grid-4" style={{ marginBottom: 16 }}>
-                  <div className="stat-card">
-                    <span className="stat-card-label">Total Images</span>
-                    <span className="stat-card-value">{images.length}</span>
-                  </div>
-                  <div className="stat-card">
-                    <span className="stat-card-label">Missing Alt Text</span>
-                    <span className="stat-card-value" style={{ color: missingCount > 0 ? '#ef4444' : '#059669' }}>{missingCount}</span>
-                  </div>
-                  <div className="stat-card">
-                    <span className="stat-card-label">Has Alt Text</span>
-                    <span className="stat-card-value" style={{ color: '#059669' }}>{hasAltCount}</span>
-                  </div>
-                  <div className="stat-card">
-                    <span className="stat-card-label">Coverage</span>
-                    <span className="stat-card-value">{images.length > 0 ? Math.round((hasAltCount / images.length) * 100) : 0}%</span>
-                  </div>
-                </div>
-
-                {/* Filters */}
-                <div className="card" style={{ marginBottom: 16, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <select className="input" value={filter} onChange={e => setFilter(e.target.value)} style={{ width: 160 }}>
-                    <option value="all">All Images ({images.length})</option>
-                    <option value="missing">Missing Alt ({missingCount})</option>
-                    <option value="has_alt">Has Alt ({hasAltCount})</option>
-                  </select>
-                  <input className="input" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Search by product name..." style={{ flex: 1 }} />
-                </div>
-
-                {/* Image Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
-                  {filteredImages.map(img => (
-                    <div key={img.id} className="card" style={{ padding: 12, display: 'flex', gap: 12, alignItems: 'flex-start', border: updated.has(img.id) ? '1px solid #059669' : (!img.alt || !img.alt.trim()) ? '1px solid rgba(239,68,68,0.3)' : '1px solid var(--border)' }}>
-                      {/* Thumbnail */}
-                      <div style={{ width: 80, height: 80, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: 'var(--bg)' }}>
-                        <img src={img.src} alt={img.alt || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          loading="lazy" />
-                      </div>
-                      {/* Details + Alt Text Editor */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {img.productTitle}
-                        </div>
-                        <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginBottom: 6 }}>
-                          {img.width}×{img.height} • Position {img.position}
-                        </div>
-                        {/* Alt text input */}
-                        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                          <input
-                            className="input"
-                            value={editAlt[img.id] ?? img.alt}
-                            onChange={e => setEditAlt(prev => ({ ...prev, [img.id]: e.target.value }))}
-                            placeholder="Enter alt text..."
-                            style={{ fontSize: 11, padding: '4px 8px', flex: 1 }}
-                          />
-                          <button
-                            className="btn btn-sm"
-                            onClick={() => handleGenerateAlt(img)}
-                            disabled={generating[img.id]}
-                            title="AI Generate"
-                            style={{ padding: '4px 6px', minWidth: 28 }}
-                          >
-                            {generating[img.id] ? <LoadingDots /> : <Wand2 size={12} />}
-                          </button>
-                          <button
-                            className="btn btn-sm"
-                            onClick={() => handleSaveAlt(img)}
-                            disabled={updating[img.id] || !(editAlt[img.id] ?? img.alt)?.trim()}
-                            title="Save"
-                            style={{ padding: '4px 6px', minWidth: 28, background: '#059669', color: '#fff', border: 'none' }}
-                          >
-                            {updating[img.id] ? <LoadingDots /> : updated.has(img.id) ? <CheckCircle2 size={12} /> : <Check size={12} />}
-                          </button>
-                        </div>
-                        {/* Status indicator */}
-                        {updated.has(img.id) ? (
-                          <div style={{ fontSize: 10, color: '#059669', marginTop: 4 }}>Updated</div>
-                        ) : (!img.alt || !img.alt.trim()) ? (
-                          <div style={{ fontSize: 10, color: '#ef4444', marginTop: 4 }}>Missing alt text</div>
-                        ) : null}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {filteredImages.length === 0 && (
-                  <div className="card"><div className="empty-state"><ImageIcon /><h3>No images match filter</h3></div></div>
-                )}
-              </>
-            )}
-          </>
-        )}
-      </div>
-      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-    </>
-  );
-}
-
-// =============================================
 // SERP SCRAPER (Real Google Rankings)
 // =============================================
 function SERPScraper() {
@@ -4970,7 +4495,7 @@ function WebsiteAnalysis() {
       const issuesSummary = (data.siteAudit?.issues || []).slice(0, 15).map(i => `[${i.type}] ${i.title}`).join(', ');
 
       const result = await callClaude({
-        system: `You are a world-class SEO consultant (equal to Ahrefs + SEMrush + Moz combined) analyzing a website. Powered by NEON Marketing Skills Engine.
+        system: `You are a world-class SEO consultant (equal to Ahrefs + SEMrush + Moz combined) analyzing a website. Powered by Protocol Marketing Skills Engine.
 
 ${KIRO_CONTEXT}
 
@@ -6046,226 +5571,6 @@ function TwitterScraper() {
 }
 
 // =============================================
-// SHOPIFY DASHBOARD — Orders, Customers, Analytics
-// =============================================
-function ShopifyDashboard() {
-  const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState(null);
-  const [orders, setOrders] = useState([]);
-  const [customers, setCustomers] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [tab, setTab] = useState('overview'); // overview, orders, customers
-  const [orderFilter, setOrderFilter] = useState('any');
-
-  const connected = isShopifyConnected();
-  const storeName = getShopifyStoreName();
-
-  const fetchDashboard = async () => {
-    setLoading(true);
-    try {
-      const [orderData, productCount, customerCount, shopInfo, customerData] = await Promise.all([
-        getOrders(50, 'any'),
-        getProductCount(),
-        getCustomerCount(),
-        getShopInfo(),
-        getCustomers(50),
-      ]);
-      setOrders(orderData);
-      setCustomers(customerData);
-
-      const totalRevenue = orderData.reduce((sum, o) => sum + parseFloat(o.total_price || 0), 0);
-      const pendingOrders = orderData.filter(o => o.fulfillment_status === null || o.fulfillment_status === 'unfulfilled').length;
-      const paidOrders = orderData.filter(o => o.financial_status === 'paid').length;
-
-      setStats({
-        totalOrders: orderData.length,
-        totalRevenue,
-        productCount,
-        customerCount,
-        pendingOrders,
-        paidOrders,
-        currency: shopInfo.currency || 'INR',
-        shopName: shopInfo.name,
-        shopDomain: shopInfo.domain,
-        shopPlan: shopInfo.plan_display_name,
-      });
-      setToast({ message: `Dashboard loaded: ${orderData.length} orders, ${productCount} products`, type: 'success' });
-    } catch (e) {
-      setToast({ message: e.message, type: 'error' });
-    }
-    setLoading(false);
-  };
-
-  const filteredOrders = orders.filter(o => {
-    if (orderFilter === 'any') return true;
-    if (orderFilter === 'unfulfilled') return !o.fulfillment_status || o.fulfillment_status === 'unfulfilled';
-    if (orderFilter === 'paid') return o.financial_status === 'paid';
-    if (orderFilter === 'refunded') return o.financial_status === 'refunded';
-    return true;
-  });
-
-  return (
-    <>
-      <div className="page-header">
-        <div>
-          <h1>Shopify Dashboard</h1>
-          <p className="page-header-sub">Orders, customers, and store analytics at a glance</p>
-        </div>
-        {connected && <span className="badge" style={{ background: '#059669', color: '#fff', padding: '6px 14px', fontSize: 12 }}>{storeName}</span>}
-      </div>
-      <div className="page-body">
-        {!connected ? (
-          <div className="card"><div className="empty-state"><ShoppingCart /><h3>Connect Shopify First</h3><p>Go to Settings → Shopify to connect your store.</p></div></div>
-        ) : (
-          <>
-            <div className="card" style={{ marginBottom: 20 }}>
-              <button className="btn btn-primary" onClick={fetchDashboard} disabled={loading} style={{ width: '100%' }}>
-                {loading ? <><LoadingDots /> Loading dashboard...</> : <><RefreshCw size={16} /> Sync Store Data</>}
-              </button>
-            </div>
-
-            {stats && (
-              <>
-                {/* Tabs */}
-                <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-                  {['overview', 'orders', 'customers'].map(t => (
-                    <button key={t} className={`btn btn-sm ${tab === t ? 'btn-primary' : ''}`} onClick={() => setTab(t)}
-                      style={{ textTransform: 'capitalize' }}>{t}</button>
-                  ))}
-                </div>
-
-                {tab === 'overview' && (
-                  <>
-                    <div className="grid-4" style={{ marginBottom: 16 }}>
-                      <div className="stat-card">
-                        <span className="stat-card-label">Total Orders</span>
-                        <span className="stat-card-value">{stats.totalOrders}</span>
-                        <span className="stat-card-change positive"><ShoppingCart size={12} /> {stats.paidOrders} paid</span>
-                      </div>
-                      <div className="stat-card">
-                        <span className="stat-card-label">Revenue</span>
-                        <span className="stat-card-value">{stats.currency} {stats.totalRevenue.toLocaleString()}</span>
-                        <span className="stat-card-change positive"><CreditCard size={12} /> From recent orders</span>
-                      </div>
-                      <div className="stat-card">
-                        <span className="stat-card-label">Products</span>
-                        <span className="stat-card-value">{stats.productCount}</span>
-                        <span className="stat-card-change positive"><Package size={12} /> In store</span>
-                      </div>
-                      <div className="stat-card">
-                        <span className="stat-card-label">Customers</span>
-                        <span className="stat-card-value">{stats.customerCount}</span>
-                        <span className="stat-card-change positive"><Users size={12} /> Total</span>
-                      </div>
-                    </div>
-                    <div className="grid-4" style={{ marginBottom: 16 }}>
-                      <div className="stat-card">
-                        <span className="stat-card-label">Pending Fulfillment</span>
-                        <span className="stat-card-value" style={{ color: stats.pendingOrders > 0 ? '#f59e0b' : '#059669' }}>{stats.pendingOrders}</span>
-                        <span className="stat-card-change"><Truck size={12} /> Need shipping</span>
-                      </div>
-                      <div className="stat-card">
-                        <span className="stat-card-label">Store Plan</span>
-                        <span className="stat-card-value" style={{ fontSize: 18 }}>{stats.shopPlan || 'N/A'}</span>
-                      </div>
-                      <div className="stat-card">
-                        <span className="stat-card-label">Avg Order Value</span>
-                        <span className="stat-card-value">{stats.currency} {stats.totalOrders > 0 ? Math.round(stats.totalRevenue / stats.totalOrders).toLocaleString() : 0}</span>
-                      </div>
-                      <div className="stat-card">
-                        <span className="stat-card-label">Domain</span>
-                        <span className="stat-card-value" style={{ fontSize: 12, wordBreak: 'break-all' }}>{stats.shopDomain || 'N/A'}</span>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {tab === 'orders' && (
-                  <div className="card">
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-                      {['any', 'unfulfilled', 'paid', 'refunded'].map(f => (
-                        <button key={f} className={`btn btn-sm ${orderFilter === f ? 'btn-primary' : ''}`} onClick={() => setOrderFilter(f)}
-                          style={{ textTransform: 'capitalize' }}>{f === 'any' ? 'All' : f}</button>
-                      ))}
-                    </div>
-                    <div className="table-container">
-                      <table className="table">
-                        <thead>
-                          <tr>
-                            <th>Order</th>
-                            <th>Customer</th>
-                            <th>Total</th>
-                            <th>Payment</th>
-                            <th>Fulfillment</th>
-                            <th>Date</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredOrders.map(o => (
-                            <tr key={o.id}>
-                              <td style={{ fontWeight: 600 }}>{o.name}</td>
-                              <td>{o.customer ? `${o.customer.first_name || ''} ${o.customer.last_name || ''}`.trim() || o.email : o.email || 'Guest'}</td>
-                              <td style={{ fontWeight: 600 }}>{o.currency} {parseFloat(o.total_price).toLocaleString()}</td>
-                              <td>
-                                <span className="badge" style={{
-                                  background: o.financial_status === 'paid' ? '#059669' : o.financial_status === 'refunded' ? '#ef4444' : '#f59e0b',
-                                  color: '#fff', fontSize: 10, padding: '2px 8px'
-                                }}>{o.financial_status}</span>
-                              </td>
-                              <td>
-                                <span className="badge" style={{
-                                  background: o.fulfillment_status === 'fulfilled' ? '#059669' : '#f59e0b',
-                                  color: '#fff', fontSize: 10, padding: '2px 8px'
-                                }}>{o.fulfillment_status || 'unfulfilled'}</span>
-                              </td>
-                              <td style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{new Date(o.created_at).toLocaleDateString()}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-                {tab === 'customers' && (
-                  <div className="card">
-                    <div className="table-container">
-                      <table className="table">
-                        <thead>
-                          <tr>
-                            <th>Customer</th>
-                            <th>Email</th>
-                            <th>Orders</th>
-                            <th>Total Spent</th>
-                            <th>Joined</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {customers.map(c => (
-                            <tr key={c.id}>
-                              <td style={{ fontWeight: 600 }}>{c.first_name} {c.last_name}</td>
-                              <td style={{ fontSize: 12 }}>{c.email}</td>
-                              <td style={{ textAlign: 'center' }}>{c.orders_count}</td>
-                              <td style={{ fontWeight: 600 }}>{stats.currency} {parseFloat(c.total_spent || 0).toLocaleString()}</td>
-                              <td style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{new Date(c.created_at).toLocaleDateString()}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        )}
-      </div>
-      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
-    </>
-  );
-}
-
-// =============================================
 // MARKETING SKILLS HUB — All 33 Skills
 // =============================================
 function MarketingSkillsHub() {
@@ -6454,7 +5759,7 @@ function SkillPanel({ skillKey }) {
     <div style={{ maxWidth: 900, margin: '0 auto', height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>{skill.name}</h2>
-        <p style={{ color: '#94a3b8', fontSize: 13 }}>{skill.description} • Powered by NEON Marketing Skills Engine</p>
+        <p style={{ color: '#94a3b8', fontSize: 13 }}>{skill.description} • Powered by Protocol Marketing Skills Engine</p>
       </div>
 
       {messages.length === 0 && (
@@ -7726,9 +7031,295 @@ Write the FULL article now. Every section must be complete, not summarized or tr
 }
 
 // =============================================
+// LEADS DASHBOARD — Analytics & Folder Organization
+// =============================================
+function LeadsDashboard() {
+  const [folders, setFolders] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('protocol_lead_folders') || '[]'); } catch { return []; }
+  });
+  const [expandedFolder, setExpandedFolder] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const leads = getAllLeads();
+  const totalLeads = leads.length;
+  const emailCount = leads.filter(l => l.email).length;
+  const phoneCount = leads.filter(l => l.phone).length;
+  const thisWeek = leads.filter(l => Date.now() - l.scrapedAt < 7 * 86400000).length;
+
+  const leadTypes = {};
+  leads.forEach(l => { leadTypes[l.type || 'Other'] = (leadTypes[l.type || 'Other'] || 0) + 1; });
+  const typeData = Object.entries(leadTypes).map(([name, value]) => ({ name: name.replace(/_/g, ' '), value }));
+
+  const leadsOverTime = [
+    { week: 'Week 1', count: Math.floor(leads.length * 0.15) },
+    { week: 'Week 2', count: Math.floor(leads.length * 0.25) },
+    { week: 'Week 3', count: Math.floor(leads.length * 0.35) },
+    { week: 'Week 4', count: Math.floor(leads.length * 0.25) },
+  ];
+
+  const handleExportFolder = (folderId) => {
+    const folder = folders.find(f => f.id === folderId);
+    if (!folder || !folder.leads) return;
+    exportToCSV(folder.leads, folder.name);
+    setToast({ message: `Exported ${folder.leads.length} leads from ${folder.name}`, type: 'success' });
+  };
+
+  const handleDeleteFolder = (folderId) => {
+    if (confirm('Delete this folder? Leads will not be removed.')) {
+      const updated = folders.filter(f => f.id !== folderId);
+      setFolders(updated);
+      localStorage.setItem('protocol_lead_folders', JSON.stringify(updated));
+    }
+  };
+
+  const chartColors = ['#7c3aed', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+
+  return (
+    <>
+      <div className="page-header">
+        <div>
+          <h1>Leads Dashboard</h1>
+          <p className="page-header-sub">Analytics and organization for your lead database</p>
+        </div>
+      </div>
+      <div className="page-body">
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+        <div className="grid-4" style={{ marginBottom: 28 }}>
+          <div className="stat-card"><span className="stat-card-label">Total Leads</span><span className="stat-card-value">{totalLeads}</span><span className="stat-card-change positive"><Database size={12} /> All time</span></div>
+          <div className="stat-card"><span className="stat-card-label">Email Coverage</span><span className="stat-card-value">{totalLeads > 0 ? Math.round((emailCount / totalLeads) * 100) : 0}%</span><span className="stat-card-change positive"><Mail size={12} /> {emailCount} have email</span></div>
+          <div className="stat-card"><span className="stat-card-label">Phone Coverage</span><span className="stat-card-value">{totalLeads > 0 ? Math.round((phoneCount / totalLeads) * 100) : 0}%</span><span className="stat-card-change positive"><Phone size={12} /> {phoneCount} have phone</span></div>
+          <div className="stat-card"><span className="stat-card-label">This Week</span><span className="stat-card-value">{thisWeek}</span><span className="stat-card-change positive"><TrendingUp size={12} /> Last 7 days</span></div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+          <div className="glass-card">
+            <div style={{ padding: 16, borderBottom: '1px solid var(--border)' }}><h3 className="card-title">Lead Types</h3></div>
+            <div style={{ padding: 16, minHeight: 280 }}>
+              {typeData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={240}>
+                  <RechartsPieChart><Pie data={typeData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="value">
+                    {typeData.map((entry, index) => (<Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />))}
+                  </Pie><RechartsTooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8 }} /><Legend wrapperStyle={{ paddingTop: 12, fontSize: 12 }} /></RechartsPieChart>
+                </ResponsiveContainer>
+              ) : (<div style={{ height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>No lead type data</div>)}
+            </div>
+          </div>
+          <div className="glass-card">
+            <div style={{ padding: 16, borderBottom: '1px solid var(--border)' }}><h3 className="card-title">Leads Over Time</h3></div>
+            <div style={{ padding: 16, minHeight: 280 }}>
+              <ResponsiveContainer width="100%" height={240}>
+                <RechartsBarChart data={leadsOverTime} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" /><XAxis dataKey="week" stroke="#64748b" style={{ fontSize: 12 }} /><YAxis stroke="#64748b" style={{ fontSize: 12 }} />
+                  <RechartsTooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8 }} /><Bar dataKey="count" fill="#7c3aed" radius={[8, 8, 0, 0]} />
+                </RechartsBarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        <div className="card" style={{ marginBottom: 20 }}>
+          <div style={{ padding: 16, borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 className="card-title">Lead Folders</h3>
+            <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{folders.length} folders</span>
+          </div>
+          {folders.length === 0 ? (
+            <div className="empty-state" style={{ padding: 40 }}><Database size={40} style={{ color: 'var(--accent)', marginBottom: 12 }} /><h3>No folders yet</h3><p>Folders are created automatically when you search and save leads</p></div>
+          ) : (
+            <div>{folders.map(folder => (
+              <div key={folder.id}>
+                <div onClick={() => setExpandedFolder(expandedFolder === folder.id ? null : folder.id)} style={{ padding: 14, borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', background: expandedFolder === folder.id ? 'var(--bg-tertiary)' : 'transparent', transition: 'background 0.2s' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
+                    <Database size={18} style={{ color: 'var(--accent)' }} />
+                    <div><div style={{ fontWeight: 600, fontSize: 13 }}>{folder.name}</div><div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>{new Date(folder.date).toLocaleDateString()} • {folder.location} • {folder.leadCount} leads</div></div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <button className="btn btn-sm" onClick={(e) => { e.stopPropagation(); handleExportFolder(folder.id); }} style={{ fontSize: 11 }}><Download size={12} /> Export</button>
+                    <button className="btn btn-sm" onClick={(e) => { e.stopPropagation(); handleDeleteFolder(folder.id); }} style={{ fontSize: 11, color: 'var(--error)' }}>×</button>
+                  </div>
+                </div>
+                {expandedFolder === folder.id && folder.leads && (
+                  <div style={{ background: 'var(--bg-primary)', padding: 12 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
+                      {folder.leads.slice(0, 6).map((lead, i) => (
+                        <div key={i} style={{ background: 'var(--bg-tertiary)', padding: 8, borderRadius: 6, fontSize: 11 }}>
+                          <div style={{ fontWeight: 600 }}>{lead.name}</div>
+                          {lead.email && <div style={{ color: 'var(--accent)', marginTop: 2 }}>{lead.email.split(',')[0]}</div>}
+                          {lead.phone && <div style={{ color: 'var(--success)', marginTop: 2 }}>{lead.phone}</div>}
+                        </div>
+                      ))}
+                      {folder.leads.length > 6 && <div style={{ padding: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', fontSize: 11 }}>+{folder.leads.length - 6} more</div>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}</div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// =============================================
+// STRATEGY BUILDER — AI-Powered Marketing Strategy Generator
+// =============================================
+function StrategyBuilder() {
+  const [step, setStep] = useState(1);
+  const [strategyType, setStrategyType] = useState(null);
+  const [objective, setObjective] = useState('');
+  const [timeline, setTimeline] = useState('');
+  const [budget, setBudget] = useState('');
+  const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [strategy, setStrategy] = useState('');
+  const [progress, setProgress] = useState(0);
+
+  const strategyTypes = [
+    { id: 'gtm', name: 'GTM Launch', icon: Target, desc: 'Go-to-market strategy for product launch', color: '#7c3aed' },
+    { id: 'leadgen', name: 'Lead Gen Playbook', icon: Crosshair, desc: 'Lead generation and nurturing campaigns', color: '#06b6d4' },
+    { id: 'content-seo', name: 'Content & SEO', icon: Globe, desc: 'Content strategy and SEO roadmap', color: '#10b981' },
+    { id: 'full-plan', name: 'Full Marketing Plan', icon: BarChart3, desc: 'Complete 12-month marketing strategy', color: '#f59e0b' },
+  ];
+
+  const leads = getAllLeads();
+  const history = getSearchHistory();
+  const seoData = getSEODashboardData();
+
+  const handleGenerateStrategy = async () => {
+    if (!strategyType || !objective.trim()) return;
+    if (!isApiKeySet()) { alert('Set your AI API key in Settings first'); return; }
+    setStep(3); setLoading(true); setProgress(10);
+    try {
+      const context = { objective, timeline: timeline || 'Not specified', budget: budget || 'Not specified', notes, leadCount: leads.length, emailCoverage: leads.length > 0 ? Math.round((leads.filter(l => l.email).length / leads.length) * 100) : 0, recentSearches: history.slice(0, 5).map(h => h.query), seoTracked: seoData.trackedDomains, keywords: seoData.totalKeywords };
+      setProgress(30);
+      const systemPrompt = `You are an expert marketing strategist at Protocol. Generate a comprehensive ${strategyType === 'gtm' ? 'Go-to-Market' : strategyType === 'leadgen' ? 'Lead Generation' : strategyType === 'content-seo' ? 'Content & SEO' : 'Full Marketing'} strategy.\n\nContext:\n- Objective: ${context.objective}\n- Timeline: ${context.timeline}\n- Budget: ${context.budget}\n- Notes: ${context.notes || 'None'}\n- Current leads: ${context.leadCount}\n- Email coverage: ${context.emailCoverage}%\n- SEO: ${context.seoTracked} domains, ${context.keywords} keywords\n\nFormat with clear sections:\n1. Executive Summary\n2. Key Objectives\n3. Strategy Pillars\n4. Timeline & Milestones\n5. Budget Allocation\n6. Success Metrics\n7. Next 30-Day Actions`;
+      setProgress(50);
+      const response = await callClaude({ messages: [{ role: 'user', content: `Generate a ${strategyType} strategy: ${context.objective}\nTimeline: ${context.timeline}\nBudget: ${context.budget}` }], system: systemPrompt, maxTokens: 4000, temperature: 0.7 });
+      setProgress(85); setStrategy(response.content); setProgress(100);
+      setTimeout(() => { setStep(4); setLoading(false); }, 500);
+    } catch (err) { alert('Error: ' + err.message); setStep(2); setLoading(false); }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      doc.setFontSize(20); doc.setTextColor(124, 58, 237); doc.text('PROTOCOL', 20, 20);
+      doc.setFontSize(12); doc.setTextColor(100, 116, 139);
+      const typeLabel = strategyTypes.find(t => t.id === strategyType)?.name || 'Strategy';
+      doc.text(`${typeLabel} — ${new Date().toLocaleDateString()}`, 20, 30);
+      doc.setDrawColor(124, 58, 237); doc.line(20, 34, 190, 34);
+      doc.setFontSize(11); doc.setTextColor(30, 30, 30);
+      const lines = doc.splitTextToSize(strategy, 170);
+      let y = 42;
+      lines.forEach(line => { if (y > 280) { doc.addPage(); y = 20; } doc.text(line, 20, y); y += 6; });
+      doc.setFontSize(8); doc.setTextColor(100, 116, 139); doc.text('Generated by Protocol Strategy Builder', 20, doc.internal.pageSize.height - 10);
+      doc.save(`protocol-strategy-${strategyType}-${Date.now()}.pdf`);
+    } catch (err) { alert('PDF error: ' + err.message); }
+  };
+
+  return (
+    <>
+      <div className="page-header"><div><h1>Strategy Builder</h1><p className="page-header-sub">AI-powered marketing strategy generator with PDF export</p></div></div>
+      <div className="page-body">
+        {step === 1 && (
+          <div>
+            <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>Select Strategy Type</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16 }}>
+              {strategyTypes.map(type => { const IconComp = type.icon; return (
+                <button key={type.id} onClick={() => { setStrategyType(type.id); setStep(2); }}
+                  className="glass-card" style={{ padding: 24, cursor: 'pointer', textAlign: 'left', border: '2px solid var(--border)', transition: 'all 0.3s' }}
+                  onMouseOver={e => { e.currentTarget.style.borderColor = type.color; }} onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}>
+                  <IconComp size={32} style={{ color: type.color, marginBottom: 12 }} />
+                  <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>{type.name}</h3>
+                  <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{type.desc}</p>
+                </button>
+              ); })}
+            </div>
+          </div>
+        )}
+        {step === 2 && (
+          <div style={{ maxWidth: 600 }}>
+            <button onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', marginBottom: 16, fontSize: 14 }}>← Back</button>
+            <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>{strategyTypes.find(t => t.id === strategyType)?.name} Details</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div className="input-group"><label>What is your main objective?</label><textarea value={objective} onChange={e => setObjective(e.target.value)} placeholder="e.g., Launch new product line, increase leads by 50%" style={{ minHeight: 100 }} /></div>
+              <div className="input-group"><label>Timeline</label><input type="text" value={timeline} onChange={e => setTimeline(e.target.value)} placeholder="e.g., 6 months, Q2-Q3 2026" /></div>
+              <div className="input-group"><label>Budget</label><input type="text" value={budget} onChange={e => setBudget(e.target.value)} placeholder="e.g., ₹5L/month, $50k total" /></div>
+              <div className="input-group"><label>Additional Notes (optional)</label><textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any additional context..." style={{ minHeight: 80 }} /></div>
+              <button className="btn btn-primary" onClick={handleGenerateStrategy} disabled={!objective.trim()}>Generate Strategy</button>
+            </div>
+          </div>
+        )}
+        {step === 3 && (
+          <div style={{ maxWidth: 500, margin: '0 auto', textAlign: 'center', padding: '60px 20px' }}>
+            <Zap size={48} style={{ color: 'var(--accent)', marginBottom: 20 }} />
+            <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Generating Your Strategy</h2>
+            <p style={{ color: 'var(--text-tertiary)', marginBottom: 24 }}>Analyzing your brief and creating a customized plan...</p>
+            <div className="score-bar" style={{ marginBottom: 12 }}><div className="score-bar-fill" style={{ width: `${progress}%`, background: 'var(--accent)', transition: 'width 0.5s ease' }} /></div>
+            <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{progress}% complete</p>
+          </div>
+        )}
+        {step === 4 && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 600 }}>{strategyTypes.find(t => t.id === strategyType)?.name}</h2>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-primary" onClick={handleExportPDF}><Download size={14} /> Export PDF</button>
+                <button className="btn" onClick={() => navigator.clipboard.writeText(strategy)}><Copy size={14} /> Copy</button>
+              </div>
+            </div>
+            <div className="card" style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.7, color: 'var(--text-primary)', padding: 24 }}>{strategy}</div>
+            <button className="btn" onClick={() => { setStep(1); setStrategy(''); setObjective(''); setTimeline(''); setBudget(''); setNotes(''); }} style={{ marginTop: 20 }}>Create New Strategy</button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// =============================================
+// CONTENT HUB — Merged Content + Marketing AI
+// =============================================
+function ContentHub() {
+  const [activeTab, setActiveTab] = useState('skills');
+
+  const tabs = [
+    { id: 'skills', name: 'AI Skills Hub', icon: Zap },
+    { id: 'blog', name: 'Blog Writer', icon: BookOpen },
+    { id: 'email', name: 'Email Writer', icon: Inbox },
+    { id: 'copywriter', name: 'Copywriter', icon: Type },
+    { id: 'ad-creative', name: 'Ad Creative', icon: Megaphone },
+  ];
+
+  return (
+    <>
+      <div className="page-header"><div><h1>Content Hub</h1><p className="page-header-sub">All your content creation and marketing AI tools in one place</p></div></div>
+      <div className="page-body">
+        <div style={{ display: 'flex', gap: 4, marginBottom: 20, flexWrap: 'wrap', background: 'var(--bg-secondary)', padding: 6, borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+          {tabs.map(tab => { const TabIcon = tab.icon; return (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ padding: '10px 16px', background: activeTab === tab.id ? 'var(--accent)' : 'transparent', color: activeTab === tab.id ? '#fff' : 'var(--text-secondary)', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: 500, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s' }}>
+              <TabIcon size={14} /> {tab.name}
+            </button>
+          ); })}
+        </div>
+        {activeTab === 'skills' && <MarketingSkillsHub />}
+        {activeTab === 'blog' && <BlogWriter />}
+        {activeTab === 'email' && <CompanyEmail />}
+        {activeTab === 'copywriter' && <SkillPanel skillKey="copywriting" />}
+        {activeTab === 'ad-creative' && <SkillPanel skillKey="ad-creative" />}
+      </div>
+    </>
+  );
+}
+
+// =============================================
 // USER MANAGEMENT / ADMIN PANEL
 // =============================================
 const ALL_TOOLS = [
+  { id: 'dashboard', label: 'Dashboard', section: 'Overview' },
+  { id: 'leads-dashboard', label: 'Leads Analytics', section: 'Overview' },
+  { id: 'strategy-builder', label: 'Strategy Builder', section: 'Overview' },
   { id: 'lead-search', label: 'Lead Search', section: 'Lead Gen' },
   { id: 'email-extractor', label: 'Email Extractor', section: 'Lead Gen' },
   { id: 'my-leads', label: 'My Leads', section: 'Lead Gen' },
@@ -7738,9 +7329,6 @@ const ALL_TOOLS = [
   { id: 'fb-ads', label: 'FB Ads Library', section: 'Social Scrapers' },
   { id: 'linkedin', label: 'LinkedIn Scraper', section: 'Social Scrapers' },
   { id: 'twitter', label: 'Twitter / X Scraper', section: 'Social Scrapers' },
-  { id: 'shopify-dashboard', label: 'Shopify Dashboard', section: 'Shopify' },
-  { id: 'shopify-seo', label: 'Shopify SEO Fixer', section: 'Shopify' },
-  { id: 'shopify-media', label: 'Media Alt Text', section: 'Shopify' },
   { id: 'website-analysis', label: 'Full Analysis', section: 'Website' },
   { id: 'seo-dashboard', label: 'SEO Dashboard', section: 'Website' },
   { id: 'site-audit', label: 'Site Audit', section: 'Website' },
@@ -7757,15 +7345,16 @@ const ALL_TOOLS = [
   { id: 'ad-intelligence', label: 'Ad Intelligence', section: 'Research' },
   { id: 'brand-monitoring', label: 'Brand Monitor', section: 'Research' },
   { id: 'serp-scraper', label: 'SERP Scraper', section: 'Research' },
-  { id: 'blog', label: 'Blog Writer', section: 'Content' },
-  { id: 'email', label: 'Company Email', section: 'Content' },
-  { id: 'marketing-hub', label: 'Skills Hub', section: 'Marketing AI' },
-  { id: 'copywriter', label: 'Copywriter', section: 'Marketing AI' },
-  { id: 'ad-creative', label: 'Ad Creative', section: 'Marketing AI' },
-  { id: 'email-sequence', label: 'Email Sequences', section: 'Marketing AI' },
-  { id: 'launch-planner', label: 'Launch Planner', section: 'Marketing AI' },
-  { id: 'pricing-lab', label: 'Pricing Lab', section: 'Marketing AI' },
-  { id: 'cro-analyzer', label: 'CRO Analyzer', section: 'Marketing AI' },
+  { id: 'content-hub', label: 'Content Hub', section: 'Content & AI' },
+  { id: 'blog', label: 'Blog Writer', section: 'Content & AI' },
+  { id: 'email', label: 'Company Email', section: 'Content & AI' },
+  { id: 'marketing-hub', label: 'Skills Hub', section: 'Content & AI' },
+  { id: 'copywriter', label: 'Copywriter', section: 'Content & AI' },
+  { id: 'ad-creative', label: 'Ad Creative', section: 'Content & AI' },
+  { id: 'email-sequence', label: 'Email Sequences', section: 'Content & AI' },
+  { id: 'launch-planner', label: 'Launch Planner', section: 'Content & AI' },
+  { id: 'pricing-lab', label: 'Pricing Lab', section: 'Content & AI' },
+  { id: 'cro-analyzer', label: 'CRO Analyzer', section: 'Content & AI' },
   { id: 'settings', label: 'Settings', section: 'System' },
 ];
 
@@ -8112,9 +7701,9 @@ function SettingsPage() {
 
           {/* About */}
           <div className="card">
-            <h3 className="card-title" style={{ marginBottom: 8 }}>About NEON</h3>
+            <h3 className="card-title" style={{ marginBottom: 8 }}>About Protocol</h3>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              NEON v3.0 — AI Marketing & SEO Engine<br />
+              Protocol v3.0 — AI Marketing & SEO Engine<br />
               Google Places API for business search &bull; Email extraction via CORS proxy<br />
               CSV &amp; Excel export &bull; All data stored in your browser (localStorage)<br />
               Built for personal use by Shreyansh
@@ -8185,8 +7774,8 @@ function PinLogin({ onSuccess }) {
         <div className="pin-login-logo">
           <div className="sidebar-logo-icon" style={{ width: 56, height: 56, fontSize: 28, borderRadius: 14 }}>K</div>
         </div>
-        <h1 className="pin-login-title">NEON</h1>
-        <p className="pin-login-subtitle">Lead Generation Engine</p>
+        <h1 className="pin-login-title">PROTOCOL</h1>
+        <p className="pin-login-subtitle">AI Marketing Engine</p>
         <div className="pin-login-lock"><Lock size={20} /></div>
         <p className="pin-login-label">Enter your 4-digit PIN</p>
         <div className="pin-input-row">
@@ -8484,6 +8073,14 @@ export default function App() {
 
   const navSections = [
     {
+      title: 'Overview', icon: LayoutDashboard,
+      items: [
+        { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+        { path: '/leads-dashboard', icon: PieChart, label: 'Leads Analytics' },
+        { path: '/strategy-builder', icon: Zap, label: 'Strategy Builder' },
+      ]
+    },
+    {
       title: 'Lead Gen', icon: Crosshair,
       items: [
         { path: '/search', icon: Search, label: 'Lead Search' },
@@ -8529,23 +8126,11 @@ export default function App() {
       ]
     },
     {
-      title: 'Shopify', icon: ShoppingCart,
+      title: 'Content & AI', icon: Wand2,
       items: [
-        { path: '/shopify-dashboard', icon: Package, label: 'Dashboard' },
-        { path: '/shopify-seo', icon: Shield, label: 'SEO Fixer' },
-        { path: '/shopify-media', icon: ImageIcon, label: 'Media Alt Text' },
-      ]
-    },
-    {
-      title: 'Content', icon: Feather,
-      items: [
+        { path: '/content-hub', icon: Layers, label: 'Content Hub' },
         { path: '/blog', icon: BookOpen, label: 'Blog Writer' },
         { path: '/email', icon: Inbox, label: 'Company Email' },
-      ]
-    },
-    {
-      title: 'Marketing AI', icon: Wand2,
-      items: [
         { path: '/marketing-hub', icon: Zap, label: 'Skills Hub' },
         { path: '/copywriter', icon: Type, label: 'Copywriter' },
         { path: '/ad-creative', icon: Megaphone, label: 'Ad Creative' },
@@ -8558,7 +8143,6 @@ export default function App() {
     {
       title: 'System', icon: Settings,
       items: [
-        { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
         ...(isAdmin ? [
           { path: '/admin-panel', icon: Shield, label: 'Admin Panel' },
           { path: '/user-management', icon: Users, label: 'User Management' },
@@ -8573,7 +8157,7 @@ export default function App() {
       <NotificationBell />
       <div className="mobile-header">
         <button className="hamburger" onClick={() => setSidebarOpen(true)}><Menu size={22} /></button>
-        <span style={{ fontWeight: 700, fontSize: 16 }}>NEON</span>
+        <span style={{ fontWeight: 700, fontSize: 16 }}>PROTOCOL</span>
       </div>
 
       <div className="app-layout">
@@ -8582,9 +8166,9 @@ export default function App() {
         <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
           <div className="sidebar-header">
             <div className="sidebar-logo">
-              <div className="sidebar-logo-icon">N</div>
+              <div className="sidebar-logo-icon">P</div>
               <div>
-                <div className="sidebar-logo-text">NEON</div>
+                <div className="sidebar-logo-text">PROTOCOL</div>
                 <div className="sidebar-logo-badge">AI MARKETING ENGINE</div>
               </div>
             </div>
@@ -8660,10 +8244,6 @@ export default function App() {
               <div className="sidebar-status-dot" style={{ background: isApifyTokenSet() ? '#00d68f' : 'var(--text-tertiary)', boxShadow: isApifyTokenSet() ? '0 0 8px #00d68f' : 'none' }} />
               {isApifyTokenSet() ? 'Apify Ready' : 'Apify Token Missing'}
             </div>
-            <div className="sidebar-status">
-              <div className="sidebar-status-dot" style={{ background: isShopifyConnected() ? '#96bf48' : 'var(--text-tertiary)', boxShadow: isShopifyConnected() ? '0 0 8px #96bf48' : 'none' }} />
-              {isShopifyConnected() ? 'Shopify Connected' : 'Shopify Not Connected'}
-            </div>
             <button className="sidebar-link" onClick={handleLogout} style={{ color: 'var(--text-tertiary)', marginTop: 4 }}>
               <LogOut size={16} /> Logout
             </button>
@@ -8673,6 +8253,7 @@ export default function App() {
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/leads-dashboard" element={<LeadsDashboard />} />
             <Route path="/search" element={<LeadSearch />} />
             <Route path="/emails" element={<EmailExtractor />} />
             <Route path="/leads" element={<MyLeads />} />
@@ -8682,9 +8263,6 @@ export default function App() {
             <Route path="/fb-ads" element={<FBAdsLibraryScraper />} />
             <Route path="/linkedin" element={<LinkedInScraper />} />
             <Route path="/twitter" element={<TwitterScraper />} />
-            <Route path="/shopify-dashboard" element={<ShopifyDashboard />} />
-            <Route path="/shopify-seo" element={<ShopifySEOFixer />} />
-            <Route path="/shopify-media" element={<ShopifyMediaManager />} />
             <Route path="/website-analysis" element={<WebsiteAnalysis />} />
             <Route path="/seo-dashboard" element={<SEODashboard />} />
             <Route path="/keyword-research" element={<KeywordResearch />} />
@@ -8701,6 +8279,7 @@ export default function App() {
             <Route path="/content-research" element={<ContentResearch />} />
             <Route path="/organic-research" element={<OrganicResearch />} />
             <Route path="/brand-monitoring" element={<BrandMonitoring />} />
+            <Route path="/content-hub" element={<ContentHub />} />
             <Route path="/blog" element={<BlogWriter />} />
             <Route path="/email" element={<CompanyEmail />} />
             <Route path="/marketing-hub" element={<MarketingSkillsHub />} />
@@ -8710,6 +8289,7 @@ export default function App() {
             <Route path="/launch-planner" element={<SkillPanel skillKey="launch-strategy" />} />
             <Route path="/pricing-lab" element={<SkillPanel skillKey="pricing-strategy" />} />
             <Route path="/cro-analyzer" element={<SkillPanel skillKey="page-cro" />} />
+            <Route path="/strategy-builder" element={<StrategyBuilder />} />
             {isAdmin && <Route path="/admin-panel" element={<AdminPanel />} />}
             {isAdmin && <Route path="/user-management" element={<UserManagement />} />}
             <Route path="/settings" element={<SettingsPage />} />
