@@ -8830,16 +8830,8 @@ export default function App() {
   // Agent select sound effects — tries real audio files first, falls back to synthesized
   const playAgentSound = (agent) => {
     if (soundsMuted) return;
-    // Try real audio file first
-    const audio = new Audio(`./sounds/${agent}.mp3`);
-    audio.volume = 0.4;
-    const playReal = audio.play();
-    if (playReal) {
-      playReal.catch(() => {
-        // File doesn't exist or can't play — use synthesized fallback
-        playSynthSound(agent);
-      });
-    }
+    // Use designed synth sounds (context-matched to each agent)
+    playSynthSound(agent);
   };
 
   const playSynthSound = (agent) => {
