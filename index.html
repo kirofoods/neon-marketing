@@ -13,6 +13,24 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Unregister any old PWA service workers that are caching stale builds -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          registrations.forEach(function(registration) {
+            registration.unregister().then(function(success) {
+              if (success) console.log('[PROTOCOL] Old service worker unregistered');
+            });
+          });
+        });
+        // Also clear all caches left behind by the old PWA
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            names.forEach(function(name) { caches.delete(name); });
+          });
+        }
+      }
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
