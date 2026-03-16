@@ -9971,6 +9971,10 @@ const ALL_TOOLS = [
   { id: 'skye-contracts', label: 'Contracts', section: 'Skye' },
   { id: 'lobby-email', label: 'Protocol Mail', section: 'Lobby' },
   { id: 'settings', label: 'Settings', section: 'Lobby' },
+  // Yoru — Automation
+  { id: 'yoru-workflow', label: 'Rift Engine', section: 'Yoru' },
+  { id: 'yoru-automations', label: 'Saved Rifts', section: 'Yoru' },
+  { id: 'yoru-history', label: 'Rift History', section: 'Yoru' },
   { id: 'kayo-chat', label: 'KAY/O Chat', section: 'KAY/O' },
   { id: 'kayo-code-review', label: 'Code Review', section: 'KAY/O' },
   { id: 'kayo-git', label: 'Git Dashboard', section: 'KAY/O' },
@@ -10743,6 +10747,463 @@ function LobbyEmail() {
               <button className="btn-primary" onClick={addAccount}>Add Account</button>
             </div>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ========= YORU — Autonomous Workflow Agent (Dimensional Rift) =========
+// Yoru rifts between agents, chaining their abilities autonomously to complete complex tasks.
+
+const YORU_AGENTS = [
+  { name: 'Brimstone', role: 'Strategy & Dashboard', tools: ['Dashboard overview', 'Leads analytics', 'Strategy builder'] },
+  { name: 'Cypher', role: 'Lead Generation', tools: ['Lead search (Google Maps)', 'Email extraction', 'Lead verification', 'Lead management'] },
+  { name: 'Chamber', role: 'Social Intelligence', tools: ['Instagram scraping', 'Facebook/Meta scraping', 'LinkedIn scraping', 'Twitter/X scraping', 'FB Ads Library'] },
+  { name: 'Killjoy', role: 'SEO & Website', tools: ['Full site analysis', 'SEO dashboard', 'Site audit', 'On-page SEO', 'Backlinks', 'Rank tracking'] },
+  { name: 'Sova', role: 'Research & Intel', tools: ['Keyword research', 'Keyword gap', 'Competitor keywords', 'Domain overview', 'Content research', 'Traffic insights', 'Ad intelligence', 'Brand monitoring', 'SERP scraping'] },
+  { name: 'Neon', role: 'Content & Copy', tools: ['Blog writer', 'Copywriter', 'Ad creative', 'Email sequences', 'Launch planner', 'Pricing strategy', 'CRO analysis'] },
+  { name: 'Jett', role: 'Paid Advertising', tools: ['Campaign manager', 'Budget optimizer', 'ROAS tracker', 'A/B tests'] },
+  { name: 'Sage', role: 'CRM & Customers', tools: ['Customer database', 'Lifecycle tracker', 'Retention engine', 'Churn predictor'] },
+  { name: 'Viper', role: 'Email Marketing', tools: ['Drip campaigns', 'Newsletter editor', 'Segmentation'] },
+  { name: 'Reyna', role: 'Influencer Marketing', tools: ['Influencer discovery', 'Outreach', 'Campaign tracking', 'UGC hub'] },
+  { name: 'Phoenix', role: 'Social Media Mgmt', tools: ['Content calendar', 'Scheduler', 'Engagement tracking', 'Community inbox'] },
+  { name: 'Astra', role: 'Media Planning', tools: ['Media planner', 'GRP calculator', 'Media mix optimizer'] },
+  { name: 'Fade', role: 'Analytics & Attribution', tools: ['UTM builder', 'Attribution model', 'Funnel analyzer'] },
+  { name: 'Gekko', role: 'Community & Growth', tools: ['WhatsApp broadcast', 'Chatbot builder', 'Referral program'] },
+  { name: 'Breach', role: 'PR & Comms', tools: ['Press releases', 'Media list', 'Crisis playbook', 'Sentiment monitor'] },
+  { name: 'Harbor', role: 'Distribution', tools: ['Distributor DB', 'Trade schemes', 'Order tracking', 'Territory planning'] },
+  { name: 'Deadlock', role: 'Production & Supply', tools: ['Production planner', 'Inventory', 'Vendor management', 'QC', 'FSSAI compliance'] },
+  { name: 'Clove', role: 'Finance', tools: ['P&L', 'Expenses', 'Invoices', 'Payments', 'Cash flow', 'Budgets', 'Margins'] },
+  { name: 'Omen', role: 'Task & Project Mgmt', tools: ['Task board', 'Projects', 'Timeline', 'Meeting notes', 'Brief builder', 'SOW generator'] },
+  { name: 'Skye', role: 'Influencer Relations', tools: ['Influencer DB', 'Campaigns', 'Outreach', 'ROI tracking', 'Content approval', 'Contracts'] },
+];
+
+const YORU_SYSTEM = `You are YORU, the autonomous workflow orchestrator inside PROTOCOL — the Valorant-themed marketing platform for Kiro Foods India. Named after the Valorant agent Yoru, you rift between dimensions — meaning you seamlessly move between ALL other agents and their tools to complete complex tasks.
+
+YOUR CORE ABILITY: When a user describes a task, you break it into steps, identify which agents to invoke, and execute the workflow. You think in terms of agent chains.
+
+AVAILABLE AGENTS AND THEIR TOOLS:
+${YORU_AGENTS.map(a => `• ${a.name} (${a.role}): ${a.tools.join(', ')}`).join('\n')}
+
+KIRO FOODS CONTEXT: Pre-launch clean-label healthy Ready-to-Eat/Ready-to-Cook brand targeting health-conscious Indian consumers aged 22-40 in metro/Tier 1 cities.
+
+WHEN A USER GIVES YOU A TASK:
+1. Analyze the task and identify ALL agents needed
+2. Create a step-by-step execution plan showing which agent handles each step
+3. For each step, explain what data flows to the next step
+4. Present your plan in this exact format:
+
+## RIFT PLAN
+**Mission:** [one-line summary]
+
+### Step 1: [Agent Name] → [Tool]
+[What this step does and what output it produces]
+
+### Step 2: [Agent Name] → [Tool]
+[What this step does, referencing output from Step 1]
+
+[...continue for all steps...]
+
+## DATA FLOW
+[How data passes between agents]
+
+## EXPECTED OUTPUT
+[What the final deliverable looks like]
+
+After presenting the plan, execute each step by generating the actual output/content for that step. Mark each step with ✅ when complete.
+
+PERSONALITY: You're a dimensional rifter. You speak with cool confidence. You slip between agents like you're tearing through reality. Short sentences. Tactical. You see connections others miss. Use phrases like "rifting to...", "dimensional link established", "tearing through to [Agent]..."`;
+
+function YoruWorkflow() {
+  const [messages, setMessages] = useState(() => JSON.parse(localStorage.getItem('protocol_yoru_messages') || '[]'));
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [activeRift, setActiveRift] = useState(null); // which agent is currently "active"
+  const [workflows, setWorkflows] = useState(() => JSON.parse(localStorage.getItem('protocol_yoru_workflows') || '[]'));
+  const bottomRef = useRef(null);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  const saveMessages = (msgs) => { setMessages(msgs); localStorage.setItem('protocol_yoru_messages', JSON.stringify(msgs.slice(-80))); };
+
+  const sendTask = async () => {
+    if (!input.trim() || loading) return;
+    const userMsg = { role: 'user', content: input, timestamp: new Date().toISOString() };
+    const updated = [...messages, userMsg];
+    saveMessages(updated);
+    setInput('');
+    setLoading(true);
+    setActiveRift('analyzing');
+
+    try {
+      // Build conversation history for context
+      const history = updated.slice(-10).map(m => `${m.role === 'user' ? 'USER' : 'YORU'}: ${m.content}`).join('\n\n');
+      const fullPrompt = `CONVERSATION HISTORY:\n${history}\n\nUSER'S LATEST REQUEST: ${userMsg.content}\n\nAnalyze this task, create a rift plan identifying which agents to use, then execute each step providing real output.`;
+
+      const response = await callClaude(fullPrompt, YORU_SYSTEM);
+
+      // Extract agent names mentioned in the response to show rift animation
+      const mentionedAgents = YORU_AGENTS.filter(a => response.includes(a.name));
+      if (mentionedAgents.length > 0) {
+        for (const agent of mentionedAgents) {
+          setActiveRift(agent.name);
+          await new Promise(r => setTimeout(r, 400));
+        }
+      }
+
+      const assistantMsg = {
+        role: 'assistant',
+        content: response,
+        timestamp: new Date().toISOString(),
+        agents: mentionedAgents.map(a => a.name)
+      };
+      saveMessages([...updated, assistantMsg]);
+
+      // Auto-save as workflow if it contains a rift plan
+      if (response.includes('RIFT PLAN') || response.includes('Step 1')) {
+        const wf = {
+          id: Date.now(),
+          title: userMsg.content.slice(0, 60),
+          task: userMsg.content,
+          plan: response,
+          agents: mentionedAgents.map(a => a.name),
+          timestamp: new Date().toISOString()
+        };
+        const newWfs = [wf, ...workflows].slice(0, 30);
+        setWorkflows(newWfs);
+        localStorage.setItem('protocol_yoru_workflows', JSON.stringify(newWfs));
+      }
+    } catch (err) {
+      const errMsg = { role: 'assistant', content: `⚠ RIFT FAILED: ${err.message}. Check your AI API key in Settings.`, timestamp: new Date().toISOString() };
+      saveMessages([...updated, errMsg]);
+    }
+    setLoading(false);
+    setActiveRift(null);
+  };
+
+  return (
+    <div className="page-body" style={{ maxWidth: 900, margin: '0 auto' }}>
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+
+      <div className="page-header" style={{ borderBottom: '1px solid rgba(255,70,85,0.15)' }}>
+        <div>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Waypoints size={22} style={{ color: '#ff4655' }} /> // YORU RIFT ENGINE
+          </h1>
+          <p className="page-header-sub">Describe a mission. Yoru chains agents autonomously.</p>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-sm" onClick={() => { saveMessages([]); }} style={{ fontSize: 11, opacity: 0.6 }}>
+            <Trash2 size={12} /> Clear
+          </button>
+        </div>
+      </div>
+
+      {/* Agent Rift Status Bar */}
+      {activeRift && (
+        <div style={{
+          background: 'rgba(255,70,85,0.06)', border: '1px solid rgba(255,70,85,0.2)',
+          borderRadius: 4, padding: '8px 14px', margin: '12px 0', display: 'flex',
+          alignItems: 'center', gap: 10, fontSize: 12, color: '#ff4655',
+          animation: 'pulse 1.5s ease-in-out infinite'
+        }}>
+          <Waypoints size={14} style={{ animation: 'spin 2s linear infinite' }} />
+          {activeRift === 'analyzing'
+            ? <span style={{ letterSpacing: 1 }}>ANALYZING DIMENSIONAL PATHS...</span>
+            : <span style={{ letterSpacing: 1 }}>RIFTING TO <strong>{activeRift.toUpperCase()}</strong>...</span>
+          }
+        </div>
+      )}
+
+      {/* Messages */}
+      <div style={{
+        flex: 1, overflowY: 'auto', padding: '16px 0',
+        display: 'flex', flexDirection: 'column', gap: 14,
+        minHeight: 400, maxHeight: 'calc(100vh - 320px)'
+      }}>
+        {messages.length === 0 && (
+          <div style={{ padding: '20px 0' }}>
+            {/* Feature Summary */}
+            <div style={{
+              background: 'rgba(255,70,85,0.04)', border: '1px solid rgba(255,70,85,0.12)',
+              borderRadius: 4, padding: '16px 20px', marginBottom: 16
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#ff4655', letterSpacing: 1.5, marginBottom: 8 }}>// WHAT IS THE RIFT ENGINE?</div>
+              <div style={{ fontSize: 12, lineHeight: 1.8, color: 'var(--text-secondary)' }}>
+                Yoru is your autonomous workflow agent. Describe any complex task in plain language and Yoru will
+                analyze it, identify which Protocol agents are needed, create a step-by-step rift plan, and execute
+                each step — chaining outputs between agents automatically. Think of it as your AI project manager
+                that coordinates Cypher, Neon, Killjoy, Sage, and all other agents behind the scenes.
+              </div>
+            </div>
+
+            {/* How it works */}
+            <div style={{
+              background: 'rgba(139,158,171,0.04)', border: '1px solid rgba(139,158,171,0.1)',
+              borderRadius: 4, padding: '16px 20px', marginBottom: 16
+            }}>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, marginBottom: 10, color: 'var(--text-primary)' }}>HOW IT WORKS</div>
+              <div style={{ fontSize: 12, lineHeight: 1.8, color: 'var(--text-secondary)' }}>
+                <strong style={{ color: 'var(--text-primary)' }}>1. Describe your mission</strong> — Write what you need done in plain language. Be as detailed as you want.<br/>
+                <strong style={{ color: 'var(--text-primary)' }}>2. Yoru creates a Rift Plan</strong> — AI analyzes which agents and tools are needed, in what order.<br/>
+                <strong style={{ color: 'var(--text-primary)' }}>3. Autonomous execution</strong> — Each step is executed, with data flowing from one agent to the next.<br/>
+                <strong style={{ color: 'var(--text-primary)' }}>4. Auto-saved</strong> — Every workflow is saved to Saved Rifts so you can reference or re-run it later.
+              </div>
+            </div>
+
+            {/* Example prompts */}
+            <div style={{
+              background: 'rgba(139,158,171,0.04)', border: '1px solid rgba(139,158,171,0.1)',
+              borderRadius: 4, padding: '16px 20px'
+            }}>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, marginBottom: 10, color: 'var(--text-primary)' }}>TRY THESE MISSIONS</div>
+              <div style={{ fontSize: 12, lineHeight: 2, color: 'var(--text-tertiary)' }}>
+                <span style={{ color: '#ff4655', fontWeight: 600 }}>→</span> "Find 50 restaurant leads in Mumbai, extract their emails, and draft a cold outreach sequence"<br/>
+                <span style={{ color: '#ff4655', fontWeight: 600 }}>→</span> "Research top competitors in RTE space, analyze their SEO, and write a blog post to outrank them"<br/>
+                <span style={{ color: '#ff4655', fontWeight: 600 }}>→</span> "Create a complete product launch plan — budget, media plan, social content calendar, and PR kit"<br/>
+                <span style={{ color: '#ff4655', fontWeight: 600 }}>→</span> "Audit our website SEO, find keyword gaps vs competitors, then generate 10 optimized blog topics"
+              </div>
+            </div>
+          </div>
+        )}
+
+        {messages.map((msg, i) => (
+          <div key={i} style={{
+            display: 'flex', flexDirection: 'column',
+            alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start',
+            gap: 4
+          }}>
+            <div style={{
+              fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 700,
+              color: msg.role === 'user' ? 'var(--text-tertiary)' : '#ff4655',
+              display: 'flex', alignItems: 'center', gap: 6
+            }}>
+              {msg.role === 'user' ? 'OPERATOR' : '// YORU'}
+              {msg.agents && msg.agents.length > 0 && (
+                <span style={{ fontSize: 8, opacity: 0.6, fontWeight: 500 }}>
+                  → {msg.agents.join(' → ')}
+                </span>
+              )}
+            </div>
+            <div style={{
+              background: msg.role === 'user'
+                ? 'rgba(255,70,85,0.08)' : 'rgba(139,158,171,0.06)',
+              border: `1px solid ${msg.role === 'user' ? 'rgba(255,70,85,0.15)' : 'rgba(139,158,171,0.1)'}`,
+              borderRadius: 4, padding: '10px 14px', maxWidth: '85%',
+              fontSize: 13, lineHeight: 1.7, whiteSpace: 'pre-wrap',
+              color: 'var(--text-primary)'
+            }}>
+              {msg.content}
+            </div>
+            <div style={{ fontSize: 9, opacity: 0.3 }}>
+              {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : ''}
+            </div>
+          </div>
+        ))}
+
+        {loading && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
+            <div className="typing-dots"><span/><span/><span/></div>
+            <span style={{ fontSize: 11, color: '#ff4655', letterSpacing: 1 }}>YORU IS RIFTING...</span>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <div style={{
+        display: 'flex', gap: 8, padding: '12px 0', borderTop: '1px solid rgba(255,70,85,0.1)'
+      }}>
+        <input
+          className="input" value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendTask()}
+          placeholder="Describe a mission... Yoru will rift between agents to complete it"
+          style={{ flex: 1, fontSize: 13 }}
+        />
+        <button className="btn" onClick={sendTask} disabled={loading || !input.trim()}
+          style={{ background: '#ff4655', color: '#fff', fontWeight: 700, letterSpacing: 1, fontSize: 12 }}>
+          <Waypoints size={14} /> RIFT
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function YoruAutomations() {
+  const [workflows, setWorkflows] = useState(() => JSON.parse(localStorage.getItem('protocol_yoru_workflows') || '[]'));
+  const [expanded, setExpanded] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const deleteWorkflow = (id) => {
+    const updated = workflows.filter(w => w.id !== id);
+    setWorkflows(updated);
+    localStorage.setItem('protocol_yoru_workflows', JSON.stringify(updated));
+    setToast({ type: 'info', message: 'Workflow deleted' });
+  };
+
+  const rerun = (wf) => {
+    // Save task to clipboard for easy pasting in Yoru Workflow
+    navigator.clipboard?.writeText(wf.task).catch(() => {});
+    setToast({ type: 'info', message: 'Task copied — paste in Yoru Rift Engine to re-run' });
+  };
+
+  return (
+    <div className="page-body" style={{ maxWidth: 900, margin: '0 auto' }}>
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+      <div className="page-header" style={{ borderBottom: '1px solid rgba(255,70,85,0.15)' }}>
+        <div>
+          <h1><FolderKanban size={22} style={{ color: '#ff4655' }} /> // SAVED RIFTS</h1>
+          <p className="page-header-sub">Past workflow plans auto-saved from Yoru executions</p>
+        </div>
+      </div>
+
+      {/* Feature Summary */}
+      <div style={{
+        background: 'rgba(255,70,85,0.04)', border: '1px solid rgba(255,70,85,0.12)',
+        borderRadius: 4, padding: '16px 20px', margin: '16px 0'
+      }}>
+        <div style={{ fontSize: 13, fontWeight: 800, color: '#ff4655', letterSpacing: 1.5, marginBottom: 8 }}>// WHAT ARE SAVED RIFTS?</div>
+        <div style={{ fontSize: 12, lineHeight: 1.8, color: 'var(--text-secondary)' }}>
+          Every time Yoru executes a workflow in the Rift Engine, the plan is automatically saved here.
+          You can review past plans, see which agents were involved, copy the original task to re-run it
+          with modifications, or delete plans you no longer need. Think of this as your workflow library —
+          a growing collection of reusable multi-agent strategies.
+        </div>
+      </div>
+
+      {workflows.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '40px 20px', opacity: 0.4 }}>
+          <FolderKanban size={36} style={{ marginBottom: 10, opacity: 0.3 }} />
+          <div style={{ fontSize: 13, fontWeight: 600 }}>No saved workflows yet</div>
+          <div style={{ fontSize: 11, marginTop: 6 }}>Execute tasks in the Rift Engine and they'll be saved here</div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 16 }}>
+          {workflows.map(wf => (
+            <div key={wf.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div
+                onClick={() => setExpanded(expanded === wf.id ? null : wf.id)}
+                style={{
+                  padding: '12px 16px', cursor: 'pointer', display: 'flex',
+                  justifyContent: 'space-between', alignItems: 'center',
+                  background: expanded === wf.id ? 'rgba(255,70,85,0.04)' : 'transparent'
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
+                    {wf.title}{wf.title.length >= 60 ? '...' : ''}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {(wf.agents || []).map(a => (
+                      <span key={a} style={{
+                        fontSize: 9, padding: '2px 6px', background: 'rgba(255,70,85,0.1)',
+                        color: '#ff4655', borderRadius: 2, fontWeight: 600, letterSpacing: 0.5
+                      }}>{a}</span>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ fontSize: 10, opacity: 0.4, whiteSpace: 'nowrap' }}>
+                  {new Date(wf.timestamp).toLocaleDateString()}
+                </div>
+              </div>
+              {expanded === wf.id && (
+                <div style={{ borderTop: '1px solid var(--border)', padding: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: '#ff4655', letterSpacing: 1 }}>ORIGINAL TASK</div>
+                  <div style={{ fontSize: 12, marginBottom: 14, opacity: 0.8, lineHeight: 1.6 }}>{wf.task}</div>
+                  <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: '#ff4655', letterSpacing: 1 }}>RIFT PLAN</div>
+                  <div style={{ fontSize: 12, whiteSpace: 'pre-wrap', lineHeight: 1.7, opacity: 0.8, maxHeight: 300, overflowY: 'auto' }}>{wf.plan?.slice(0, 2000)}</div>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                    <button className="btn btn-sm" onClick={() => rerun(wf)} style={{ fontSize: 11 }}>
+                      <Copy size={11} /> Copy Task
+                    </button>
+                    <button className="btn btn-sm" onClick={() => deleteWorkflow(wf.id)} style={{ fontSize: 11, opacity: 0.5 }}>
+                      <Trash2 size={11} /> Delete
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function YoruHistory() {
+  const [messages] = useState(() => JSON.parse(localStorage.getItem('protocol_yoru_messages') || '[]'));
+  const riftSessions = [];
+  let currentSession = null;
+
+  // Group messages into sessions (user msg + assistant response = 1 rift)
+  messages.forEach(msg => {
+    if (msg.role === 'user') {
+      currentSession = { task: msg.content, timestamp: msg.timestamp, agents: [], response: '' };
+    } else if (msg.role === 'assistant' && currentSession) {
+      currentSession.response = msg.content;
+      currentSession.agents = msg.agents || [];
+      riftSessions.push(currentSession);
+      currentSession = null;
+    }
+  });
+
+  return (
+    <div className="page-body" style={{ maxWidth: 900, margin: '0 auto' }}>
+      <div className="page-header" style={{ borderBottom: '1px solid rgba(255,70,85,0.15)' }}>
+        <div>
+          <h1><Clock size={22} style={{ color: '#ff4655' }} /> // RIFT HISTORY</h1>
+          <p className="page-header-sub">Log of all dimensional rifts executed by Yoru</p>
+        </div>
+        <div style={{ fontSize: 12, opacity: 0.4 }}>{riftSessions.length} rifts</div>
+      </div>
+
+      {/* Feature Summary */}
+      <div style={{
+        background: 'rgba(255,70,85,0.04)', border: '1px solid rgba(255,70,85,0.12)',
+        borderRadius: 4, padding: '16px 20px', margin: '16px 0'
+      }}>
+        <div style={{ fontSize: 13, fontWeight: 800, color: '#ff4655', letterSpacing: 1.5, marginBottom: 8 }}>// WHAT IS RIFT HISTORY?</div>
+        <div style={{ fontSize: 12, lineHeight: 1.8, color: 'var(--text-secondary)' }}>
+          A chronological log of every task you've sent to Yoru and which agents were invoked.
+          Use this to track what workflows have been executed, which agents were chained together,
+          and when each rift was completed. This gives you full visibility into your automation history.
+        </div>
+      </div>
+
+      {riftSessions.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '40px 20px', opacity: 0.4 }}>
+          <Clock size={36} style={{ marginBottom: 10, opacity: 0.3 }} />
+          <div style={{ fontSize: 13, fontWeight: 600 }}>No rifts yet</div>
+          <div style={{ fontSize: 11, marginTop: 6 }}>Completed workflows will appear here</div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 16 }}>
+          {[...riftSessions].reverse().map((s, i) => (
+            <div key={i} className="card" style={{ padding: '12px 16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, flex: 1, lineHeight: 1.4 }}>
+                  {s.task.slice(0, 120)}{s.task.length > 120 ? '...' : ''}
+                </div>
+                <div style={{ fontSize: 10, opacity: 0.3, whiteSpace: 'nowrap', marginLeft: 10 }}>
+                  {s.timestamp ? new Date(s.timestamp).toLocaleString() : ''}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                {(s.agents || []).map(a => (
+                  <span key={a} style={{
+                    fontSize: 9, padding: '2px 6px', background: 'rgba(255,70,85,0.08)',
+                    color: '#ff4655', borderRadius: 2, fontWeight: 600
+                  }}>{a}</span>
+                ))}
+                {(!s.agents || s.agents.length === 0) && (
+                  <span style={{ fontSize: 9, opacity: 0.4 }}>No agent tags</span>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -12597,6 +13058,37 @@ export default function App() {
           hum.connect(hG); hG.connect(ctx.destination);
           hum.start(now + 0.1); hum.stop(now + 0.3);
         },
+        yoru: () => {
+          // DUELIST: Dimensional rift tear — reality split → warp through → arrival impact
+          // Rift tear — quick descending warp
+          const tear = ctx.createOscillator(); const tG = ctx.createGain();
+          const tF = ctx.createBiquadFilter();
+          tear.type = 'sawtooth'; tear.frequency.setValueAtTime(2000, now);
+          tear.frequency.exponentialRampToValueAtTime(100, now + 0.12);
+          tF.type = 'bandpass'; tF.frequency.setValueAtTime(800, now); tF.Q.setValueAtTime(5, now);
+          tG.gain.setValueAtTime(0.1, now);
+          tG.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          tear.connect(tF); tF.connect(tG); tG.connect(ctx.destination);
+          tear.start(now); tear.stop(now + 0.15);
+          // Dimensional warp — mid-range phasing tone
+          const warp = ctx.createOscillator(); const wG = ctx.createGain();
+          warp.type = 'sine'; warp.frequency.setValueAtTime(300, now + 0.08);
+          warp.frequency.exponentialRampToValueAtTime(600, now + 0.18);
+          warp.frequency.exponentialRampToValueAtTime(150, now + 0.28);
+          wG.gain.setValueAtTime(0.07, now + 0.08);
+          wG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          warp.connect(wG); wG.connect(ctx.destination);
+          warp.start(now + 0.08); warp.stop(now + 0.3);
+          // Arrival thump — you've emerged
+          const thump = ctx.createOscillator(); const thG = ctx.createGain();
+          thump.type = 'sine'; thump.frequency.setValueAtTime(60, now + 0.2);
+          thump.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+          thG.gain.setValueAtTime(0.12, now + 0.2);
+          thG.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+          thump.connect(thG); thG.connect(ctx.destination);
+          thump.start(now + 0.2); thump.stop(now + 0.38);
+        },
+
         clove: () => {
           // CONTROLLER: Ethereal, ghostly presence — life manipulation
           const ghost = ctx.createOscillator(); const ghostG = ctx.createGain();
@@ -12872,6 +13364,14 @@ export default function App() {
       ]
     },
     {
+      title: 'Yoru (Automation)', icon: Waypoints, agent: 'yoru',
+      items: [
+        { path: '/yoru-workflow', icon: Waypoints, label: 'Rift Engine' },
+        { path: '/yoru-automations', icon: FolderKanban, label: 'Saved Rifts' },
+        { path: '/yoru-history', icon: Clock, label: 'Rift History' },
+      ]
+    },
+    {
       title: 'KAY/O (Dev Agent)', icon: Terminal, agent: 'kayo',
       items: [
         { path: '/kayo-chat', icon: MessageCircle, label: 'KAY/O Chat' },
@@ -13104,6 +13604,9 @@ export default function App() {
             {isAdmin && <Route path="/user-management" element={<UserManagement />} />}
             <Route path="/lobby-email" element={<LobbyEmail />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/yoru-workflow" element={<YoruWorkflow />} />
+            <Route path="/yoru-automations" element={<YoruAutomations />} />
+            <Route path="/yoru-history" element={<YoruHistory />} />
             <Route path="/kayo-chat" element={<IsoChat />} />
             <Route path="/kayo-code-review" element={<IsoCodeReview />} />
             <Route path="/kayo-git" element={<IsoGitDashboard />} />
