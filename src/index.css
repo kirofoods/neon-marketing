@@ -1660,19 +1660,72 @@ table tbody tr:hover {
    PIN LOGIN
    ============================================ */
 
+/* ============================================
+   VALORANT-STYLE LOGIN SCREEN
+   ============================================ */
+
+@keyframes valorantScanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes valorantGlitch {
+  0%, 90%, 100% { transform: translate(0); opacity: 1; }
+  92% { transform: translate(-2px, 1px); opacity: 0.8; }
+  94% { transform: translate(2px, -1px); opacity: 0.9; }
+  96% { transform: translate(-1px, 2px); opacity: 0.7; }
+  98% { transform: translate(1px, -2px); opacity: 0.85; }
+}
+
+@keyframes valorantPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes valorantLineExpand {
+  0% { width: 0; }
+  100% { width: 100%; }
+}
+
+@keyframes valorantFadeUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
 .pin-login-page {
   width: 100vw;
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-primary);
-  background-image: radial-gradient(
-    ellipse at 50% 0%,
-    rgba(124, 58, 237, 0.1) 0%,
-    transparent 60%
-  );
-  animation: fadeIn var(--transition);
+  background: #0f1923;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Valorant-style background grid */
+.pin-login-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,70,85,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,70,85,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  z-index: 0;
+}
+
+/* Animated scanline */
+.pin-login-page::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,70,85,0.4), transparent);
+  animation: valorantScanline 4s linear infinite;
+  z-index: 1;
 }
 
 .pin-login-card {
@@ -1680,121 +1733,245 @@ table tbody tr:hover {
   flex-direction: column;
   align-items: center;
   padding: 48px 56px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-xl);
-  min-width: 360px;
-  transition: transform 0.1s;
+  background: rgba(15, 25, 35, 0.95);
+  border: 1px solid rgba(255, 70, 85, 0.2);
+  border-radius: 2px;
+  min-width: 400px;
+  position: relative;
+  z-index: 10;
+  animation: valorantFadeUp 0.6s ease-out;
+  /* Valorant angular clip */
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+
+/* Corner accent marks */
+.pin-login-card::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 40px;
+  height: 40px;
+  border-top: 2px solid #ff4655;
+  border-left: 2px solid #ff4655;
+}
+
+.pin-login-card::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 40px;
+  height: 40px;
+  border-bottom: 2px solid #ff4655;
+  border-right: 2px solid #ff4655;
 }
 
 .pin-login-card.shake {
-  animation: pinShake 0.5s ease;
+  animation: pinShake 0.5s ease, valorantGlitch 0.5s ease;
 }
 
 .pin-login-logo {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .pin-login-title {
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -1px;
-  color: var(--text-primary);
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  color: #ece8e1;
   margin-bottom: 4px;
+  font-family: 'Inter', sans-serif;
+  text-shadow: 0 0 20px rgba(255, 70, 85, 0.3);
 }
 
 .pin-login-subtitle {
-  font-size: 13px;
-  color: var(--text-tertiary);
-  margin-bottom: 36px;
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #768079;
+  margin-bottom: 8px;
+}
+
+/* Horizontal accent line */
+.pin-login-divider {
+  width: 60px;
+  height: 1px;
+  background: #ff4655;
+  margin: 16px auto 28px;
+  animation: valorantLineExpand 0.8s ease-out 0.3s both;
 }
 
 .pin-login-lock {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--accent-lighter);
+  width: 52px;
+  height: 52px;
+  border-radius: 0;
+  background: transparent;
+  border: 1px solid rgba(255, 70, 85, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--accent);
+  color: #ff4655;
   margin-bottom: 20px;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  position: relative;
+}
+
+.pin-login-lock::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(255, 70, 85, 0.1);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
 }
 
 .pin-login-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #768079;
   margin-bottom: 20px;
 }
 
 .pin-input-row {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
 .pin-input {
-  width: 56px !important;
-  height: 64px !important;
+  width: 60px !important;
+  height: 68px !important;
   text-align: center;
-  font-size: 24px !important;
-  font-weight: 700;
+  font-size: 26px !important;
+  font-weight: 800;
   font-family: 'Inter', monospace;
-  background: var(--bg-tertiary);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
+  background: rgba(30, 45, 55, 0.6);
+  border: 1px solid rgba(255, 70, 85, 0.15);
+  border-radius: 0;
+  color: #ece8e1;
   outline: none;
-  transition: all var(--transition);
-  caret-color: var(--accent);
+  transition: all 0.15s ease;
+  caret-color: #ff4655;
   padding: 0 !important;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
 }
 
 .pin-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px var(--accent-lighter);
-  background: var(--bg-elevated);
+  border-color: #ff4655;
+  box-shadow: 0 0 15px rgba(255, 70, 85, 0.2), inset 0 0 15px rgba(255, 70, 85, 0.05);
+  background: rgba(40, 55, 65, 0.8);
 }
 
 .pin-input.filled {
-  border-color: var(--accent);
-  background: var(--bg-elevated);
+  border-color: #ff4655;
+  background: rgba(255, 70, 85, 0.08);
+  box-shadow: 0 0 10px rgba(255, 70, 85, 0.15);
 }
 
 .pin-input.error {
-  border-color: var(--error) !important;
-  box-shadow: 0 0 0 4px var(--error-bg) !important;
+  border-color: #ff4655 !important;
+  box-shadow: 0 0 20px rgba(255, 70, 85, 0.4) !important;
+  animation: valorantGlitch 0.3s ease;
 }
 
 .pin-error {
-  font-size: 13px;
-  color: var(--error);
-  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #ff4655;
+  font-weight: 700;
   margin-bottom: 8px;
 }
 
 .pin-login-footer {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 16px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #4a5856;
+  margin-top: 20px;
+}
+
+/* Decorative side elements */
+.val-login-side-left,
+.val-login-side-right {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 200px;
+  z-index: 5;
+}
+
+.val-login-side-left {
+  left: 15%;
+  background: linear-gradient(transparent, rgba(255,70,85,0.3), transparent);
+}
+
+.val-login-side-right {
+  right: 15%;
+  background: linear-gradient(transparent, rgba(255,70,85,0.3), transparent);
+}
+
+/* Corner decorations on the page */
+.val-corner-tl, .val-corner-br {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  z-index: 5;
+}
+
+.val-corner-tl {
+  top: 30px;
+  left: 30px;
+  border-top: 1px solid rgba(255, 70, 85, 0.2);
+  border-left: 1px solid rgba(255, 70, 85, 0.2);
+}
+
+.val-corner-br {
+  bottom: 30px;
+  right: 30px;
+  border-bottom: 1px solid rgba(255, 70, 85, 0.2);
+  border-right: 1px solid rgba(255, 70, 85, 0.2);
+}
+
+/* Version tag */
+.val-version {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #3a4a46;
+  z-index: 5;
 }
 
 @media (max-width: 480px) {
   .pin-login-card {
     min-width: auto;
-    width: calc(100vw - 32px);
-    padding: 36px 28px;
+    width: calc(100vw - 24px);
+    padding: 36px 24px;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
   }
 
   .pin-input {
-    width: 48px !important;
-    height: 56px !important;
-    font-size: 20px !important;
+    width: 52px !important;
+    height: 60px !important;
+    font-size: 22px !important;
   }
 
   .pin-input-row {
-    gap: 10px;
+    gap: 8px;
   }
+
+  .pin-login-title {
+    font-size: 28px;
+    letter-spacing: 6px;
+  }
+
+  .val-login-side-left, .val-login-side-right { display: none; }
 }

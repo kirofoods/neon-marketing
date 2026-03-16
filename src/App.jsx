@@ -7899,6 +7899,34 @@ function SettingsPage() {
             ))}
           </div>
 
+          {/* Sound Settings */}
+          <div className="card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <h3 className="card-title">Agent Sounds</h3>
+                <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>
+                  Valorant agent voice lines and sound effects when navigating sections
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  const newVal = localStorage.getItem('protocol_sounds_muted') === 'true' ? 'false' : 'true';
+                  localStorage.setItem('protocol_sounds_muted', newVal);
+                  setToast({ message: newVal === 'true' ? 'Sounds muted' : 'Sounds enabled', type: 'info' });
+                  // Force page refresh to update the mute state in the main App component
+                  window.location.reload();
+                }}
+                className="btn btn-secondary"
+                style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
+              >
+                {localStorage.getItem('protocol_sounds_muted') === 'true'
+                  ? <><MicOff size={14} /> Sounds Off</>
+                  : <><Volume2 size={14} /> Sounds On</>
+                }
+              </button>
+            </div>
+          </div>
+
           {/* Cloud Sync */}
           <div className="card" style={{ border: '1px solid rgba(124,58,237,0.2)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -7954,9 +7982,18 @@ function PinLogin({ onSuccess }) {
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
   const [welcomeUser, setWelcomeUser] = useState(null);
+  const [lockedIn, setLockedIn] = useState(false);
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
-  useEffect(() => { inputRefs[0].current?.focus(); }, []);
+  useEffect(() => {
+    inputRefs[0].current?.focus();
+    // Play "Choose your agent" voice line on load
+    try {
+      const audio = new Audio('./sounds/choose-agent.mp3');
+      audio.volume = 0.4;
+      audio.play().catch(() => {});
+    } catch (e) {}
+  }, []);
 
   const tryAuth = (fullPin) => {
     const result = authenticatePin(fullPin);
@@ -7964,7 +8001,14 @@ function PinLogin({ onSuccess }) {
       setCurrentUser(result.username);
       sessionStorage.setItem('kj_auth', 'true');
       setWelcomeUser(result.username);
-      setTimeout(() => onSuccess(result.username, result.role), 400);
+      setLockedIn(true);
+      // Play spike plant sound on successful login (like locking in)
+      try {
+        const audio = new Audio('./sounds/spike-plant.mp3');
+        audio.volume = 0.3;
+        audio.play().catch(() => {});
+      } catch (e) {}
+      setTimeout(() => onSuccess(result.username, result.role), 800);
     } else {
       setError(true);
       setShake(true);
@@ -7978,6 +8022,20 @@ function PinLogin({ onSuccess }) {
     newPin[index] = value.slice(-1);
     setPin(newPin);
     setError(false);
+
+    // Play subtle click on each digit
+    if (value) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.setValueAtTime(1200 + index * 200, ctx.currentTime);
+        gain.gain.setValueAtTime(0.06, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.06);
+        setTimeout(() => ctx.close(), 200);
+      } catch (e) {}
+    }
 
     if (value && index < 3) inputRefs[index + 1].current?.focus();
 
@@ -8000,14 +8058,30 @@ function PinLogin({ onSuccess }) {
 
   return (
     <div className="pin-login-page">
-      <div className={`pin-login-card ${shake ? 'shake' : ''}`}>
+      {/* Decorative elements */}
+      <div className="val-login-side-left" />
+      <div className="val-login-side-right" />
+      <div className="val-corner-tl" />
+      <div className="val-corner-br" />
+      <div className="val-version">PROTOCOL // V3.0 // KIRO FOODS</div>
+
+      <div className={`pin-login-card ${shake ? 'shake' : ''} ${lockedIn ? 'locked-in' : ''}`}>
+        {/* Valorant-style logo mark */}
         <div className="pin-login-logo">
-          <div className="sidebar-logo-icon" style={{ width: 56, height: 56, fontSize: 28, borderRadius: 14 }}>K</div>
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4 L44 14 L44 34 L24 44 L4 34 L4 14Z" fill="none" stroke="#ff4655" strokeWidth="1.5" opacity="0.6"/>
+            <path d="M24 10 L38 17 L38 31 L24 38 L10 31 L10 17Z" fill="rgba(255,70,85,0.08)" stroke="#ff4655" strokeWidth="1"/>
+            <text x="24" y="28" textAnchor="middle" fill="#ff4655" fontSize="18" fontWeight="900" fontFamily="Inter, sans-serif">P</text>
+          </svg>
         </div>
+
         <h1 className="pin-login-title">PROTOCOL</h1>
-        <p className="pin-login-subtitle">AI Marketing Engine</p>
-        <div className="pin-login-lock"><Lock size={20} /></div>
-        <p className="pin-login-label">Enter your 4-digit PIN</p>
+        <p className="pin-login-subtitle">Tactical Marketing Engine</p>
+        <div className="pin-login-divider" />
+
+        <div className="pin-login-lock"><Lock size={18} /></div>
+        <p className="pin-login-label">Enter Agent PIN</p>
+
         <div className="pin-input-row">
           {pin.map((digit, i) => (
             <input key={i} ref={inputRefs[i]} type="password" inputMode="numeric" maxLength={1}
@@ -8016,9 +8090,18 @@ function PinLogin({ onSuccess }) {
               className={`pin-input ${digit ? 'filled' : ''} ${error ? 'error' : ''}`} autoComplete="off" />
           ))}
         </div>
-        {welcomeUser && <p style={{ color: 'var(--success)', fontSize: 13, marginTop: 8, fontWeight: 600 }}>Welcome, {welcomeUser}!</p>}
-        {error && <p className="pin-error">Incorrect PIN. Try again.</p>}
-        <p className="pin-login-footer">Each user has a unique PIN</p>
+
+        {welcomeUser && (
+          <p style={{
+            color: '#ff4655', fontSize: 14, marginTop: 8, fontWeight: 800,
+            letterSpacing: 4, textTransform: 'uppercase',
+            textShadow: '0 0 20px rgba(255,70,85,0.5)'
+          }}>
+            Agent {welcomeUser} — Locked In
+          </p>
+        )}
+        {error && <p className="pin-error">Access Denied — Invalid PIN</p>}
+        <p className="pin-login-footer">Each agent has a unique access code</p>
       </div>
     </div>
   );
@@ -8310,12 +8393,15 @@ export default function App() {
 
   const isAdmin = currentUser === 'admin' || currentRole === 'Admin';
 
+  // Sound mute state
+  const [soundsMuted, setSoundsMuted] = useState(() => localStorage.getItem('protocol_sounds_muted') === 'true');
+
   // Agent select sound effects — tries real audio files first, falls back to synthesized
-  // Drop agent voice line .mp3 files in public/sounds/ (e.g. brimstone.mp3, chamber.mp3)
   const playAgentSound = (agent) => {
+    if (soundsMuted) return;
     // Try real audio file first
     const audio = new Audio(`./sounds/${agent}.mp3`);
-    audio.volume = 0.5;
+    audio.volume = 0.4;
     const playReal = audio.play();
     if (playReal) {
       playReal.catch(() => {
@@ -8326,6 +8412,7 @@ export default function App() {
   };
 
   const playSynthSound = (agent) => {
+    if (soundsMuted) return;
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const now = ctx.currentTime;
@@ -8569,10 +8656,10 @@ export default function App() {
         <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
           <div className="sidebar-header">
             <div className="sidebar-logo">
-              <div className="sidebar-logo-icon">P</div>
+              <div className="sidebar-logo-icon" style={{ background: 'transparent', border: '1.5px solid #ff4655', borderRadius: 2, clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', color: '#ff4655' }}>P</div>
               <div>
-                <div className="sidebar-logo-text">PROTOCOL</div>
-                <div className="sidebar-logo-badge">AI MARKETING ENGINE</div>
+                <div className="sidebar-logo-text" style={{ letterSpacing: 3 }}>PROTOCOL</div>
+                <div className="sidebar-logo-badge" style={{ color: '#ff4655', opacity: 0.7 }}>TACTICAL MARKETING</div>
               </div>
             </div>
           </div>
