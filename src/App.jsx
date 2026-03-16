@@ -15320,7 +15320,7 @@ export default function App() {
         { path: '/waylay-gbp', icon: MapPinned, label: 'GBP Manager' },
         { path: '/waylay-keywords', icon: Hash, label: 'Keyword Planner' },
         { path: '/waylay-local-seo', icon: Radar, label: 'Local SEO' },
-        { path: '/waylay-content', icon: Calendar, label: 'Content Planner' },
+        { path: '/waylay-content', icon: CalendarDays, label: 'Content Planner' },
         { path: '/waylay-plans', icon: ClipboardList, label: 'Action Plans' },
         { path: '/waylay-competitors', icon: Target, label: 'Competitor Map' },
       ]
