@@ -7423,34 +7423,34 @@ function ContentHub() {
 // USER MANAGEMENT / ADMIN PANEL
 // =============================================
 const ALL_TOOLS = [
-  { id: 'dashboard', label: 'Dashboard', section: 'Overview' },
-  { id: 'leads-dashboard', label: 'Leads Analytics', section: 'Overview' },
-  { id: 'strategy-builder', label: 'Strategy Builder', section: 'Overview' },
-  { id: 'lead-search', label: 'Lead Search', section: 'Lead Gen' },
-  { id: 'email-extractor', label: 'Email Extractor', section: 'Lead Gen' },
-  { id: 'my-leads', label: 'My Leads', section: 'Lead Gen' },
-  { id: 'lead-verifier', label: 'Lead Verifier', section: 'Lead Gen' },
+  { id: 'dashboard', label: 'Dashboard', section: 'Brimstone' },
+  { id: 'leads-dashboard', label: 'Leads Analytics', section: 'Brimstone' },
+  { id: 'strategy-builder', label: 'Strategy Builder', section: 'Brimstone' },
+  { id: 'lead-search', label: 'Lead Search', section: 'Chamber' },
+  { id: 'email-extractor', label: 'Email Extractor', section: 'Chamber' },
+  { id: 'my-leads', label: 'My Leads', section: 'Chamber' },
+  { id: 'lead-verifier', label: 'Lead Verifier', section: 'Chamber' },
   { id: 'instagram', label: 'Instagram Scraper', section: 'Cypher' },
   { id: 'facebook', label: 'Facebook / Meta', section: 'Cypher' },
   { id: 'fb-ads', label: 'FB Ads Library', section: 'Cypher' },
   { id: 'linkedin', label: 'LinkedIn Scraper', section: 'Cypher' },
   { id: 'twitter', label: 'Twitter / X Scraper', section: 'Cypher' },
-  { id: 'website-analysis', label: 'Full Analysis', section: 'Harbor' },
-  { id: 'seo-dashboard', label: 'SEO Dashboard', section: 'Harbor' },
-  { id: 'site-audit', label: 'Site Audit', section: 'Harbor' },
-  { id: 'on-page-seo', label: 'On-Page SEO', section: 'Harbor' },
-  { id: 'backlinks', label: 'Backlinks', section: 'Harbor' },
-  { id: 'rank-tracker', label: 'Rank Tracker', section: 'Harbor' },
-  { id: 'keyword-research', label: 'Keyword Discovery', section: 'Killjoy' },
-  { id: 'keyword-gap', label: 'Content Gaps', section: 'Killjoy' },
-  { id: 'organic-research', label: 'Competitor Keywords', section: 'Killjoy' },
-  { id: 'domain-overview', label: 'Domain Overview', section: 'Killjoy' },
-  { id: 'content-research', label: 'Content Research', section: 'Killjoy' },
-  { id: 'traffic-insights', label: 'Traffic Insights', section: 'Killjoy' },
-  { id: 'content-analyzer', label: 'Content Analyzer', section: 'Killjoy' },
-  { id: 'ad-intelligence', label: 'Ad Intelligence', section: 'Killjoy' },
-  { id: 'brand-monitoring', label: 'Brand Monitor', section: 'Killjoy' },
-  { id: 'serp-scraper', label: 'SERP Scraper', section: 'Killjoy' },
+  { id: 'website-analysis', label: 'Full Analysis', section: 'Killjoy' },
+  { id: 'seo-dashboard', label: 'SEO Dashboard', section: 'Killjoy' },
+  { id: 'site-audit', label: 'Site Audit', section: 'Killjoy' },
+  { id: 'on-page-seo', label: 'On-Page SEO', section: 'Killjoy' },
+  { id: 'backlinks', label: 'Backlinks', section: 'Killjoy' },
+  { id: 'rank-tracker', label: 'Rank Tracker', section: 'Killjoy' },
+  { id: 'keyword-research', label: 'Keyword Discovery', section: 'Sova' },
+  { id: 'keyword-gap', label: 'Content Gaps', section: 'Sova' },
+  { id: 'organic-research', label: 'Competitor Keywords', section: 'Sova' },
+  { id: 'domain-overview', label: 'Domain Overview', section: 'Sova' },
+  { id: 'content-research', label: 'Content Research', section: 'Sova' },
+  { id: 'traffic-insights', label: 'Traffic Insights', section: 'Sova' },
+  { id: 'content-analyzer', label: 'Content Analyzer', section: 'Sova' },
+  { id: 'ad-intelligence', label: 'Ad Intelligence', section: 'Sova' },
+  { id: 'brand-monitoring', label: 'Brand Monitor', section: 'Sova' },
+  { id: 'serp-scraper', label: 'SERP Scraper', section: 'Sova' },
   { id: 'content-hub', label: 'Content Hub', section: 'Neon' },
   { id: 'blog', label: 'Blog Writer', section: 'Neon' },
   { id: 'email', label: 'Company Email', section: 'Neon' },
@@ -8310,8 +8310,22 @@ export default function App() {
 
   const isAdmin = currentUser === 'admin' || currentRole === 'Admin';
 
-  // Valorant-style agent select sound effects using Web Audio API
+  // Agent select sound effects — tries real audio files first, falls back to synthesized
+  // Drop agent voice line .mp3 files in public/sounds/ (e.g. brimstone.mp3, chamber.mp3)
   const playAgentSound = (agent) => {
+    // Try real audio file first
+    const audio = new Audio(`./sounds/${agent}.mp3`);
+    audio.volume = 0.5;
+    const playReal = audio.play();
+    if (playReal) {
+      playReal.catch(() => {
+        // File doesn't exist or can't play — use synthesized fallback
+        playSynthSound(agent);
+      });
+    }
+  };
+
+  const playSynthSound = (agent) => {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const now = ctx.currentTime;
@@ -8376,6 +8390,37 @@ export default function App() {
           osc.connect(gain); gain.connect(ctx.destination);
           osc.start(now); osc.stop(now + 0.3);
         },
+        chamber: () => {
+          // Elegant snap — sharp, clean, sophisticated
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.setValueAtTime(1400, now);
+          osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+          gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.12);
+          // Gold shimmer
+          const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
+          osc2.type = 'triangle'; osc2.frequency.setValueAtTime(2200, now + 0.04);
+          gain2.gain.setValueAtTime(0.06, now + 0.04); gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          osc2.connect(gain2); gain2.connect(ctx.destination);
+          osc2.start(now + 0.04); osc2.stop(now + 0.15);
+        },
+        sova: () => {
+          // Recon dart — ascending ping with echo
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.setValueAtTime(400, now);
+          osc.frequency.exponentialRampToValueAtTime(1600, now + 0.15);
+          gain.gain.setValueAtTime(0.12, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.25);
+          // Echo ping
+          const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
+          osc2.type = 'sine'; osc2.frequency.setValueAtTime(1600, now + 0.2);
+          osc2.frequency.exponentialRampToValueAtTime(1200, now + 0.35);
+          gain2.gain.setValueAtTime(0.06, now + 0.2); gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          osc2.connect(gain2); gain2.connect(ctx.destination);
+          osc2.start(now + 0.2); osc2.stop(now + 0.4);
+        },
         lobby: () => {
           // UI click — simple clean click
           const osc = ctx.createOscillator(); const gain = ctx.createGain();
@@ -8409,6 +8454,12 @@ export default function App() {
       harbor: (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#1a1a2e"/><path d="M6 8 Q12 5 18 8" stroke="#0ea5e9" strokeWidth="2" fill="none"/><circle cx="9" cy="10" r="1.5" fill="#0ea5e9"/><circle cx="15" cy="10" r="1.5" fill="#0ea5e9"/><path d="M8 15 Q12 17 16 15" stroke="#0ea5e9" strokeWidth="1.5" fill="none"/><path d="M5 19 Q9 17 12 18 Q15 19 19 17" stroke="#0ea5e9" strokeWidth="1" fill="none" opacity="0.5"/></svg>
       ),
+      chamber: (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#1a1a2e"/><path d="M7 7 L10 7 L10 11 L7 11Z" fill="#c9a84c" opacity="0.9"/><path d="M14 7 L17 7 L17 11 L14 11Z" fill="#c9a84c" opacity="0.9"/><circle cx="8.5" cy="9" r="1" fill="#fff"/><circle cx="15.5" cy="9" r="1" fill="#fff"/><path d="M9 14 Q12 16 15 14" stroke="#c9a84c" strokeWidth="1.5" fill="none"/><path d="M10 3 L12 1 L14 3" stroke="#c9a84c" strokeWidth="1.5" fill="none"/><rect x="11" y="3" width="2" height="3" fill="#c9a84c" opacity="0.4"/></svg>
+      ),
+      sova: (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#1a1a2e"/><path d="M6 9 L9 7 L9 11Z" fill="#3b82f6" opacity="0.9"/><path d="M18 9 L15 7 L15 11Z" fill="#3b82f6" opacity="0.9"/><circle cx="9" cy="9" r="1.2" fill="#00e5ff"/><circle cx="15" cy="9" r="1.2" fill="#00e5ff"/><path d="M9 15 Q12 17 15 15" stroke="#3b82f6" strokeWidth="1.5" fill="none"/><path d="M4 5 L12 2 L20 5" stroke="#3b82f6" strokeWidth="1" fill="none" opacity="0.5"/><circle cx="12" cy="5" r="1.5" fill="#00e5ff" opacity="0.6"/></svg>
+      ),
       lobby: (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#1a1a2e" stroke="#64748b" strokeWidth="1"/><circle cx="9" cy="10" r="1.5" fill="#64748b"/><circle cx="15" cy="10" r="1.5" fill="#64748b"/><path d="M9 15 L15 15" stroke="#64748b" strokeWidth="1.5"/><rect x="10" y="4" width="4" height="2" rx="1" fill="#64748b" opacity="0.6"/></svg>
       ),
@@ -8418,7 +8469,8 @@ export default function App() {
 
   const navSections = [
     {
-      title: 'Overview', icon: LayoutDashboard,
+      title: 'Brimstone', icon: LayoutDashboard, agentFace: 'brimstone',
+      subtitle: 'Commander — strategy, dashboards & overview',
       items: [
         { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { path: '/leads-dashboard', icon: PieChart, label: 'Leads Analytics' },
@@ -8426,7 +8478,8 @@ export default function App() {
       ]
     },
     {
-      title: 'Lead Gen', icon: Crosshair,
+      title: 'Chamber', icon: Crosshair, agentFace: 'chamber',
+      subtitle: 'Weapons dealer — lead acquisition & targeting',
       items: [
         { path: '/search', icon: Search, label: 'Lead Search' },
         { path: '/emails', icon: Mail, label: 'Email Extractor' },
@@ -8446,8 +8499,8 @@ export default function App() {
       ]
     },
     {
-      title: 'Harbor', icon: Globe, agentFace: 'harbor',
-      subtitle: 'Controller — SEO optimization & site audits',
+      title: 'Killjoy', icon: Globe, agentFace: 'killjoy',
+      subtitle: 'Sentinel — SEO defense, audits & rank protection',
       items: [
         { path: '/website-analysis', icon: Radar, label: 'Full Analysis' },
         { path: '/seo-dashboard', icon: BarChart3, label: 'SEO Dashboard' },
@@ -8458,8 +8511,8 @@ export default function App() {
       ]
     },
     {
-      title: 'Killjoy', icon: Microscope, agentFace: 'killjoy',
-      subtitle: 'Sentinel — keyword research & competitor intel',
+      title: 'Sova', icon: Microscope, agentFace: 'sova',
+      subtitle: 'Hunter — recon, keyword tracking & competitor intel',
       items: [
         { path: '/keyword-research', icon: Hash, label: 'Keyword Discovery' },
         { path: '/keyword-gap', icon: Target, label: 'Content Gaps' },
