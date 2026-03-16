@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f1923"/>
+      <stop offset="100%" style="stop-color:#1a2a3a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff4655"/>
+      <stop offset="100%" style="stop-color:#ff6b7a"/>
+    </linearGradient>
+  </defs>
+  <!-- Background with angular cut -->
+  <polygon points="0,0 512,0 512,480 480,512 0,512" fill="url(#bg)"/>
+  <!-- Angular border accent -->
+  <polygon points="0,0 512,0 512,480 480,512 0,512" fill="none" stroke="#ff4655" stroke-width="3" opacity="0.6"/>
+  <!-- Corner cut detail -->
+  <polygon points="480,512 512,480 512,512" fill="#ff4655" opacity="0.3"/>
+  <!-- Hexagonal frame -->
+  <polygon points="256,80 420,160 420,352 256,432 92,352 92,160" fill="none" stroke="#ff4655" stroke-width="2.5" opacity="0.4"/>
+  <polygon points="256,110 395,178 395,334 256,402 117,334 117,178" fill="rgba(255,70,85,0.06)" stroke="#ff4655" stroke-width="1.5" opacity="0.7"/>
+  <!-- P letter — Valorant style angular -->
+  <text x="256" y="295" text-anchor="middle" fill="url(#accent)" font-size="200" font-weight="900" font-family="Inter, Arial Black, sans-serif" letter-spacing="-8">P</text>
+  <!-- Crosshair marks -->
+  <line x1="256" y1="50" x2="256" y2="70" stroke="#ff4655" stroke-width="2" opacity="0.5"/>
+  <line x1="256" y1="442" x2="256" y2="462" stroke="#ff4655" stroke-width="2" opacity="0.5"/>
+  <line x1="50" y1="256" x2="70" y2="256" stroke="#ff4655" stroke-width="2" opacity="0.5"/>
+  <line x1="442" y1="256" x2="462" y2="256" stroke="#ff4655" stroke-width="2" opacity="0.5"/>
+  <!-- Bottom accent line -->
+  <rect x="160" y="420" width="192" height="2" fill="#ff4655" opacity="0.6"/>
+</svg>

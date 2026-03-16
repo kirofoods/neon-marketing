@@ -7985,8 +7985,82 @@ function PinLogin({ onSuccess }) {
   const [lockedIn, setLockedIn] = useState(false);
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
+  // Shared AudioContext for PIN sounds (avoids creating new one per keystroke)
+  const audioCtxRef = useRef(null);
+  const getAudioCtx = () => {
+    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+      audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtxRef.current;
+  };
+
+  // Valorant tactical comms sound — each digit has ascending pitch like agent lock-in
+  const playDigitSound = (index) => {
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+
+      // Main tone — ascending tactical beep per digit
+      const freq = [660, 880, 1100, 1320][index];
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.08, now + 0.04);
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(freq * 1.5, now);
+      filter.Q.setValueAtTime(5, now);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.1);
+
+      // Sub-bass thud layer
+      const sub = ctx.createOscillator();
+      const subGain = ctx.createGain();
+      sub.type = 'sine';
+      sub.frequency.setValueAtTime(80 + index * 15, now);
+      subGain.gain.setValueAtTime(0.08, now);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      sub.connect(subGain);
+      subGain.connect(ctx.destination);
+      sub.start(now);
+      sub.stop(now + 0.08);
+
+      // If 4th digit → play confirmation sweep
+      if (index === 3) {
+        setTimeout(() => {
+          try {
+            const t = ctx.currentTime;
+            const sweep = ctx.createOscillator();
+            const sGain = ctx.createGain();
+            sweep.type = 'sine';
+            sweep.frequency.setValueAtTime(400, t);
+            sweep.frequency.exponentialRampToValueAtTime(1600, t + 0.15);
+            sGain.gain.setValueAtTime(0.1, t);
+            sGain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+            sweep.connect(sGain);
+            sGain.connect(ctx.destination);
+            sweep.start(t);
+            sweep.stop(t + 0.2);
+          } catch (e) {}
+        }, 60);
+      }
+    } catch (e) {}
+  };
+
   useEffect(() => {
     setTimeout(() => inputRefs[0].current?.focus(), 100);
+    return () => {
+      // Cleanup audio context on unmount
+      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
+        audioCtxRef.current.close().catch(() => {});
+      }
+    };
   }, []);
 
   const tryAuth = (fullPin) => {
@@ -8025,13 +8099,18 @@ function PinLogin({ onSuccess }) {
     setPin(newPin);
     setError(false);
 
+    // Play tactical digit sound
+    if (digit) {
+      playDigitSound(index);
+    }
+
     if (digit && index < 3) {
       setTimeout(() => inputRefs[index + 1].current?.focus(), 10);
     }
 
     const fullPin = newPin.join('');
     if (fullPin.length === 4 && newPin.every(d => d !== '')) {
-      setTimeout(() => tryAuth(fullPin), 50);
+      setTimeout(() => tryAuth(fullPin), 150);
     }
   };
 
@@ -8373,20 +8452,11 @@ export default function App() {
 
   useEffect(() => { setSidebarOpen(false); }, [location]);
 
-  const handleLogout = () => { clearCurrentUser(); setAuthenticated(false); };
-
-  const handleLoginSuccess = (username, role) => {
-    setCurrentUserState(username);
-    setCurrentRole(role);
-    setAuthenticated(true);
-  };
-
-  if (!authenticated) return <PinLogin onSuccess={handleLoginSuccess} />;
-
-  const isAdmin = currentUser === 'admin' || currentRole === 'Admin';
-
-  // Sound mute state
+  // Sound mute state — MUST be before early return to obey React hooks rules
   const [soundsMuted, setSoundsMuted] = useState(() => localStorage.getItem('protocol_sounds_muted') === 'true');
+
+  // Global audio context for UI sounds (shared ref — must be before early return)
+  const uiAudioCtxRef = useRef(null);
 
   // Play "Choose your agent" on dashboard load (after login)
   const hasPlayedChooseAgent = useRef(false);
@@ -8400,6 +8470,187 @@ export default function App() {
       } catch (e) {}
     }
   }, [authenticated]);
+
+  // Play navigate sound on route changes (after initial load)
+  const isFirstRoute = useRef(true);
+  useEffect(() => {
+    if (isFirstRoute.current) { isFirstRoute.current = false; return; }
+    if (!authenticated || soundsMuted) return;
+    try {
+      const ctx = uiAudioCtxRef.current && uiAudioCtxRef.current.state !== 'closed'
+        ? uiAudioCtxRef.current
+        : new (window.AudioContext || window.webkitAudioContext)();
+      uiAudioCtxRef.current = ctx;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, now);
+      osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+      filter.type = 'lowpass'; filter.frequency.setValueAtTime(2000, now);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+      osc.start(now); osc.stop(now + 0.15);
+    } catch (e) {}
+  }, [location.pathname]);
+
+  const handleLogout = () => { clearCurrentUser(); setAuthenticated(false); };
+
+  const handleLoginSuccess = (username, role) => {
+    setCurrentUserState(username);
+    setCurrentRole(role);
+    setAuthenticated(true);
+  };
+
+  if (!authenticated) return <PinLogin onSuccess={handleLoginSuccess} />;
+
+  const isAdmin = currentUser === 'admin' || currentRole === 'Admin';
+
+  // === VALORANT UI SOUND EFFECTS SYSTEM ===
+  const getUICtx = () => {
+    if (!uiAudioCtxRef.current || uiAudioCtxRef.current.state === 'closed') {
+      uiAudioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return uiAudioCtxRef.current;
+  };
+
+  // playValoSound(type) — Valorant UI sound effects for common actions
+  const playValoSound = (type) => {
+    if (soundsMuted) return;
+    try {
+      // Try real audio file first for major sounds
+      const fileMap = { ace: 'ace', kill: 'kill', defuse: 'defuse', spike: 'spike-plant' };
+      if (fileMap[type]) {
+        const audio = new Audio(`./sounds/${fileMap[type]}.mp3`);
+        audio.volume = 0.35;
+        audio.play().catch(() => playValoSynth(type));
+        return;
+      }
+      playValoSynth(type);
+    } catch (e) { playValoSynth(type); }
+  };
+
+  const playValoSynth = (type) => {
+    if (soundsMuted) return;
+    try {
+      const ctx = getUICtx();
+      const now = ctx.currentTime;
+
+      const effects = {
+        // Button click — sharp tactical tap
+        click: () => {
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.setValueAtTime(1000, now);
+          osc.frequency.exponentialRampToValueAtTime(600, now + 0.04);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.06);
+        },
+        // Navigation / page change — whoosh sweep
+        navigate: () => {
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          const filter = ctx.createBiquadFilter();
+          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, now);
+          osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+          filter.type = 'lowpass'; filter.frequency.setValueAtTime(2000, now);
+          gain.gain.setValueAtTime(0.06, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.15);
+        },
+        // Success — ascending victory chime (like round win)
+        success: () => {
+          [0, 0.08, 0.16].forEach((delay, i) => {
+            const osc = ctx.createOscillator(); const gain = ctx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(600 + i * 300, now + delay);
+            gain.gain.setValueAtTime(0.1, now + delay);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.12);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(now + delay); osc.stop(now + delay + 0.12);
+          });
+        },
+        // Error — Valorant denied buzzer
+        error: () => {
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'square'; osc.frequency.setValueAtTime(200, now);
+          osc.frequency.setValueAtTime(180, now + 0.1);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.25);
+        },
+        // Toast notification — quick attention ping
+        notify: () => {
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.setValueAtTime(1400, now);
+          osc.frequency.exponentialRampToValueAtTime(1000, now + 0.06);
+          gain.gain.setValueAtTime(0.07, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.1);
+        },
+        // Copy / Export — data transfer swoosh
+        copy: () => {
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now);
+          osc.frequency.exponentialRampToValueAtTime(1600, now + 0.08);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.12);
+        },
+        // Search / Scan — radar ping like Sova recon
+        scan: () => {
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.setValueAtTime(500, now);
+          osc.frequency.exponentialRampToValueAtTime(2000, now + 0.12);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.2);
+          // Echo
+          const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
+          osc2.type = 'sine'; osc2.frequency.setValueAtTime(2000, now + 0.15);
+          gain2.gain.setValueAtTime(0.04, now + 0.15);
+          gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          osc2.connect(gain2); gain2.connect(ctx.destination);
+          osc2.start(now + 0.15); osc2.stop(now + 0.3);
+        },
+        // Delete / Remove — descending threat
+        delete: () => {
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(600, now);
+          osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.2);
+        },
+        // Toggle — quick mode switch
+        toggle: () => {
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.setValueAtTime(900, now);
+          osc.frequency.setValueAtTime(1200, now + 0.03);
+          gain.gain.setValueAtTime(0.07, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.08);
+        },
+        // Hover — subtle presence
+        hover: () => {
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.setValueAtTime(1100, now);
+          gain.gain.setValueAtTime(0.03, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.04);
+        },
+      };
+
+      if (effects[type]) effects[type]();
+    } catch (e) {}
+  };
 
   // Agent select sound effects — tries real audio files first, falls back to synthesized
   const playAgentSound = (agent) => {
