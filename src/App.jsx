@@ -6947,6 +6947,12 @@ function BlogWriter() {
   const [seoScore, setSeoScore] = useState(null);
   const [metaTags, setMetaTags] = useState(null);
 
+  // Internal link injection
+  const [linkArticle, setLinkArticle] = useState('');
+  const [productLinks, setProductLinks] = useState('');
+  const [linkedArticle, setLinkedArticle] = useState('');
+  const [linkStats, setLinkStats] = useState(null);
+
   // Check for pre-loaded keywords from SEO tools
   useEffect(() => {
     try {
@@ -7361,6 +7367,62 @@ Write the FULL article now. Every section must be complete, not summarized or tr
     setToast({ message: 'Meta tags copied', type: 'success' });
   };
 
+  // Internal link injection
+  const handleLinkInjection = async () => {
+    if (!linkArticle.trim() || !productLinks.trim()) return;
+    setLoading(true);
+    setProgress('Analyzing article and injecting internal links...');
+    try {
+      const result = await callClaude({
+        messages: [{ role: 'user', content: `You are an expert SEO content editor for Shopify blog publishing. Your task is to take an existing article and a list of product links, then naturally insert internal hyperlinks to those products throughout the article.
+
+ARTICLE TO EDIT:
+${linkArticle}
+
+PRODUCT LINKS TO INSERT:
+${productLinks}
+
+RULES:
+1. Insert each product link at least once, at the most natural and contextually relevant point in the article
+2. Use anchor text that flows naturally — NEVER use "click here" or "buy now". Use descriptive anchor text that includes the product name or a natural phrase
+3. Format links as HTML: <a href="URL">natural anchor text</a>
+4. Don't change the article's content, tone, or structure — ONLY add links
+5. If a product doesn't naturally fit anywhere, note it at the end
+6. Aim for 1-3 links per product, spread throughout the article (not clustered)
+7. Place links in the body paragraphs, not in headings
+8. Make sure the output is clean HTML ready for Shopify copy-paste
+
+Return a JSON object:
+{
+  "linkedArticle": "the full article with links inserted as HTML",
+  "linksInserted": [{"product": "product name", "count": number, "anchorTexts": ["anchor text used"]}],
+  "unlinkedProducts": ["products that couldn't be naturally linked"],
+  "totalLinksAdded": number,
+  "tips": ["any SEO tips for this article"]
+}` }],
+        system: 'You are an expert SEO content editor. Return ONLY valid JSON. The linkedArticle field should contain the complete article with HTML anchor tags inserted for internal product links.',
+        maxTokens: 8000,
+        temperature: 0.3
+      });
+      const text = result.content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(text);
+      setLinkedArticle(parsed.linkedArticle || '');
+      setLinkStats(parsed);
+      setToast({ message: `${parsed.totalLinksAdded || 0} internal links injected!`, type: 'success' });
+    } catch (e) {
+      setToast({ message: 'Link injection failed: ' + e.message, type: 'error' });
+    }
+    setLoading(false);
+    setProgress('');
+  };
+
+  const copyLinkedArticle = () => {
+    if (!linkedArticle) return;
+    navigator.clipboard.writeText(linkedArticle);
+    setToast({ message: 'Linked article copied — paste into Shopify!', type: 'success' });
+  };
+
   const getScoreColor = (s) => s >= 80 ? '#059669' : s >= 60 ? '#f59e0b' : '#dc2626';
   const getDiffColor = (d) => d === 'Easy' ? '#059669' : d === 'Medium' ? '#f59e0b' : '#ef4444';
 
@@ -7370,6 +7432,7 @@ Write the FULL article now. Every section must be complete, not summarized or tr
     { num: 3, label: 'Title' },
     { num: 4, label: 'Outline' },
     { num: 5, label: 'Write' },
+    { num: 6, label: 'Link Inject' },
   ];
 
   return (
@@ -7800,7 +7863,118 @@ Write the FULL article now. Every section must be complete, not summarized or tr
               <button className="btn btn-primary" onClick={() => { navigator.clipboard.writeText(article); setToast({ message: 'Full article copied!', type: 'success' }); }}>
                 <Copy size={16} /> Copy Full Article
               </button>
+              <button className="btn btn-primary" onClick={() => { setLinkArticle(article); setStep(6); }} style={{ background: '#059669' }}>
+                <Link size={16} /> Inject Product Links
+              </button>
             </div>
+          </>
+        )}
+
+        {/* STEP 6: Internal Link Injection */}
+        {step === 6 && (
+          <>
+            <div className="card" style={{ marginBottom: 16 }}>
+              <div className="card-header">
+                <h3 className="card-title">Internal Link Injector</h3>
+              </div>
+              <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+                  Paste your article and product URLs below. AI will naturally insert internal links at the most relevant points — ready for Shopify copy-paste.
+                </p>
+                <div>
+                  <label className="label">Article Content (HTML or Markdown)</label>
+                  <textarea
+                    value={linkArticle}
+                    onChange={e => setLinkArticle(e.target.value)}
+                    placeholder="Paste your full article here..."
+                    style={{ width: '100%', minHeight: 200, padding: 12, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontFamily: 'monospace', fontSize: 12, lineHeight: 1.6, resize: 'vertical' }}
+                  />
+                </div>
+                <div>
+                  <label className="label">Product Links (one per line: URL or "Product Name - URL")</label>
+                  <textarea
+                    value={productLinks}
+                    onChange={e => setProductLinks(e.target.value)}
+                    placeholder={"https://kirofoods.com/products/quinoa-bowl\nProtein Bar - https://kirofoods.com/products/protein-bar\nhttps://kirofoods.com/collections/healthy-snacks"}
+                    style={{ width: '100%', minHeight: 100, padding: 12, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontFamily: 'monospace', fontSize: 12, lineHeight: 1.6, resize: 'vertical' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="btn btn-primary" onClick={handleLinkInjection} disabled={loading || !linkArticle.trim() || !productLinks.trim()}>
+                    {loading ? <><LoadingDots /> Injecting Links...</> : <><Link size={16} /> Inject Internal Links</>}
+                  </button>
+                  {article && <button className="btn btn-secondary" onClick={() => { setLinkArticle(article); setToast({ message: 'Current article loaded', type: 'success' }); }}>
+                    Load Current Article
+                  </button>}
+                </div>
+              </div>
+            </div>
+
+            {linkedArticle && (
+              <>
+                {/* Link Stats */}
+                {linkStats && (
+                  <div className="card" style={{ marginBottom: 16 }}>
+                    <div className="card-header"><h3 className="card-title">Link Injection Results</h3></div>
+                    <div style={{ padding: 16 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginBottom: 16 }}>
+                        <div style={{ textAlign: 'center', padding: 12, background: 'var(--bg-tertiary)', borderRadius: 6 }}>
+                          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>{linkStats.totalLinksAdded || 0}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>Links Added</div>
+                        </div>
+                        <div style={{ textAlign: 'center', padding: 12, background: 'var(--bg-tertiary)', borderRadius: 6 }}>
+                          <div style={{ fontSize: 28, fontWeight: 700, color: '#059669' }}>{(linkStats.linksInserted || []).length}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>Products Linked</div>
+                        </div>
+                        <div style={{ textAlign: 'center', padding: 12, background: 'var(--bg-tertiary)', borderRadius: 6 }}>
+                          <div style={{ fontSize: 28, fontWeight: 700, color: (linkStats.unlinkedProducts || []).length > 0 ? '#f59e0b' : '#059669' }}>{(linkStats.unlinkedProducts || []).length}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>Unlinked</div>
+                        </div>
+                      </div>
+                      {(linkStats.linksInserted || []).length > 0 && (
+                        <div style={{ marginBottom: 12 }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Links Inserted:</div>
+                          {linkStats.linksInserted.map((l, i) => (
+                            <div key={i} style={{ fontSize: 12, padding: '6px 0', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span><strong>{l.product}</strong> — {l.count}x</span>
+                              <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{(l.anchorTexts || []).join(', ')}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {(linkStats.tips || []).length > 0 && (
+                        <div>
+                          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: 'var(--accent)' }}>SEO Tips:</div>
+                          {linkStats.tips.map((t, i) => <div key={i} style={{ fontSize: 12, padding: '4px 0', color: 'var(--text-secondary)' }}>• {t}</div>)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Linked Article Preview */}
+                <div className="card" style={{ marginBottom: 16 }}>
+                  <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 className="card-title">Article with Internal Links</h3>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button className="btn btn-sm" onClick={copyLinkedArticle}><Copy size={12} /> Copy HTML</button>
+                      <button className="btn btn-sm" onClick={() => {
+                        const blob = new Blob([linkedArticle], { type: 'text/html;charset=utf-8;' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a'); a.href = url; a.download = 'article-with-links.html'; a.click();
+                        URL.revokeObjectURL(url);
+                      }}><Download size={12} /> .html</button>
+                    </div>
+                  </div>
+                  <div style={{ padding: '20px 24px', fontSize: 14, lineHeight: 1.8, color: 'var(--text-primary)', maxHeight: 500, overflow: 'auto' }}
+                    dangerouslySetInnerHTML={{ __html: linkedArticle }} />
+                </div>
+
+                <button className="btn btn-primary" onClick={copyLinkedArticle} style={{ height: 44, fontSize: 14 }}>
+                  <Copy size={16} /> Copy for Shopify Publishing
+                </button>
+              </>
+            )}
           </>
         )}
 
@@ -11918,6 +12092,13 @@ function WaylayGBPManager() {
   const [toast, setToast] = useState(null);
   const bottomRef = useRef(null);
 
+  // GBP Profile Analyzer
+  const [activeTab, setActiveTab] = useState('chat');
+  const [gbpUrl, setGbpUrl] = useState('');
+  const [gbpDetails, setGbpDetails] = useState('');
+  const [analysisResult, setAnalysisResult] = useState(() => safeJSON(localStorage.getItem('protocol_waylay_gbp_analysis'), null));
+  const [analyzing, setAnalyzing] = useState(false);
+
   // Get stats from localStorage
   const gbpScore = localStorage.getItem('protocol_waylay_gbp_score') || '78%';
   const reviewCount = localStorage.getItem('protocol_waylay_reviews') || '12/50';
@@ -11954,6 +12135,57 @@ function WaylayGBPManager() {
     }
   };
 
+  const analyzeGBP = async () => {
+    if (!gbpUrl.trim() && !gbpDetails.trim()) return;
+    setAnalyzing(true);
+    try {
+      const result = await callClaude({
+        messages: [{ role: 'user', content: `Analyze this Google Business Profile against ALL industry standards and best practices:
+
+${gbpUrl ? `GBP URL/Name: ${gbpUrl}` : ''}
+${gbpDetails ? `Additional Details: ${gbpDetails}` : ''}
+
+Perform a COMPREHENSIVE GBP audit covering these 12 categories (score each 0-100):
+
+1. PROFILE COMPLETENESS (Business name, address, phone, website, hours, description, category)
+2. CATEGORY OPTIMIZATION (Primary + secondary categories, relevance to business)
+3. PHOTO QUALITY & QUANTITY (Cover photo, logo, interior/exterior, products, team — minimum 10+ photos)
+4. POST FREQUENCY (Weekly Google Posts with offers, updates, events)
+5. REVIEW MANAGEMENT (Total reviews, avg rating, response rate, response quality, response time)
+6. Q&A SECTION (Proactive FAQs seeded, response to questions)
+7. ATTRIBUTES & SERVICES (All relevant attributes filled — delivery, dine-in, price range, etc.)
+8. BUSINESS DESCRIPTION (Keyword-rich, compelling, 750 chars, includes USP and CTA)
+9. PRODUCTS/SERVICES LISTING (Each product with description, price, photos)
+10. CITATIONS & NAP (Consistent Name-Address-Phone across directories)
+11. LOCAL KEYWORDS (Profile optimized for local search terms)
+12. ENGAGEMENT SIGNALS (Booking links, messaging, appointment links)
+
+Return JSON:
+{
+  "overallScore": 0-100,
+  "grade": "A/B/C/D/F",
+  "categories": [{"name": "category name", "score": 0-100, "status": "Good/Needs Work/Critical", "findings": ["specific finding"], "actions": ["specific action to take"]}],
+  "topPriorities": [{"action": "specific action", "impact": "High/Medium/Low", "effort": "Quick/Medium/Complex", "details": "step-by-step how to do it"}],
+  "competitorBenchmark": "How this profile compares to typical competitors",
+  "estimatedImpact": "Expected improvement in local pack ranking if all actions completed",
+  "quickWins": ["immediate actions that take <30 minutes each"]
+}` }],
+        system: WAYLAY_SYSTEM,
+        maxTokens: 6000,
+        temperature: 0.3
+      });
+      const text = result.content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(text);
+      setAnalysisResult(parsed);
+      localStorage.setItem('protocol_waylay_gbp_analysis', JSON.stringify(parsed));
+      setToast({ message: 'GBP analysis complete!', type: 'success' });
+    } catch (e) {
+      setToast({ message: 'Analysis failed: ' + e.message, type: 'error' });
+    }
+    setAnalyzing(false);
+  };
+
   const examples = [
     'Optimize my GBP for "healthy ready to eat food near me"',
     'Create a GBP posting calendar for Kiro Foods',
@@ -11978,6 +12210,18 @@ function WaylayGBPManager() {
         </p>
       </div>
 
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 20 }}>
+        <button onClick={() => setActiveTab('chat')} style={{ flex: 1, padding: '10px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', background: activeTab === 'chat' ? 'var(--accent)' : 'var(--bg-tertiary)', color: activeTab === 'chat' ? '#fff' : 'var(--text-secondary)', fontWeight: 600, fontSize: 13, transition: 'all 0.2s' }}>
+          AI Chat
+        </button>
+        <button onClick={() => setActiveTab('analyzer')} style={{ flex: 1, padding: '10px 16px', border: 'none', borderRadius: 6, cursor: 'pointer', background: activeTab === 'analyzer' ? 'var(--accent)' : 'var(--bg-tertiary)', color: activeTab === 'analyzer' ? '#fff' : 'var(--text-secondary)', fontWeight: 600, fontSize: 13, transition: 'all 0.2s' }}>
+          Profile Analyzer
+        </button>
+      </div>
+
+      {activeTab === 'chat' && (
+      <>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
         <div className="card" style={{ padding: 16, textAlign: 'center' }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 8 }}>PROFILE SCORE</div>
@@ -12064,6 +12308,149 @@ function WaylayGBPManager() {
           ))}
         </div>
       </div>
+      </>
+      )}
+
+      {/* ANALYZER TAB */}
+      {activeTab === 'analyzer' && (
+      <>
+        <div className="card" style={{ marginBottom: 24 }}>
+          <div className="card-header">
+            <h3 className="card-title">GBP Profile Analyzer</h3>
+          </div>
+          <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
+              Analyze your Google Business Profile against 12 industry standards. Paste your profile URL or details for a comprehensive audit.
+            </p>
+            <div>
+              <label className="label">GBP Profile URL or Business Name</label>
+              <input
+                type="text"
+                value={gbpUrl}
+                onChange={e => setGbpUrl(e.target.value)}
+                placeholder="https://google.com/maps or business name..."
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 13 }}
+              />
+            </div>
+            <div>
+              <label className="label">Additional Details (optional)</label>
+              <textarea
+                value={gbpDetails}
+                onChange={e => setGbpDetails(e.target.value)}
+                placeholder="Share any additional info about your profile: current review count, post frequency, photos uploaded, main categories, etc."
+                style={{ width: '100%', minHeight: 100, padding: 12, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontFamily: 'monospace', fontSize: 12, lineHeight: 1.6, resize: 'vertical' }}
+              />
+            </div>
+            <button
+              onClick={analyzeGBP}
+              disabled={analyzing || (!gbpUrl.trim() && !gbpDetails.trim())}
+              style={{ padding: '12px 16px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: analyzing || (!gbpUrl.trim() && !gbpDetails.trim()) ? 0.6 : 1 }}
+            >
+              {analyzing ? <><LoadingDots /> Analyzing...</> : <><Radar size={16} /> Analyze Profile</>}
+            </button>
+          </div>
+        </div>
+
+        {analysisResult && (
+          <>
+            {/* Overall Score */}
+            <div className="card" style={{ marginBottom: 24 }}>
+              <div style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 24 }}>
+                <div style={{ textAlign: 'center', minWidth: 160 }}>
+                  <div style={{ width: 140, height: 140, borderRadius: '50%', background: `conic-gradient(${analysisResult.overallScore >= 70 ? '#059669' : analysisResult.overallScore >= 50 ? '#f59e0b' : '#dc2626'} ${analysisResult.overallScore}%, var(--bg-tertiary) 0%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                    <div style={{ width: 130, height: 130, borderRadius: '50%', background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                      <div style={{ fontSize: 48, fontWeight: 700, color: 'var(--text-primary)' }}>{analysisResult.overallScore}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>/ 100</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: analysisResult.overallScore >= 70 ? '#059669' : analysisResult.overallScore >= 50 ? '#f59e0b' : '#dc2626' }}>Grade: {analysisResult.grade}</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 600 }}>Overall Assessment</h3>
+                  <p style={{ margin: '0 0 16px 0', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{analysisResult.competitorBenchmark}</p>
+                  <div style={{ padding: 12, background: 'var(--bg-tertiary)', borderRadius: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
+                    <strong>Expected Impact:</strong> {analysisResult.estimatedImpact}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 12 Categories Grid */}
+            {analysisResult.categories && analysisResult.categories.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Audit Categories</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 12 }}>
+                  {analysisResult.categories.map((cat, i) => (
+                    <div key={i} className="card" style={{ padding: 16 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                        <div style={{ fontWeight: 600, fontSize: 13 }}>{cat.name}</div>
+                        <div style={{ fontSize: 18, fontWeight: 700, color: cat.score >= 70 ? '#059669' : cat.score >= 50 ? '#f59e0b' : '#dc2626' }}>{cat.score}</div>
+                      </div>
+                      <div style={{ height: 6, background: 'var(--bg-tertiary)', borderRadius: 3, marginBottom: 10, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', background: cat.score >= 70 ? '#059669' : cat.score >= 50 ? '#f59e0b' : '#dc2626', width: `${cat.score}%`, transition: 'width 0.3s' }} />
+                      </div>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: cat.score >= 70 ? '#059669' : cat.score >= 50 ? '#f59e0b' : '#dc2626', marginBottom: 8 }}>{cat.status}</div>
+                      {(cat.findings || []).length > 0 && (
+                        <div style={{ marginBottom: 8 }}>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 4 }}>Findings:</div>
+                          {cat.findings.map((f, j) => <div key={j} style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2 }}>• {f}</div>)}
+                        </div>
+                      )}
+                      {(cat.actions || []).length > 0 && (
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 4 }}>Actions:</div>
+                          {cat.actions.map((a, j) => <div key={j} style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2 }}>→ {a}</div>)}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Top Priorities */}
+            {analysisResult.topPriorities && analysisResult.topPriorities.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Top Priorities</h3>
+                <div className="card">
+                  <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {analysisResult.topPriorities.map((p, i) => (
+                      <div key={i} style={{ padding: 12, background: 'var(--bg-tertiary)', borderRadius: 6, borderLeft: `4px solid ${p.impact === 'High' ? '#dc2626' : p.impact === 'Medium' ? '#f59e0b' : '#059669'}` }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
+                          <div style={{ fontWeight: 600, fontSize: 13 }}>{p.action}</div>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <span style={{ fontSize: 10, padding: '2px 6px', background: p.impact === 'High' ? '#dc262620' : p.impact === 'Medium' ? '#f59e0b20' : '#05966920', color: p.impact === 'High' ? '#dc2626' : p.impact === 'Medium' ? '#f59e0b' : '#059669', borderRadius: 3, fontWeight: 600 }}>{p.impact} Impact</span>
+                            <span style={{ fontSize: 10, padding: '2px 6px', background: 'var(--bg-secondary)', color: 'var(--text-tertiary)', borderRadius: 3, fontWeight: 600 }}>{p.effort}</span>
+                          </div>
+                        </div>
+                        <p style={{ margin: 0, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{p.details}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Wins */}
+            {analysisResult.quickWins && analysisResult.quickWins.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Quick Wins (&lt;30 min each)</h3>
+                <div className="card">
+                  <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {analysisResult.quickWins.map((w, i) => (
+                      <div key={i} style={{ display: 'flex', gap: 8, padding: 8, background: 'var(--bg-tertiary)', borderRadius: 6 }}>
+                        <CheckCircle2 size={16} color="#059669" style={{ marginTop: 2, flexShrink: 0 }} />
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{w}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </>
+      )}
 
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     </div>
