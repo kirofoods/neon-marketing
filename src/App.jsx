@@ -4678,6 +4678,16 @@ function WebsiteAnalysis() {
   const [results, setResults] = useState(null);
   const [aiReport, setAiReport] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [autoPdfPending, setAutoPdfPending] = useState(false);
+
+  // Auto-download PDF when AI report arrives after a fresh analysis
+  React.useEffect(() => {
+    if (autoPdfPending && aiReport && results && !loadingAI) {
+      setAutoPdfPending(false);
+      // Small delay to let state settle, then auto-download
+      setTimeout(() => { downloadPDFReport(); }, 500);
+    }
+  }, [aiReport, autoPdfPending, loadingAI]);
 
   const runFullAnalysis = async () => {
     if (!url.trim()) return;
@@ -4686,6 +4696,7 @@ function WebsiteAnalysis() {
     setStep(1);
     setResults(null);
     setAiReport(null);
+    setAutoPdfPending(true);
 
     const data = {
       domain,
@@ -4747,8 +4758,8 @@ function WebsiteAnalysis() {
         await generateAIReport(data);
       }
 
-      setProgress('');
-      setToast({ message: 'Full website analysis complete!', type: 'success' });
+      setProgress('Generating PDF report...');
+      setToast({ message: 'Analysis complete! PDF report will download automatically.', type: 'success' });
     } catch (e) {
       setToast({ message: `Analysis error: ${e.message}`, type: 'error' });
       if (data.siteAudit || data.domainOverview) { setResults(data); setStep(2); }
@@ -4783,27 +4794,42 @@ CONTENT STRATEGY LENS: Is content SEARCHABLE (captures demand) or SHAREABLE (cre
 AI SEO: Consider visibility in ChatGPT, Perplexity, Google AI Overviews.
 PROGRAMMATIC OPPORTUNITIES: Recipe pages, ingredient pages, comparison pages, city-specific delivery pages.
 
-Produce a comprehensive, actionable report. Include SPECIFIC numbers, benchmarks, and prioritized recommendations. Be harsh and honest — no generic advice.
+Produce an EXTREMELY comprehensive, actionable report. This report will be auto-exported as a PDF so it MUST be thorough and specific. Include EXACT numbers, benchmarks, competitor comparisons, and prioritized recommendations with specific timelines. Be harsh and honest — no generic or vague advice. Every recommendation must be a concrete action someone can execute immediately.
+
+CRITICAL: Provide AT LEAST 8 keywords, 5 critical fixes, 5 quick wins, 6 monthly roadmap entries, 5 technical issues, and 5 content strategy items. Be thorough — this is a professional deliverable.
 
 Return JSON:
 {
   "overallGrade": "A/B/C/D/F",
   "healthScore": 0-100,
-  "executiveSummary": "3-4 sentence brutally honest assessment",
+  "executiveSummary": "5-6 sentence brutally honest assessment covering what's working, what's broken, biggest opportunities, and expected ROI if fixed. Be specific with numbers.",
   "scores": { "technical": 0-100, "content": 0-100, "authority": 0-100, "ux": 0-100 },
-  "topKeywords": [{"keyword": "", "volume": "", "difficulty": "", "currentRank": "", "opportunity": ""}],
-  "criticalFixes": [{"issue": "", "impact": "High/Medium", "effort": "hours/days/weeks", "howToFix": ""}],
-  "quickWins": [{"action": "", "expectedResult": "", "timeframe": ""}],
-  "contentStrategy": {"gaps": [""], "topicClusters": [""], "contentCalendarIdeas": [""], "programmaticOpportunities": [""]},
-  "competitiveAnalysis": {"mainCompetitors": [""], "whatTheyDoBetter": [""], "yourAdvantages": [""]},
-  "technicalIssues": [{"issue": "", "severity": "", "fix": ""}],
-  "monthlyRoadmap": [{"month": 1, "focus": "", "expectedResult": "", "tasks": [""]}],
-  "estimatedImpact": "Expected traffic/ranking improvement in 3-6 months",
-  "aiSearchVisibility": {"score": 0-100, "recommendations": [""]}
+  "topKeywords": [{"keyword": "", "volume": "monthly search volume number", "difficulty": "Easy/Medium/Hard with score", "currentRank": "position or Not ranking", "opportunity": "specific action to rank for this keyword"}],
+  "criticalFixes": [{"issue": "specific problem", "impact": "High/Medium", "effort": "X hours/days", "howToFix": "step-by-step fix with exact implementation details — code snippets, tag changes, or specific actions"}],
+  "quickWins": [{"action": "specific action to take right now", "expectedResult": "quantified outcome e.g. +15% CTR", "timeframe": "exact days/hours needed"}],
+  "contentStrategy": {
+    "gaps": ["specific missing content pieces with target keywords"],
+    "topicClusters": ["pillar page + 5 cluster pages structure"],
+    "contentCalendarIdeas": ["Week 1: specific topic + format + target keyword + CTA"],
+    "programmaticOpportunities": ["template-based page strategies with examples"],
+    "contentPriority": [{"title": "", "type": "blog/landing/comparison", "targetKeyword": "", "expectedTraffic": "", "priority": "P0/P1/P2"}]
+  },
+  "competitiveAnalysis": {
+    "mainCompetitors": ["competitor domain — what they rank for that you don't"],
+    "whatTheyDoBetter": ["specific tactic with evidence"],
+    "yourAdvantages": ["specific advantage you can leverage"],
+    "stealableKeywords": ["keywords competitors rank for that you should target"]
+  },
+  "technicalIssues": [{"issue": "specific technical problem", "severity": "Critical/High/Medium/Low", "fix": "exact implementation steps", "impact": "what fixing this will improve"}],
+  "monthlyRoadmap": [{"month": 1, "focus": "theme for the month", "expectedResult": "quantified expected outcome", "tasks": ["specific task with deliverable"], "kpis": ["measurable KPI to track"]}],
+  "estimatedImpact": "Detailed 3/6/12 month traffic and ranking projections with specific numbers",
+  "aiSearchVisibility": {"score": 0-100, "recommendations": ["specific action to improve AI search presence"]},
+  "localSEO": {"score": 0-100, "issues": ["specific local SEO gaps"], "recommendations": ["specific fixes for Google Business Profile, local citations, NAP consistency"]},
+  "schemaMarkup": {"current": ["existing schema types found"], "missing": ["schema types that should be added"], "implementation": ["specific JSON-LD snippets to add"]}
 }`,
         messages: [{ role: 'user', content: `Full analysis for: ${data.domain}\n\nSITE AUDIT:\n${auditSummary}\n\nCORE WEB VITALS:\n${vitalsSummary}\n\nKEYWORDS:\n${kwSummary}\n\nBACKLINKS:\n${blSummary}\n\nTRAFFIC:\n${trafficSummary}\n\nTOP COMPETITORS:\n${competitorSummary}\n\nISSUES:\n${issuesSummary}\n\nContext: This is an Indian clean-label FMCG food brand. Target: Indian consumers interested in healthy, preservative-free ready-to-eat/cook food.` }],
-        maxTokens: 5000,
-        temperature: 0.4
+        maxTokens: 8000,
+        temperature: 0.3
       });
       try {
         setAiReport(JSON.parse(result.content));
@@ -5188,6 +5214,67 @@ Return JSON:
           columnStyles: { 0: { cellWidth: 16 }, 1: { cellWidth: 50 } },
         });
         y = doc.lastAutoTable.finalY + 10;
+      }
+
+      // ===== LOCAL SEO =====
+      if (aiReport.localSEO) {
+        sectionTitle('LOCAL SEO', [5, 150, 105]);
+        bodyText(`Local SEO Score: ${aiReport.localSEO.score || '—'}/100`, { bold: true, size: 11 }); y += 3;
+        if ((aiReport.localSEO.issues || []).length > 0) {
+          bodyText('Issues:', { bold: true, color: [239, 68, 68] }); y += 1;
+          aiReport.localSEO.issues.forEach((issue, i) => { bodyText(`  ${i + 1}. ${issue}`, { size: 9 }); });
+          y += 4;
+        }
+        if ((aiReport.localSEO.recommendations || []).length > 0) {
+          bodyText('Recommendations:', { bold: true, color: [5, 150, 105] }); y += 1;
+          aiReport.localSEO.recommendations.forEach((r, i) => { bodyText(`  ${i + 1}. ${r}`, { size: 9 }); });
+          y += 4;
+        }
+        y += 4;
+      }
+
+      // ===== SCHEMA MARKUP =====
+      if (aiReport.schemaMarkup) {
+        sectionTitle('SCHEMA MARKUP ANALYSIS');
+        if ((aiReport.schemaMarkup.current || []).length > 0) {
+          bodyText('Current Schema Found:', { bold: true, color: [5, 150, 105] }); y += 1;
+          aiReport.schemaMarkup.current.forEach(s => { bodyText(`  • ${s}`, { size: 9 }); });
+          y += 4;
+        }
+        if ((aiReport.schemaMarkup.missing || []).length > 0) {
+          bodyText('Missing Schema (Should Add):', { bold: true, color: [239, 68, 68] }); y += 1;
+          aiReport.schemaMarkup.missing.forEach(s => { bodyText(`  • ${s}`, { size: 9 }); });
+          y += 4;
+        }
+        if ((aiReport.schemaMarkup.implementation || []).length > 0) {
+          bodyText('Implementation Guide:', { bold: true, color: [124, 58, 237] }); y += 1;
+          aiReport.schemaMarkup.implementation.forEach((s, i) => { bodyText(`  ${i + 1}. ${s}`, { size: 9 }); });
+          y += 4;
+        }
+        y += 4;
+      }
+
+      // ===== CONTENT PRIORITY =====
+      if (aiReport.contentStrategy?.contentPriority?.length > 0) {
+        sectionTitle('CONTENT PRIORITY MATRIX');
+        autoTable(doc, {
+          startY: y,
+          head: [['Priority', 'Title', 'Type', 'Target Keyword', 'Expected Traffic']],
+          body: aiReport.contentStrategy.contentPriority.map(c => [c.priority || 'P1', c.title, c.type, c.targetKeyword, c.expectedTraffic || '—']),
+          theme: 'grid',
+          headStyles: { fillColor: [168, 85, 247], fontSize: 9 },
+          bodyStyles: { fontSize: 8 },
+          margin: { left: margin, right: margin },
+          columnStyles: { 0: { cellWidth: 14 }, 2: { cellWidth: 22 } },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+      }
+
+      // ===== STEALABLE KEYWORDS =====
+      if (aiReport.competitiveAnalysis?.stealableKeywords?.length > 0) {
+        sectionTitle('STEALABLE KEYWORDS FROM COMPETITORS', [239, 68, 68]);
+        aiReport.competitiveAnalysis.stealableKeywords.forEach((kw, i) => { bodyText(`  ${i + 1}. ${kw}`, { size: 9 }); });
+        y += 6;
       }
 
       // Add footer to all pages
