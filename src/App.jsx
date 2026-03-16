@@ -13,7 +13,13 @@ import {
   Megaphone, DollarSign, Newspaper, UserCheck, AlertTriangle, MessageSquare, Award,
   Feather, Mic, MicOff, Volume2, StopCircle, ImageIcon, Wand2, CheckCircle2, XCircle,
   Inbox, Send, Bell, Package, ShoppingCart, CreditCard, Truck,
-  Instagram, Twitter, Linkedin, Facebook, Library, Heart, Share2, Repeat2
+  Instagram, Twitter, Linkedin, Facebook, Library, Heart, Share2, Repeat2,
+  Flame, Swords, Skull, Crown, Sparkles, Orbit, Scan, Bot, Siren,
+  Wallet, LineChart, MousePointerClick, SplitSquareVertical, Receipt,
+  UserPlus, Gift, Handshake, CalendarDays, CircleDollarSign,
+  Radio, Tv, MapPinned, Calculator, Megaphone as MegaphoneIcon2,
+  Ratio, Waypoints, Binary, Fingerprint, FolderSearch, PlugZap,
+  MessageCircle, SmartphoneNfc, QrCode, UsersRound, ThumbsUp
 } from 'lucide-react';
 import { callClaude, isApiKeySet, AI_PROVIDERS, getActiveProvider, setActiveProvider, SYSTEM_PROMPTS, KIRO_CONTEXT, MARKETING_SKILLS, getMarketingPrompt, getSkillsByCategory, detectSkill, getSkillListForAI } from './utils/api';
 import {
@@ -7419,6 +7425,634 @@ function ContentHub() {
   );
 }
 
+// ========= JETT — Paid Ads & Performance Marketing =========
+function JettCampaignManager() {
+  const [campaigns, setCampaigns] = useState(() => JSON.parse(localStorage.getItem('protocol_jett_campaigns') || '[]'));
+  const [showCreate, setShowCreate] = useState(false);
+  const [form, setForm] = useState({ name: '', platform: 'google', objective: 'conversions', budget: '', startDate: '', endDate: '' });
+  const saveCampaigns = (c) => { setCampaigns(c); localStorage.setItem('protocol_jett_campaigns', JSON.stringify(c)); };
+  const createCampaign = () => {
+    if (!form.name || !form.budget) return;
+    saveCampaigns([...campaigns, { ...form, id: Date.now(), status: 'draft', spent: 0, impressions: 0, clicks: 0, conversions: 0, roas: 0, createdAt: Date.now() }]);
+    setForm({ name: '', platform: 'google', objective: 'conversions', budget: '', startDate: '', endDate: '' }); setShowCreate(false);
+  };
+  return (<><div className="tool-header"><Flame size={20} style={{ color: '#ff4655' }} /><h2>Campaign Manager</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Create and manage paid ad campaigns across Google, Meta, and Amazon.</p>
+    <button className="btn" onClick={() => setShowCreate(!showCreate)} style={{ marginBottom: 16 }}>+ New Campaign</button>
+    {showCreate && (<div className="card" style={{ marginBottom: 16, display: 'grid', gap: 10 }}>
+      <input className="input" placeholder="Campaign name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <select className="input" value={form.platform} onChange={e => setForm({...form, platform: e.target.value})}><option value="google">Google Ads</option><option value="meta">Meta Ads</option><option value="amazon">Amazon Ads</option><option value="flipkart">Flipkart Ads</option></select>
+        <select className="input" value={form.objective} onChange={e => setForm({...form, objective: e.target.value})}><option value="awareness">Awareness</option><option value="traffic">Traffic</option><option value="conversions">Conversions</option><option value="roas">ROAS Target</option></select>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+        <input className="input" placeholder="Daily budget (₹)" type="number" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} />
+        <input className="input" type="date" value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} />
+        <input className="input" type="date" value={form.endDate} onChange={e => setForm({...form, endDate: e.target.value})} />
+      </div>
+      <button className="btn" onClick={createCampaign}>Create Campaign</button>
+    </div>)}
+    {campaigns.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 40 }}>No campaigns yet. Create your first campaign above.</div> :
+    <div style={{ display: 'grid', gap: 12 }}>{campaigns.map(c => (
+      <div key={c.id} className="card" style={{ borderLeft: `3px solid ${c.platform === 'google' ? '#4285f4' : c.platform === 'meta' ? '#1877f2' : '#ff9900'}` }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div><strong>{c.name}</strong><span style={{ color: '#8b9eb7', marginLeft: 8, fontSize: 12 }}>{c.platform.toUpperCase()} · {c.objective}</span></div>
+          <span style={{ padding: '2px 10px', borderRadius: 4, fontSize: 11, background: c.status === 'active' ? '#16a34a22' : '#ff465522', color: c.status === 'active' ? '#4ade80' : '#ff4655' }}>{c.status.toUpperCase()}</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginTop: 12 }}>
+          <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Budget</div><div style={{ fontWeight: 600 }}>₹{c.budget}/day</div></div>
+          <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Spent</div><div style={{ fontWeight: 600 }}>₹{c.spent}</div></div>
+          <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Clicks</div><div style={{ fontWeight: 600 }}>{c.clicks}</div></div>
+          <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>ROAS</div><div style={{ fontWeight: 600 }}>{c.roas}x</div></div>
+        </div>
+      </div>
+    ))}</div>}
+  </>);
+}
+
+function JettBudgetOptimizer() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    if (!input) return; setLoading(true);
+    try { const r = await callClaude(`As a paid media budget optimization expert for Kiro Foods India (clean-label RTE brand), analyse this budget/campaign data and provide optimization recommendations:\n\n${input}\n\nProvide: optimal budget allocation across channels, bid strategy recommendations, dayparting suggestions, audience refinement, and projected ROAS improvements.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Wallet size={20} style={{ color: '#ff4655' }} /><h2>Budget Optimizer</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>AI-powered budget allocation and bid optimization across all paid channels.</p>
+    <textarea className="input" rows={5} placeholder="Paste your current budget breakdown, campaign performance data, or describe your ad spend goals..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Optimizing...' : 'Optimize Budget'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function JettROASTracker() {
+  const [campaigns] = useState(() => JSON.parse(localStorage.getItem('protocol_jett_campaigns') || '[]'));
+  const totalSpent = campaigns.reduce((s, c) => s + (Number(c.spent) || 0), 0);
+  const totalBudget = campaigns.reduce((s, c) => s + (Number(c.budget) * 30 || 0), 0);
+  return (<><div className="tool-header"><LineChart size={20} style={{ color: '#ff4655' }} /><h2>ROAS Tracker</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Track return on ad spend across all campaigns and channels.</p>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+      {[{ label: 'Total Budget', value: `₹${totalBudget.toLocaleString()}`, color: '#8b9eb7' }, { label: 'Total Spent', value: `₹${totalSpent.toLocaleString()}`, color: '#06b6d4' }, { label: 'Active Campaigns', value: campaigns.filter(c => c.status === 'active').length, color: '#4ade80' }, { label: 'Avg ROAS', value: campaigns.length ? (campaigns.reduce((s, c) => s + (Number(c.roas) || 0), 0) / campaigns.length).toFixed(1) + 'x' : '0x', color: '#ff4655' }].map((m, i) => (
+        <div key={i} className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 11, color: m.color }}>{m.label}</div><div style={{ fontSize: 24, fontWeight: 700 }}>{m.value}</div></div>
+      ))}
+    </div>
+    {campaigns.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No campaign data yet. Create campaigns in Campaign Manager.</div> :
+    <div style={{ display: 'grid', gap: 10 }}>{campaigns.map(c => (
+      <div key={c.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{c.name}</strong><span style={{ color: c.roas >= 3 ? '#4ade80' : c.roas >= 1 ? '#f5a623' : '#ff4655', fontWeight: 600 }}>{c.roas}x ROAS</span></div></div>
+    ))}</div>}
+  </>);
+}
+
+function JettABTests() {
+  const [tests, setTests] = useState(() => JSON.parse(localStorage.getItem('protocol_jett_abtests') || '[]'));
+  const [form, setForm] = useState({ name: '', variantA: '', variantB: '', metric: 'ctr' });
+  const saveTests = (t) => { setTests(t); localStorage.setItem('protocol_jett_abtests', JSON.stringify(t)); };
+  return (<><div className="tool-header"><SplitSquareVertical size={20} style={{ color: '#ff4655' }} /><h2>A/B Tests</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Create and track A/B tests for ad creatives, copy, and landing pages.</p>
+    <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
+      <input className="input" placeholder="Test name (e.g. Homepage Hero CTA)" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <input className="input" placeholder="Variant A description" value={form.variantA} onChange={e => setForm({...form, variantA: e.target.value})} />
+        <input className="input" placeholder="Variant B description" value={form.variantB} onChange={e => setForm({...form, variantB: e.target.value})} />
+      </div>
+      <button className="btn" onClick={() => { if (!form.name) return; saveTests([...tests, { ...form, id: Date.now(), status: 'running', winner: null }]); setForm({ name: '', variantA: '', variantB: '', metric: 'ctr' }); }}>Create Test</button>
+    </div>
+    {tests.map(t => (<div key={t.id} className="card" style={{ marginBottom: 8 }}><strong>{t.name}</strong><span style={{ marginLeft: 8, fontSize: 12, color: '#8b9eb7' }}>{t.status}</span><div style={{ fontSize: 13, color: '#8b9eb7', marginTop: 4 }}>A: {t.variantA} vs B: {t.variantB}</div></div>))}
+  </>);
+}
+
+// ========= SAGE — CRM & Customer Relationships =========
+function SageCustomerDB() {
+  const [customers, setCustomers] = useState(() => JSON.parse(localStorage.getItem('protocol_sage_customers') || '[]'));
+  const [form, setForm] = useState({ name: '', email: '', phone: '', segment: 'prospect', source: '', notes: '' });
+  const save = (c) => { setCustomers(c); localStorage.setItem('protocol_sage_customers', JSON.stringify(c)); };
+  return (<><div className="tool-header"><Users size={20} style={{ color: '#ff4655' }} /><h2>Customer Database</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Central CRM for all customer and prospect data.</p>
+    <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+        <input className="input" placeholder="Name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+        <input className="input" placeholder="Email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+        <input className="input" placeholder="Phone" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+        <select className="input" value={form.segment} onChange={e => setForm({...form, segment: e.target.value})}><option value="prospect">Prospect</option><option value="lead">Lead</option><option value="customer">Customer</option><option value="vip">VIP</option><option value="churned">Churned</option></select>
+        <input className="input" placeholder="Source (e.g. Instagram, Google)" value={form.source} onChange={e => setForm({...form, source: e.target.value})} />
+        <input className="input" placeholder="Notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+      </div>
+      <button className="btn" onClick={() => { if (!form.name) return; save([...customers, { ...form, id: Date.now(), createdAt: Date.now(), ltv: 0, orders: 0 }]); setForm({ name: '', email: '', phone: '', segment: 'prospect', source: '', notes: '' }); }}>Add Customer</button>
+    </div>
+    <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>{['all','prospect','lead','customer','vip','churned'].map(s => <span key={s} style={{ fontSize: 12, color: '#8b9eb7', cursor: 'pointer' }}>{s.toUpperCase()} ({customers.filter(c => s === 'all' || c.segment === s).length})</span>)}</div>
+    {customers.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No customers yet.</div> :
+    <div style={{ display: 'grid', gap: 8 }}>{customers.map(c => (<div key={c.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{c.name}</strong><span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: '#ff465522', color: '#ff4655' }}>{c.segment}</span></div><div style={{ fontSize: 12, color: '#8b9eb7' }}>{c.email} · {c.phone}</div></div>))}</div>}
+  </>);
+}
+
+function SageLifecycle() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    if (!input) return; setLoading(true);
+    try { const r = await callClaude(`As a customer lifecycle marketing expert for Kiro Foods India, analyse this customer data and create lifecycle strategies:\n\n${input}\n\nProvide: lifecycle stage mapping, automated trigger campaigns for each stage, retention tactics, churn prediction signals, win-back strategies, and LTV optimization recommendations.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Repeat2 size={20} style={{ color: '#ff4655' }} /><h2>Lifecycle Tracker</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Map and optimize the customer journey from awareness to advocacy.</p>
+    <textarea className="input" rows={5} placeholder="Describe your customer segments, purchase patterns, or paste customer data..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Analyzing...' : 'Analyze Lifecycle'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function SageRetention() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a retention marketing expert for Kiro Foods India (clean-label RTE/RTC brand), create a comprehensive retention strategy:\n\n${input || 'Create a full retention playbook for a pre-launch FMCG D2C brand.'}\n\nInclude: loyalty program design, subscription model, re-engagement triggers, churn prediction indicators, win-back sequences, referral program, NPS tracking, and repeat purchase optimization.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Heart size={20} style={{ color: '#ff4655' }} /><h2>Retention Engine</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Build loyalty programs, reduce churn, and maximize customer lifetime value.</p>
+    <textarea className="input" rows={4} placeholder="Describe your retention challenge or leave blank for a full playbook..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Building...' : 'Build Retention Strategy'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function SageChurnPredictor() {
+  const customers = JSON.parse(localStorage.getItem('protocol_sage_customers') || '[]');
+  const churned = customers.filter(c => c.segment === 'churned').length;
+  const atRisk = customers.filter(c => c.segment === 'customer' && c.orders < 2).length;
+  return (<><div className="tool-header"><AlertTriangle size={20} style={{ color: '#ff4655' }} /><h2>Churn Predictor</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Identify at-risk customers before they leave.</p>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+      <div className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 11, color: '#4ade80' }}>Active</div><div style={{ fontSize: 28, fontWeight: 700 }}>{customers.filter(c => c.segment === 'customer' || c.segment === 'vip').length}</div></div>
+      <div className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 11, color: '#f5a623' }}>At Risk</div><div style={{ fontSize: 28, fontWeight: 700 }}>{atRisk}</div></div>
+      <div className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 11, color: '#ff4655' }}>Churned</div><div style={{ fontSize: 28, fontWeight: 700 }}>{churned}</div></div>
+    </div>
+    <div className="card" style={{ color: '#8b9eb7' }}>Add customers to the Customer Database to start tracking churn signals. The predictor analyses purchase frequency, recency, and engagement patterns.</div>
+  </>);
+}
+
+// ========= VIPER — Email & Drip Marketing =========
+function ViperDripBuilder() {
+  const [sequences, setSequences] = useState(() => JSON.parse(localStorage.getItem('protocol_viper_sequences') || '[]'));
+  const [form, setForm] = useState({ name: '', type: 'welcome', emails: 5 });
+  const [aiResult, setAiResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const save = (s) => { setSequences(s); localStorage.setItem('protocol_viper_sequences', JSON.stringify(s)); };
+  const generate = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As an email marketing automation expert for Kiro Foods India, create a ${form.type} email sequence with ${form.emails} emails called "${form.name}".\n\nFor each email provide: subject line, preview text, send timing (delay from trigger), email body copy, primary CTA, and A/B test suggestion.\n\nFollowing Indian FMCG best practices: WhatsApp opt-in mentions, ₹ pricing, festival timing awareness, mobile-first design.`, SYSTEM_PROMPTS.creative); setAiResult(r.content); }
+    catch (e) { setAiResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Send size={20} style={{ color: '#ff4655' }} /><h2>Drip Campaign Builder</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Create automated email sequences for every stage of the customer journey.</p>
+    <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
+      <input className="input" placeholder="Sequence name (e.g. Welcome Series)" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <select className="input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}><option value="welcome">Welcome / Onboarding</option><option value="nurture">Lead Nurture</option><option value="post-purchase">Post-Purchase</option><option value="re-engagement">Re-Engagement</option><option value="winback">Win-Back</option><option value="launch">Product Launch</option></select>
+        <select className="input" value={form.emails} onChange={e => setForm({...form, emails: Number(e.target.value)})}><option value={3}>3 Emails</option><option value={5}>5 Emails</option><option value={7}>7 Emails</option><option value={10}>10 Emails</option></select>
+      </div>
+      <button className="btn" onClick={generate} disabled={loading}>{loading ? 'Generating...' : 'Generate Sequence with AI'}</button>
+    </div>
+    {aiResult && <div className="card" style={{ whiteSpace: 'pre-wrap' }}>{aiResult}</div>}
+    {sequences.map(s => (<div key={s.id} className="card" style={{ marginTop: 8 }}><strong>{s.name}</strong><span style={{ marginLeft: 8, fontSize: 12, color: '#8b9eb7' }}>{s.type} · {s.emails} emails</span></div>))}
+  </>);
+}
+
+function ViperNewsletter() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a newsletter editor for Kiro Foods India, create a compelling email newsletter:\n\nTopic/Brief: ${input || 'Weekly clean-label food newsletter'}\n\nProvide: subject line (3 options), preview text, full email body with sections (hero, main story, secondary content, CTA), and design notes. Follow brand voice: warm, honest, conversational.`, SYSTEM_PROMPTS.creative); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Mail size={20} style={{ color: '#ff4655' }} /><h2>Newsletter Editor</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>AI-powered newsletter creation with brand voice enforcement.</p>
+    <textarea className="input" rows={4} placeholder="Newsletter topic, key updates, or content brief..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Writing...' : 'Generate Newsletter'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function ViperSegmentation() {
+  const customers = JSON.parse(localStorage.getItem('protocol_sage_customers') || '[]');
+  const segments = { prospect: customers.filter(c => c.segment === 'prospect'), lead: customers.filter(c => c.segment === 'lead'), customer: customers.filter(c => c.segment === 'customer'), vip: customers.filter(c => c.segment === 'vip'), churned: customers.filter(c => c.segment === 'churned') };
+  return (<><div className="tool-header"><Filter size={20} style={{ color: '#ff4655' }} /><h2>Audience Segmentation</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Segment your audience for targeted email campaigns.</p>
+    <div style={{ display: 'grid', gap: 12 }}>{Object.entries(segments).map(([key, list]) => (
+      <div key={key} className="card"><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div><strong style={{ textTransform: 'capitalize' }}>{key}</strong><span style={{ marginLeft: 8, color: '#8b9eb7', fontSize: 12 }}>{list.length} contacts</span></div><button className="btn" style={{ fontSize: 11, padding: '4px 12px' }}>Create Campaign →</button></div></div>
+    ))}</div>
+    {customers.length === 0 && <div className="card" style={{ marginTop: 12, textAlign: 'center', color: '#8b9eb7' }}>Add customers via Sage's Customer Database to segment them here.</div>}
+  </>);
+}
+
+// ========= REYNA — Influencer Marketing =========
+function ReynaDiscovery() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As an influencer marketing expert for Kiro Foods India (clean-label RTE/RTC brand), find and recommend influencers:\n\nBrief: ${input || 'Find food influencers for clean-label brand launch in India'}\n\nProvide: 15 influencer recommendations with name, platform, follower range, engagement rate estimate, content style, relevance score (1-10), estimated cost per post, and why they fit Kiro Foods. Include micro (10K-50K), mid (50K-500K), and macro (500K+) tiers. Focus on food, health, family, and lifestyle niches in India.`, SYSTEM_PROMPTS.social); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Crown size={20} style={{ color: '#ff4655' }} /><h2>Influencer Discovery</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Find and evaluate influencers for brand partnerships.</p>
+    <textarea className="input" rows={3} placeholder="Describe your campaign, target audience, budget range, or specific niches..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Searching...' : 'Find Influencers'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function ReynaOutreach() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As an influencer outreach specialist for Kiro Foods India, create outreach templates and strategy:\n\n${input || 'Create outreach templates for food influencer partnerships'}\n\nProvide: 3 DM templates (cold, warm, collaboration), 2 email templates, negotiation talking points, contract must-haves, content brief template, and follow-up sequence. Include Indian market norms for pricing and deliverables.`, SYSTEM_PROMPTS.creative); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Handshake size={20} style={{ color: '#ff4655' }} /><h2>Outreach Manager</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Generate personalized outreach templates and manage influencer communications.</p>
+    <textarea className="input" rows={3} placeholder="Describe the influencer, campaign, or outreach context..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Generating...' : 'Generate Outreach'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function ReynaCampaignTracker() {
+  const [campaigns, setCampaigns] = useState(() => JSON.parse(localStorage.getItem('protocol_reyna_campaigns') || '[]'));
+  const [form, setForm] = useState({ influencer: '', platform: 'instagram', deliverables: '', budget: '', status: 'outreach' });
+  const save = (c) => { setCampaigns(c); localStorage.setItem('protocol_reyna_campaigns', JSON.stringify(c)); };
+  return (<><div className="tool-header"><Target size={20} style={{ color: '#ff4655' }} /><h2>Campaign Tracker</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Track influencer campaigns from outreach to ROI measurement.</p>
+    <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <input className="input" placeholder="Influencer name" value={form.influencer} onChange={e => setForm({...form, influencer: e.target.value})} />
+        <select className="input" value={form.platform} onChange={e => setForm({...form, platform: e.target.value})}><option value="instagram">Instagram</option><option value="youtube">YouTube</option><option value="twitter">Twitter</option><option value="linkedin">LinkedIn</option></select>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 8 }}>
+        <input className="input" placeholder="Deliverables (e.g. 2 Reels + 3 Stories)" value={form.deliverables} onChange={e => setForm({...form, deliverables: e.target.value})} />
+        <input className="input" placeholder="Budget (₹)" type="number" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} />
+        <select className="input" value={form.status} onChange={e => setForm({...form, status: e.target.value})}><option value="outreach">Outreach</option><option value="negotiation">Negotiation</option><option value="contracted">Contracted</option><option value="content-review">Content Review</option><option value="live">Live</option><option value="completed">Completed</option></select>
+      </div>
+      <button className="btn" onClick={() => { if (!form.influencer) return; save([...campaigns, { ...form, id: Date.now() }]); setForm({ influencer: '', platform: 'instagram', deliverables: '', budget: '', status: 'outreach' }); }}>Add Campaign</button>
+    </div>
+    {campaigns.map(c => (<div key={c.id} className="card" style={{ marginBottom: 8, borderLeft: '3px solid #ff4655' }}><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{c.influencer}</strong><span style={{ fontSize: 11, color: '#8b9eb7' }}>{c.status.toUpperCase()}</span></div><div style={{ fontSize: 12, color: '#8b9eb7' }}>{c.platform} · {c.deliverables} · ₹{c.budget}</div></div>))}
+  </>);
+}
+
+function ReynaUGCHub() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a UGC (User-Generated Content) strategy expert for Kiro Foods India, create a UGC collection and amplification plan:\n\n${input || 'Build a complete UGC strategy for clean-label food brand launch'}\n\nProvide: UGC campaign ideas, content prompts for customers, hashtag strategy, rights management template, best practices for repurposing UGC, incentive structure, and content moderation guidelines.`, SYSTEM_PROMPTS.creative); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Heart size={20} style={{ color: '#ff4655' }} /><h2>UGC Hub</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Collect, curate, and amplify user-generated content.</p>
+    <textarea className="input" rows={3} placeholder="Describe your UGC goals or campaign..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Building...' : 'Build UGC Strategy'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+// ========= PHOENIX — Social Media Management =========
+function PhoenixCalendar() {
+  const [posts, setPosts] = useState(() => JSON.parse(localStorage.getItem('protocol_phoenix_posts') || '[]'));
+  const [form, setForm] = useState({ content: '', platform: 'instagram', date: '', time: '10:00', status: 'draft' });
+  const save = (p) => { setPosts(p); localStorage.setItem('protocol_phoenix_posts', JSON.stringify(p)); };
+  return (<><div className="tool-header"><CalendarDays size={20} style={{ color: '#ff4655' }} /><h2>Content Calendar</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Plan and schedule social media content across all platforms.</p>
+    <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
+      <textarea className="input" rows={3} placeholder="Post content..." value={form.content} onChange={e => setForm({...form, content: e.target.value})} style={{ width: '100%' }} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
+        <select className="input" value={form.platform} onChange={e => setForm({...form, platform: e.target.value})}><option value="instagram">Instagram</option><option value="facebook">Facebook</option><option value="twitter">Twitter</option><option value="linkedin">LinkedIn</option><option value="youtube">YouTube</option></select>
+        <input className="input" type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
+        <input className="input" type="time" value={form.time} onChange={e => setForm({...form, time: e.target.value})} />
+        <select className="input" value={form.status} onChange={e => setForm({...form, status: e.target.value})}><option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="published">Published</option></select>
+      </div>
+      <button className="btn" onClick={() => { if (!form.content) return; save([...posts, { ...form, id: Date.now() }]); setForm({ content: '', platform: 'instagram', date: '', time: '10:00', status: 'draft' }); }}>Add to Calendar</button>
+    </div>
+    {posts.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No scheduled posts yet.</div> :
+    <div style={{ display: 'grid', gap: 8 }}>{posts.sort((a, b) => new Date(a.date) - new Date(b.date)).map(p => (
+      <div key={p.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><div><strong>{p.platform}</strong><span style={{ marginLeft: 8, fontSize: 12, color: '#8b9eb7' }}>{p.date} {p.time}</span></div><span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: p.status === 'published' ? '#16a34a22' : p.status === 'scheduled' ? '#06b6d422' : '#8b9eb722', color: p.status === 'published' ? '#4ade80' : p.status === 'scheduled' ? '#06b6d4' : '#8b9eb7' }}>{p.status}</span></div><div style={{ fontSize: 13, color: '#c0c8d4', marginTop: 6 }}>{p.content.slice(0, 120)}{p.content.length > 120 ? '...' : ''}</div></div>
+    ))}</div>}
+  </>);
+}
+
+function PhoenixScheduler() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a social media scheduling expert for Kiro Foods India, create an optimal posting schedule:\n\n${input || 'Create a weekly social media posting schedule for a clean-label food brand launching in India'}\n\nProvide: platform-specific optimal posting times for Indian audiences, content type per slot (Reel/Carousel/Story/Post/Thread), content pillar rotation, frequency recommendations, and a 7-day template calendar with specific post ideas.`, SYSTEM_PROMPTS.social); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Clock size={20} style={{ color: '#ff4655' }} /><h2>Smart Scheduler</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>AI-optimized posting schedule based on audience behavior and platform algorithms.</p>
+    <textarea className="input" rows={3} placeholder="Describe your social media goals, target audience, or content themes..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Planning...' : 'Generate Schedule'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function PhoenixEngagement() {
+  const posts = JSON.parse(localStorage.getItem('protocol_phoenix_posts') || '[]');
+  const published = posts.filter(p => p.status === 'published').length;
+  const scheduled = posts.filter(p => p.status === 'scheduled').length;
+  return (<><div className="tool-header"><ThumbsUp size={20} style={{ color: '#ff4655' }} /><h2>Engagement Tracker</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Monitor engagement metrics across all social platforms.</p>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+      {[{ label: 'Published', value: published, color: '#4ade80' }, { label: 'Scheduled', value: scheduled, color: '#06b6d4' }, { label: 'Drafts', value: posts.filter(p => p.status === 'draft').length, color: '#8b9eb7' }, { label: 'Total Posts', value: posts.length, color: '#ff4655' }].map((m, i) => (
+        <div key={i} className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 11, color: m.color }}>{m.label}</div><div style={{ fontSize: 24, fontWeight: 700 }}>{m.value}</div></div>
+      ))}
+    </div>
+    <div className="card" style={{ color: '#8b9eb7' }}>Connect your social media accounts to start tracking real engagement data. Currently showing content calendar metrics.</div>
+  </>);
+}
+
+function PhoenixCommunity() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a community management expert for Kiro Foods India, create community engagement strategies:\n\n${input || 'Build a community engagement playbook for clean-label food brand on social media'}\n\nProvide: response templates for common comments (positive, negative, questions, complaints), community guidelines, engagement tactics, UGC encouragement strategies, crisis response protocols, and metrics to track.`, SYSTEM_PROMPTS.social); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><UsersRound size={20} style={{ color: '#ff4655' }} /><h2>Community Inbox</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Manage community interactions and build brand advocates.</p>
+    <textarea className="input" rows={3} placeholder="Describe your community management needs or paste comments to respond to..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Generating...' : 'Generate Community Playbook'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+// ========= ASTRA — Media Planning & Buying =========
+function AstraMediaPlanner() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a media planning director for Kiro Foods India with deep expertise in Indian media landscape, create a comprehensive media plan:\n\n${input || 'Create a launch media plan for a clean-label RTE brand targeting urban India'}\n\nProvide: media mix recommendation (TV, digital, print, OOH, radio, cinema), channel-specific plans with specific properties/shows/publications, reach & frequency estimates, GRP targets, budget allocation %, flight plan (timeline), and rationale for each channel. Use real Indian media properties and current rates.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Tv size={20} style={{ color: '#ff4655' }} /><h2>Media Planner</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>AI-powered media planning across TV, print, digital, OOH, and radio.</p>
+    <textarea className="input" rows={4} placeholder="Describe your media objectives, target audience, budget, and timeline..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Planning...' : 'Generate Media Plan'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function AstraGRPCalculator() {
+  const [reach, setReach] = useState('');
+  const [frequency, setFrequency] = useState('');
+  const [spots, setSpots] = useState('');
+  const [tvr, setTvr] = useState('');
+  const grp = reach && frequency ? (parseFloat(reach) * parseFloat(frequency)).toFixed(0) : spots && tvr ? (parseInt(spots) * parseFloat(tvr)).toFixed(0) : '';
+  return (<><div className="tool-header"><Calculator size={20} style={{ color: '#ff4655' }} /><h2>GRP Calculator</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Calculate Gross Rating Points, reach, frequency, and CPRP for media buys.</p>
+    <div className="card" style={{ marginBottom: 16 }}>
+      <div style={{ fontWeight: 600, marginBottom: 12 }}>Method 1: Reach × Frequency</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+        <input className="input" placeholder="Reach % (e.g. 65)" type="number" value={reach} onChange={e => setReach(e.target.value)} />
+        <input className="input" placeholder="Frequency (e.g. 4.5)" type="number" step="0.1" value={frequency} onChange={e => setFrequency(e.target.value)} />
+      </div>
+      <div style={{ fontWeight: 600, marginBottom: 12 }}>Method 2: Spots × TVR</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <input className="input" placeholder="Number of spots" type="number" value={spots} onChange={e => setSpots(e.target.value)} />
+        <input className="input" placeholder="TVR per spot" type="number" step="0.1" value={tvr} onChange={e => setTvr(e.target.value)} />
+      </div>
+    </div>
+    {grp && <div className="card" style={{ textAlign: 'center', padding: 30 }}><div style={{ fontSize: 14, color: '#8b9eb7' }}>Gross Rating Points</div><div style={{ fontSize: 48, fontWeight: 700, color: '#ff4655' }}>{grp} GRPs</div></div>}
+  </>);
+}
+
+function AstraMediaMix() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a media mix optimization expert for Indian FMCG brands, analyse and optimize this media mix:\n\n${input || 'Optimize media mix for ₹2 Cr launch budget: TV (40%), Digital (30%), Print (15%), OOH (10%), Radio (5%)'}\n\nProvide: recommended allocation with rationale, channel synergy analysis, seasonality adjustments (IPL, Diwali, etc.), regional split recommendations, expected reach and frequency by channel, and ROI projections.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Orbit size={20} style={{ color: '#ff4655' }} /><h2>Media Mix Optimizer</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Optimize budget allocation across media channels for maximum impact.</p>
+    <textarea className="input" rows={4} placeholder="Enter your current media mix, budget, objectives, and any constraints..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Optimizing...' : 'Optimize Mix'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+// ========= FADE — Attribution & Analytics =========
+function FadeUTMBuilder() {
+  const [base, setBase] = useState('');
+  const [source, setSource] = useState('');
+  const [medium, setMedium] = useState('');
+  const [campaign, setCampaign] = useState('');
+  const [content, setContent] = useState('');
+  const [term, setTerm] = useState('');
+  const [history, setHistory] = useState(() => JSON.parse(localStorage.getItem('protocol_fade_utms') || '[]'));
+  const url = base ? `${base}${base.includes('?') ? '&' : '?'}${[source && `utm_source=${encodeURIComponent(source)}`, medium && `utm_medium=${encodeURIComponent(medium)}`, campaign && `utm_campaign=${encodeURIComponent(campaign)}`, content && `utm_content=${encodeURIComponent(content)}`, term && `utm_term=${encodeURIComponent(term)}`].filter(Boolean).join('&')}` : '';
+  const saveUTM = () => { if (!url) return; const h = [{ url, source, medium, campaign, content, term, createdAt: Date.now() }, ...history]; setHistory(h); localStorage.setItem('protocol_fade_utms', JSON.stringify(h)); navigator.clipboard.writeText(url); };
+  return (<><div className="tool-header"><Link size={20} style={{ color: '#ff4655' }} /><h2>UTM Builder</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Build tracked URLs for campaign attribution.</p>
+    <div className="card" style={{ display: 'grid', gap: 8, marginBottom: 16 }}>
+      <input className="input" placeholder="Base URL (e.g. https://kirofoods.com/products)" value={base} onChange={e => setBase(e.target.value)} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+        <input className="input" placeholder="Source (e.g. instagram)" value={source} onChange={e => setSource(e.target.value)} />
+        <input className="input" placeholder="Medium (e.g. social)" value={medium} onChange={e => setMedium(e.target.value)} />
+        <input className="input" placeholder="Campaign (e.g. launch-q1)" value={campaign} onChange={e => setCampaign(e.target.value)} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <input className="input" placeholder="Content (optional)" value={content} onChange={e => setContent(e.target.value)} />
+        <input className="input" placeholder="Term (optional)" value={term} onChange={e => setTerm(e.target.value)} />
+      </div>
+      {url && <div style={{ background: '#0f1923', padding: 10, borderRadius: 6, fontSize: 12, wordBreak: 'break-all', color: '#06b6d4' }}>{url}</div>}
+      <button className="btn" onClick={saveUTM}>Copy & Save UTM</button>
+    </div>
+    {history.length > 0 && <div><div style={{ fontWeight: 600, marginBottom: 8 }}>Recent UTMs</div>{history.slice(0, 10).map((h, i) => (<div key={i} className="card" style={{ marginBottom: 6, fontSize: 12 }}><div style={{ color: '#06b6d4', wordBreak: 'break-all' }}>{h.url}</div><div style={{ color: '#8b9eb7', marginTop: 4 }}>{h.source}/{h.medium}/{h.campaign}</div></div>))}</div>}
+  </>);
+}
+
+function FadeAttribution() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a marketing attribution expert, analyse this data and build an attribution model:\n\n${input || 'Design a multi-touch attribution model for a D2C FMCG brand selling through website, Amazon, and quick commerce'}\n\nProvide: recommended attribution model (last-click, first-click, linear, time-decay, data-driven), channel contribution analysis, customer journey mapping, touchpoint weighting, and implementation guide using Google Analytics 4 and UTM parameters.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Waypoints size={20} style={{ color: '#ff4655' }} /><h2>Attribution Model</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Build multi-touch attribution models to understand what drives conversions.</p>
+    <textarea className="input" rows={4} placeholder="Describe your marketing channels, conversion events, and customer journey data..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Modeling...' : 'Build Attribution Model'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function FadeFunnelAnalyzer() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a conversion funnel expert for Kiro Foods India, analyse this funnel data and find leaks:\n\n${input || 'Analyse a typical D2C FMCG funnel: Awareness (ads) → Landing page → Product page → Add to cart → Checkout → Purchase → Repeat'}\n\nProvide: stage-by-stage drop-off analysis, benchmarks for each stage, specific leak identification, fix recommendations prioritised by impact, and A/B test suggestions for each funnel stage.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Scan size={20} style={{ color: '#ff4655' }} /><h2>Funnel Analyzer</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Find and fix conversion funnel leaks across your customer journey.</p>
+    <textarea className="input" rows={4} placeholder="Paste your funnel data (stage → visitors → conversions) or describe your funnel..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Analyzing...' : 'Analyze Funnel'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+// ========= GEKKO — Community & WhatsApp Marketing =========
+function GekkoBroadcast() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a WhatsApp marketing expert for Kiro Foods India, create broadcast campaign content:\n\n${input || 'Create a WhatsApp broadcast campaign for clean-label food brand launch'}\n\nProvide: 5 broadcast messages for different occasions (launch, offer, new product, festival, re-engagement), each with: message text (under 160 chars), CTA button text, media suggestion (image/video), send timing, and expected engagement rate. Follow WhatsApp Business API best practices and Indian FMCG norms.`, SYSTEM_PROMPTS.creative); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><SmartphoneNfc size={20} style={{ color: '#ff4655' }} /><h2>WhatsApp Broadcast</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Create WhatsApp broadcast campaigns with templates and scheduling.</p>
+    <textarea className="input" rows={3} placeholder="Describe your broadcast campaign goal, audience segment, or offer..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Creating...' : 'Generate Broadcast Campaign'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function GekkoChatbot() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a chatbot design expert for Kiro Foods India, create a WhatsApp/website chatbot flow:\n\n${input || 'Design a customer support chatbot for a clean-label food delivery brand'}\n\nProvide: conversation flow diagram (text-based), main menu options, sub-flows for order tracking/product info/complaints/FAQ, escalation triggers to human agent, quick reply buttons for each step, and natural language fallback responses. Use Kiro's brand voice: warm, honest, helpful.`, SYSTEM_PROMPTS.creative); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Bot size={20} style={{ color: '#ff4655' }} /><h2>Chatbot Builder</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Design conversational chatbot flows for WhatsApp and website.</p>
+    <textarea className="input" rows={3} placeholder="Describe the chatbot's purpose, key flows, and target platform..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Designing...' : 'Design Chatbot Flow'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function GekkoReferral() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a growth marketing expert specialising in referral programs for Indian D2C brands, create a referral program for Kiro Foods:\n\n${input || 'Design a viral referral program for clean-label food brand launch in India'}\n\nProvide: program mechanics (give ₹X, get ₹X), reward structure, referral flow (how it works step by step), sharing mechanisms (WhatsApp, SMS, social, QR code), fraud prevention, tier system for top referrers, tracking implementation, and projected viral coefficient.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Gift size={20} style={{ color: '#ff4655' }} /><h2>Referral Program</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Design and manage viral referral programs.</p>
+    <textarea className="input" rows={3} placeholder="Describe your referral program goals, budget per referral, or existing program to optimize..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Designing...' : 'Design Referral Program'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+// ========= BREACH — PR & Crisis Management =========
+function BreachPressRelease() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a PR expert for Kiro Foods India, write a professional press release:\n\n${input || 'Write a press release announcing the launch of Kiro Foods, India\'s first clean-label RTE brand'}\n\nProvide: headline, subheadline, dateline (city, date), lead paragraph (who, what, when, where, why), body with quotes from founder, boilerplate about Kiro Foods, media contact info placeholder, and notes-to-editor with key facts. Follow Indian PR format standards.`, SYSTEM_PROMPTS.creative); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Newspaper size={20} style={{ color: '#ff4655' }} /><h2>Press Release Generator</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Generate professional press releases for launches, announcements, and milestones.</p>
+    <textarea className="input" rows={4} placeholder="Describe the announcement: what's happening, why it matters, key quotes, and target media..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Writing...' : 'Generate Press Release'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function BreachMediaList() {
+  const [lists, setLists] = useState(() => JSON.parse(localStorage.getItem('protocol_breach_medialist') || '[]'));
+  const [form, setForm] = useState({ name: '', outlet: '', beat: '', email: '', phone: '', tier: 'tier1' });
+  const save = (l) => { setLists(l); localStorage.setItem('protocol_breach_medialist', JSON.stringify(l)); };
+  return (<><div className="tool-header"><Users size={20} style={{ color: '#ff4655' }} /><h2>Media List Manager</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Build and manage journalist and media contact database.</p>
+    <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+        <input className="input" placeholder="Journalist name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+        <input className="input" placeholder="Publication/Outlet" value={form.outlet} onChange={e => setForm({...form, outlet: e.target.value})} />
+        <input className="input" placeholder="Beat (e.g. Food & FMCG)" value={form.beat} onChange={e => setForm({...form, beat: e.target.value})} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+        <input className="input" placeholder="Email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+        <input className="input" placeholder="Phone" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+        <select className="input" value={form.tier} onChange={e => setForm({...form, tier: e.target.value})}><option value="tier1">Tier 1 (National)</option><option value="tier2">Tier 2 (Regional)</option><option value="tier3">Tier 3 (Trade/Niche)</option><option value="blogger">Blogger/Creator</option></select>
+      </div>
+      <button className="btn" onClick={() => { if (!form.name) return; save([...lists, { ...form, id: Date.now() }]); setForm({ name: '', outlet: '', beat: '', email: '', phone: '', tier: 'tier1' }); }}>Add Contact</button>
+    </div>
+    {lists.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No media contacts yet.</div> :
+    <div style={{ display: 'grid', gap: 8 }}>{lists.map(c => (<div key={c.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{c.name}</strong><span style={{ fontSize: 11, color: '#8b9eb7' }}>{c.tier.toUpperCase()}</span></div><div style={{ fontSize: 12, color: '#8b9eb7' }}>{c.outlet} · {c.beat} · {c.email}</div></div>))}</div>}
+  </>);
+}
+
+function BreachCrisisPlaybook() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a crisis communications expert for Kiro Foods India (FMCG food brand), create a crisis response plan:\n\n${input || 'Create a comprehensive crisis communication playbook for a food brand'}\n\nProvide: crisis severity classification (Level 1-3), response timelines for each level, holding statement templates, spokesperson guidelines, social media response protocols, media statement templates, internal communication flow, stakeholder notification order, and post-crisis recovery plan. Cover scenarios: product recall, food safety allegation, social media controversy, negative press, and competitor attack.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Siren size={20} style={{ color: '#ff4655' }} /><h2>Crisis Playbook</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Pre-built crisis response protocols and communication templates.</p>
+    <textarea className="input" rows={4} placeholder="Describe the crisis scenario or leave blank for a complete playbook..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Building...' : 'Generate Crisis Playbook'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function BreachSentimentMonitor() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a brand sentiment analysis expert, analyse these brand mentions/reviews/comments for Kiro Foods India:\n\n${input || 'Analyse sentiment for: "clean label food brand in India, ready to eat meals, no preservatives"'}\n\nProvide: overall sentiment score (positive/neutral/negative %), key themes identified, potential reputation risks, positive narratives to amplify, negative narratives to address, recommended response strategy, and monitoring keywords to track.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Activity size={20} style={{ color: '#ff4655' }} /><h2>Sentiment Monitor</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Track and analyse brand sentiment across all channels.</p>
+    <textarea className="input" rows={4} placeholder="Paste brand mentions, reviews, social comments, or keywords to monitor..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Analyzing...' : 'Analyze Sentiment'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
 // =============================================
 // USER MANAGEMENT / ADMIN PANEL
 // =============================================
@@ -7461,6 +8095,47 @@ const ALL_TOOLS = [
   { id: 'launch-planner', label: 'Launch Planner', section: 'Neon' },
   { id: 'pricing-lab', label: 'Pricing Lab', section: 'Neon' },
   { id: 'cro-analyzer', label: 'CRO Analyzer', section: 'Neon' },
+  // Jett — Paid Ads
+  { id: 'jett-campaigns', label: 'Campaign Manager', section: 'Jett' },
+  { id: 'jett-budget', label: 'Budget Optimizer', section: 'Jett' },
+  { id: 'jett-roas', label: 'ROAS Tracker', section: 'Jett' },
+  { id: 'jett-abtests', label: 'A/B Tests', section: 'Jett' },
+  // Sage — CRM
+  { id: 'sage-customers', label: 'Customer Database', section: 'Sage' },
+  { id: 'sage-lifecycle', label: 'Lifecycle Tracker', section: 'Sage' },
+  { id: 'sage-retention', label: 'Retention Engine', section: 'Sage' },
+  { id: 'sage-churn', label: 'Churn Predictor', section: 'Sage' },
+  // Viper — Email
+  { id: 'viper-drip', label: 'Drip Campaigns', section: 'Viper' },
+  { id: 'viper-newsletter', label: 'Newsletter Editor', section: 'Viper' },
+  { id: 'viper-segments', label: 'Segmentation', section: 'Viper' },
+  // Reyna — Influencer
+  { id: 'reyna-discover', label: 'Influencer Discovery', section: 'Reyna' },
+  { id: 'reyna-outreach', label: 'Outreach Manager', section: 'Reyna' },
+  { id: 'reyna-tracker', label: 'Campaign Tracker', section: 'Reyna' },
+  { id: 'reyna-ugc', label: 'UGC Hub', section: 'Reyna' },
+  // Phoenix — Social Media
+  { id: 'phoenix-calendar', label: 'Content Calendar', section: 'Phoenix' },
+  { id: 'phoenix-scheduler', label: 'Smart Scheduler', section: 'Phoenix' },
+  { id: 'phoenix-engagement', label: 'Engagement Tracker', section: 'Phoenix' },
+  { id: 'phoenix-community', label: 'Community Inbox', section: 'Phoenix' },
+  // Astra — Media Planning
+  { id: 'astra-planner', label: 'Media Planner', section: 'Astra' },
+  { id: 'astra-grp', label: 'GRP Calculator', section: 'Astra' },
+  { id: 'astra-mix', label: 'Media Mix Optimizer', section: 'Astra' },
+  // Fade — Attribution
+  { id: 'fade-utm', label: 'UTM Builder', section: 'Fade' },
+  { id: 'fade-attribution', label: 'Attribution Model', section: 'Fade' },
+  { id: 'fade-funnel', label: 'Funnel Analyzer', section: 'Fade' },
+  // Gekko — Community
+  { id: 'gekko-broadcast', label: 'WhatsApp Broadcast', section: 'Gekko' },
+  { id: 'gekko-chatbot', label: 'Chatbot Builder', section: 'Gekko' },
+  { id: 'gekko-referral', label: 'Referral Program', section: 'Gekko' },
+  // Breach — PR
+  { id: 'breach-press', label: 'Press Releases', section: 'Breach' },
+  { id: 'breach-medialist', label: 'Media List', section: 'Breach' },
+  { id: 'breach-crisis', label: 'Crisis Playbook', section: 'Breach' },
+  { id: 'breach-sentiment', label: 'Sentiment Monitor', section: 'Breach' },
   { id: 'settings', label: 'Settings', section: 'Lobby' },
 ];
 
@@ -8888,6 +9563,15 @@ export default function App() {
         sova: "I am the hunter!",
         killjoy: "You should run.",
         neon: "Let's go!",
+        jett: "Watch this!",
+        sage: "You will not kill my allies!",
+        viper: "Don't get in my way.",
+        reyna: "The hunt begins!",
+        phoenix: "Jokes over, you're dead!",
+        astra: "You have no idea what I can do.",
+        fade: "Face your fear!",
+        gekko: "Go get them, buddy!",
+        breach: "Let's go!",
         harbor: "I control the tide.",
         lobby: "Choose your agent."
       };
@@ -9136,6 +9820,167 @@ export default function App() {
           cas.start(now + 0.08); cas.stop(now + 0.35);
         },
 
+        jett: () => {
+          // SPEED DUELIST: Dash whoosh → sharp updraft → tailwind shimmer
+          const dash = ctx.createOscillator(); const dG = ctx.createGain();
+          const dF = ctx.createBiquadFilter();
+          dash.type = 'sawtooth'; dash.frequency.setValueAtTime(200, now);
+          dash.frequency.exponentialRampToValueAtTime(4000, now + 0.1);
+          dF.type = 'bandpass'; dF.frequency.setValueAtTime(2000, now); dF.Q.setValueAtTime(1.5, now);
+          dG.gain.setValueAtTime(0.1, now); dG.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          dash.connect(dF); dF.connect(dG); dG.connect(ctx.destination);
+          dash.start(now); dash.stop(now + 0.15);
+          const up = ctx.createOscillator(); const uG = ctx.createGain();
+          up.type = 'sine'; up.frequency.setValueAtTime(800, now + 0.08);
+          up.frequency.exponentialRampToValueAtTime(1600, now + 0.2);
+          uG.gain.setValueAtTime(0.08, now + 0.08); uG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          up.connect(uG); uG.connect(ctx.destination);
+          up.start(now + 0.08); up.stop(now + 0.25);
+        },
+
+        sage: () => {
+          // HEALER: Warm healing chime → resurrection glow → protective barrier hum
+          const heal = ctx.createOscillator(); const hG = ctx.createGain();
+          heal.type = 'sine'; heal.frequency.setValueAtTime(523, now); // C5
+          hG.gain.setValueAtTime(0.1, now); hG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          heal.connect(hG); hG.connect(ctx.destination);
+          heal.start(now); heal.stop(now + 0.3);
+          const glow = ctx.createOscillator(); const gG = ctx.createGain();
+          glow.type = 'sine'; glow.frequency.setValueAtTime(659, now + 0.1); // E5
+          gG.gain.setValueAtTime(0.08, now + 0.1); gG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          glow.connect(gG); gG.connect(ctx.destination);
+          glow.start(now + 0.1); glow.stop(now + 0.35);
+          const wall = ctx.createOscillator(); const wG = ctx.createGain();
+          wall.type = 'triangle'; wall.frequency.setValueAtTime(220, now + 0.15);
+          wG.gain.setValueAtTime(0.05, now + 0.15); wG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          wall.connect(wG); wG.connect(ctx.destination);
+          wall.start(now + 0.15); wall.stop(now + 0.4);
+        },
+
+        viper: () => {
+          // TOXIC: Acid hiss → poison bubble → area denial alarm
+          const hiss = ctx.createOscillator(); const hG = ctx.createGain();
+          const hF = ctx.createBiquadFilter();
+          hiss.type = 'sawtooth'; hiss.frequency.setValueAtTime(6000, now);
+          hiss.frequency.exponentialRampToValueAtTime(2000, now + 0.15);
+          hF.type = 'highpass'; hF.frequency.setValueAtTime(3000, now);
+          hG.gain.setValueAtTime(0.04, now); hG.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          hiss.connect(hF); hF.connect(hG); hG.connect(ctx.destination);
+          hiss.start(now); hiss.stop(now + 0.18);
+          [0.06, 0.11, 0.15].forEach((d) => {
+            const bub = ctx.createOscillator(); const bG = ctx.createGain();
+            bub.type = 'sine'; bub.frequency.setValueAtTime(200 + Math.random() * 300, now + d);
+            bG.gain.setValueAtTime(0.06, now + d); bG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.04);
+            bub.connect(bG); bG.connect(ctx.destination);
+            bub.start(now + d); bub.stop(now + d + 0.04);
+          });
+        },
+
+        reyna: () => {
+          // SOUL EATER: Soul orb collect → empress activation → devour pulse
+          const soul = ctx.createOscillator(); const sG = ctx.createGain();
+          soul.type = 'sine'; soul.frequency.setValueAtTime(400, now);
+          soul.frequency.exponentialRampToValueAtTime(1200, now + 0.12);
+          sG.gain.setValueAtTime(0.1, now); sG.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          soul.connect(sG); sG.connect(ctx.destination);
+          soul.start(now); soul.stop(now + 0.2);
+          const empress = ctx.createOscillator(); const eG = ctx.createGain();
+          empress.type = 'sawtooth'; empress.frequency.setValueAtTime(150, now + 0.1);
+          empress.frequency.exponentialRampToValueAtTime(80, now + 0.3);
+          eG.gain.setValueAtTime(0.08, now + 0.1); eG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          empress.connect(eG); eG.connect(ctx.destination);
+          empress.start(now + 0.1); empress.stop(now + 0.35);
+        },
+
+        phoenix: () => {
+          // FIRE: Ignition burst → flame crackle → blaze roar
+          const ign = ctx.createOscillator(); const iG = ctx.createGain();
+          ign.type = 'sawtooth'; ign.frequency.setValueAtTime(300, now);
+          ign.frequency.exponentialRampToValueAtTime(1500, now + 0.08);
+          iG.gain.setValueAtTime(0.1, now); iG.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          ign.connect(iG); iG.connect(ctx.destination);
+          ign.start(now); ign.stop(now + 0.12);
+          [0.05, 0.09, 0.13, 0.16].forEach((d) => {
+            const crk = ctx.createOscillator(); const cG = ctx.createGain();
+            crk.type = 'square'; crk.frequency.setValueAtTime(2000 + Math.random() * 3000, now + d);
+            cG.gain.setValueAtTime(0.04, now + d); cG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.02);
+            crk.connect(cG); cG.connect(ctx.destination);
+            crk.start(now + d); crk.stop(now + d + 0.02);
+          });
+          const blaze = ctx.createOscillator(); const bG = ctx.createGain();
+          blaze.type = 'sine'; blaze.frequency.setValueAtTime(120, now + 0.1);
+          bG.gain.setValueAtTime(0.08, now + 0.1); bG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          blaze.connect(bG); bG.connect(ctx.destination);
+          blaze.start(now + 0.1); blaze.stop(now + 0.3);
+        },
+
+        astra: () => {
+          // COSMIC: Star collapse → gravity well → cosmic resonance
+          const star = ctx.createOscillator(); const sG = ctx.createGain();
+          star.type = 'sine'; star.frequency.setValueAtTime(2000, now);
+          star.frequency.exponentialRampToValueAtTime(100, now + 0.2);
+          sG.gain.setValueAtTime(0.08, now); sG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          star.connect(sG); sG.connect(ctx.destination);
+          star.start(now); star.stop(now + 0.25);
+          const grav = ctx.createOscillator(); const gG = ctx.createGain();
+          grav.type = 'triangle'; grav.frequency.setValueAtTime(80, now + 0.12);
+          grav.frequency.exponentialRampToValueAtTime(40, now + 0.35);
+          gG.gain.setValueAtTime(0.1, now + 0.12); gG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          grav.connect(gG); gG.connect(ctx.destination);
+          grav.start(now + 0.12); grav.stop(now + 0.4);
+        },
+
+        fade: () => {
+          // NIGHTMARE: Prowler growl → haunt whisper → terror pulse
+          const growl = ctx.createOscillator(); const grG = ctx.createGain();
+          growl.type = 'sawtooth'; growl.frequency.setValueAtTime(80, now);
+          growl.frequency.linearRampToValueAtTime(60, now + 0.2);
+          grG.gain.setValueAtTime(0.08, now); grG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          growl.connect(grG); grG.connect(ctx.destination);
+          growl.start(now); growl.stop(now + 0.25);
+          const whisp = ctx.createOscillator(); const wG = ctx.createGain();
+          const wF = ctx.createBiquadFilter();
+          whisp.type = 'sine'; whisp.frequency.setValueAtTime(3000, now + 0.08);
+          whisp.frequency.exponentialRampToValueAtTime(1500, now + 0.2);
+          wF.type = 'bandpass'; wF.frequency.setValueAtTime(2000, now); wF.Q.setValueAtTime(5, now);
+          wG.gain.setValueAtTime(0.04, now + 0.08); wG.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          whisp.connect(wF); wF.connect(wG); wG.connect(ctx.destination);
+          whisp.start(now + 0.08); whisp.stop(now + 0.22);
+        },
+
+        gekko: () => {
+          // CREATURES: Dizzy bounce → mosh pit rumble → thrash pop
+          const bounce = ctx.createOscillator(); const boG = ctx.createGain();
+          bounce.type = 'sine'; bounce.frequency.setValueAtTime(600, now);
+          bounce.frequency.exponentialRampToValueAtTime(1200, now + 0.06);
+          bounce.frequency.exponentialRampToValueAtTime(400, now + 0.15);
+          boG.gain.setValueAtTime(0.1, now); boG.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          bounce.connect(boG); boG.connect(ctx.destination);
+          bounce.start(now); bounce.stop(now + 0.18);
+          const pop = ctx.createOscillator(); const pG = ctx.createGain();
+          pop.type = 'square'; pop.frequency.setValueAtTime(1400, now + 0.1);
+          pop.frequency.exponentialRampToValueAtTime(800, now + 0.16);
+          pG.gain.setValueAtTime(0.06, now + 0.1); pG.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          pop.connect(pG); pG.connect(ctx.destination);
+          pop.start(now + 0.1); pop.stop(now + 0.2);
+        },
+
+        breach: () => {
+          // BREAKER: Fault line crack → aftershock tremor → seismic slam
+          const crack = ctx.createOscillator(); const crG = ctx.createGain();
+          crack.type = 'square'; crack.frequency.setValueAtTime(3000, now);
+          crack.frequency.exponentialRampToValueAtTime(200, now + 0.06);
+          crG.gain.setValueAtTime(0.12, now); crG.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+          crack.connect(crG); crG.connect(ctx.destination);
+          crack.start(now); crack.stop(now + 0.1);
+          const quake = ctx.createOscillator(); const qG = ctx.createGain();
+          quake.type = 'sine'; quake.frequency.setValueAtTime(60, now + 0.05);
+          quake.frequency.linearRampToValueAtTime(30, now + 0.3);
+          qG.gain.setValueAtTime(0.15, now + 0.05); qG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          quake.connect(qG); qG.connect(ctx.destination);
+          quake.start(now + 0.05); quake.stop(now + 0.35);
+        },
+
         lobby: () => {
           // HOME BASE: Clean menu open → ambient system hum → ready indicator
           // Menu open — two-note chime (like Valorant main menu)
@@ -9269,6 +10114,92 @@ export default function App() {
         { path: '/launch-planner', icon: Radar, label: 'Launch Planner' },
         { path: '/pricing-lab', icon: DollarSign, label: 'Pricing Lab' },
         { path: '/cro-analyzer', icon: Target, label: 'CRO Analyzer' },
+      ]
+    },
+    {
+      title: 'Jett', icon: Flame, agentFace: 'jett',
+      subtitle: 'Duelist — paid ads & performance marketing',
+      items: [
+        { path: '/jett-campaigns', icon: Flame, label: 'Campaign Manager' },
+        { path: '/jett-budget', icon: Wallet, label: 'Budget Optimizer' },
+        { path: '/jett-roas', icon: LineChart, label: 'ROAS Tracker' },
+        { path: '/jett-abtests', icon: SplitSquareVertical, label: 'A/B Tests' },
+      ]
+    },
+    {
+      title: 'Sage', icon: Heart, agentFace: 'sage',
+      subtitle: 'Sentinel — CRM & customer relationships',
+      items: [
+        { path: '/sage-customers', icon: Users, label: 'Customer Database' },
+        { path: '/sage-lifecycle', icon: Repeat2, label: 'Lifecycle Tracker' },
+        { path: '/sage-retention', icon: Heart, label: 'Retention Engine' },
+        { path: '/sage-churn', icon: AlertTriangle, label: 'Churn Predictor' },
+      ]
+    },
+    {
+      title: 'Viper', icon: Send, agentFace: 'viper',
+      subtitle: 'Controller — email & drip marketing',
+      items: [
+        { path: '/viper-drip', icon: Send, label: 'Drip Campaigns' },
+        { path: '/viper-newsletter', icon: Mail, label: 'Newsletter Editor' },
+        { path: '/viper-segments', icon: Filter, label: 'Segmentation' },
+      ]
+    },
+    {
+      title: 'Reyna', icon: Crown, agentFace: 'reyna',
+      subtitle: 'Duelist — influencer marketing & UGC',
+      items: [
+        { path: '/reyna-discover', icon: Crown, label: 'Influencer Discovery' },
+        { path: '/reyna-outreach', icon: Handshake, label: 'Outreach Manager' },
+        { path: '/reyna-tracker', icon: Target, label: 'Campaign Tracker' },
+        { path: '/reyna-ugc', icon: Heart, label: 'UGC Hub' },
+      ]
+    },
+    {
+      title: 'Phoenix', icon: CalendarDays, agentFace: 'phoenix',
+      subtitle: 'Duelist — social media management',
+      items: [
+        { path: '/phoenix-calendar', icon: CalendarDays, label: 'Content Calendar' },
+        { path: '/phoenix-scheduler', icon: Clock, label: 'Smart Scheduler' },
+        { path: '/phoenix-engagement', icon: ThumbsUp, label: 'Engagement Tracker' },
+        { path: '/phoenix-community', icon: UsersRound, label: 'Community Inbox' },
+      ]
+    },
+    {
+      title: 'Astra', icon: Orbit, agentFace: 'astra',
+      subtitle: 'Controller — media planning & buying',
+      items: [
+        { path: '/astra-planner', icon: Tv, label: 'Media Planner' },
+        { path: '/astra-grp', icon: Calculator, label: 'GRP Calculator' },
+        { path: '/astra-mix', icon: Orbit, label: 'Media Mix Optimizer' },
+      ]
+    },
+    {
+      title: 'Fade', icon: Waypoints, agentFace: 'fade',
+      subtitle: 'Initiator — attribution & funnel analytics',
+      items: [
+        { path: '/fade-utm', icon: Link, label: 'UTM Builder' },
+        { path: '/fade-attribution', icon: Waypoints, label: 'Attribution Model' },
+        { path: '/fade-funnel', icon: Scan, label: 'Funnel Analyzer' },
+      ]
+    },
+    {
+      title: 'Gekko', icon: Bot, agentFace: 'gekko',
+      subtitle: 'Initiator — community & WhatsApp marketing',
+      items: [
+        { path: '/gekko-broadcast', icon: SmartphoneNfc, label: 'WhatsApp Broadcast' },
+        { path: '/gekko-chatbot', icon: Bot, label: 'Chatbot Builder' },
+        { path: '/gekko-referral', icon: Gift, label: 'Referral Program' },
+      ]
+    },
+    {
+      title: 'Breach', icon: Siren, agentFace: 'breach',
+      subtitle: 'Initiator — PR & crisis management',
+      items: [
+        { path: '/breach-press', icon: Newspaper, label: 'Press Releases' },
+        { path: '/breach-medialist', icon: Users, label: 'Media List' },
+        { path: '/breach-crisis', icon: Siren, label: 'Crisis Playbook' },
+        { path: '/breach-sentiment', icon: Activity, label: 'Sentiment Monitor' },
       ]
     },
     {
@@ -9425,6 +10356,47 @@ export default function App() {
             <Route path="/pricing-lab" element={<SkillPanel skillKey="pricing-strategy" />} />
             <Route path="/cro-analyzer" element={<SkillPanel skillKey="page-cro" />} />
             <Route path="/strategy-builder" element={<StrategyBuilder />} />
+            {/* Jett — Paid Ads */}
+            <Route path="/jett-campaigns" element={<JettCampaignManager />} />
+            <Route path="/jett-budget" element={<JettBudgetOptimizer />} />
+            <Route path="/jett-roas" element={<JettROASTracker />} />
+            <Route path="/jett-abtests" element={<JettABTests />} />
+            {/* Sage — CRM */}
+            <Route path="/sage-customers" element={<SageCustomerDB />} />
+            <Route path="/sage-lifecycle" element={<SageLifecycle />} />
+            <Route path="/sage-retention" element={<SageRetention />} />
+            <Route path="/sage-churn" element={<SageChurnPredictor />} />
+            {/* Viper — Email */}
+            <Route path="/viper-drip" element={<ViperDripBuilder />} />
+            <Route path="/viper-newsletter" element={<ViperNewsletter />} />
+            <Route path="/viper-segments" element={<ViperSegmentation />} />
+            {/* Reyna — Influencer */}
+            <Route path="/reyna-discover" element={<ReynaDiscovery />} />
+            <Route path="/reyna-outreach" element={<ReynaOutreach />} />
+            <Route path="/reyna-tracker" element={<ReynaCampaignTracker />} />
+            <Route path="/reyna-ugc" element={<ReynaUGCHub />} />
+            {/* Phoenix — Social Media */}
+            <Route path="/phoenix-calendar" element={<PhoenixCalendar />} />
+            <Route path="/phoenix-scheduler" element={<PhoenixScheduler />} />
+            <Route path="/phoenix-engagement" element={<PhoenixEngagement />} />
+            <Route path="/phoenix-community" element={<PhoenixCommunity />} />
+            {/* Astra — Media Planning */}
+            <Route path="/astra-planner" element={<AstraMediaPlanner />} />
+            <Route path="/astra-grp" element={<AstraGRPCalculator />} />
+            <Route path="/astra-mix" element={<AstraMediaMix />} />
+            {/* Fade — Attribution */}
+            <Route path="/fade-utm" element={<FadeUTMBuilder />} />
+            <Route path="/fade-attribution" element={<FadeAttribution />} />
+            <Route path="/fade-funnel" element={<FadeFunnelAnalyzer />} />
+            {/* Gekko — Community */}
+            <Route path="/gekko-broadcast" element={<GekkoBroadcast />} />
+            <Route path="/gekko-chatbot" element={<GekkoChatbot />} />
+            <Route path="/gekko-referral" element={<GekkoReferral />} />
+            {/* Breach — PR */}
+            <Route path="/breach-press" element={<BreachPressRelease />} />
+            <Route path="/breach-medialist" element={<BreachMediaList />} />
+            <Route path="/breach-crisis" element={<BreachCrisisPlaybook />} />
+            <Route path="/breach-sentiment" element={<BreachSentimentMonitor />} />
             {isAdmin && <Route path="/admin-panel" element={<AdminPanel />} />}
             {isAdmin && <Route path="/user-management" element={<UserManagement />} />}
             <Route path="/settings" element={<SettingsPage />} />
