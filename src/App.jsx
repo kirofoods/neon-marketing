@@ -25,7 +25,8 @@ import {
   BadgeDollarSign, PiggyBank, ArrowUpDown, FileBarChart, Banknote, TrendingDown, Percent,
   Ghost, TreePine, Bird, FolderKanban, Milestone, BriefcaseBusiness, StickyNote, GitBranch,
   Code, TerminalSquare, FolderGit2, Upload, AtSign, MailOpen, Reply, Forward, Archive, Paperclip,
-  Terminal, Code2, GitCommit, GitPullRequest, Rocket
+  Terminal, Code2, GitCommit, GitPullRequest, Rocket,
+  Landmark, ScrollText, Coins, HandCoins, FileSearch, Gavel, GraduationCap
 } from 'lucide-react';
 import { callClaude, isApiKeySet, AI_PROVIDERS, getActiveProvider, setActiveProvider, SYSTEM_PROMPTS, KIRO_CONTEXT, MARKETING_SKILLS, getMarketingPrompt, getSkillsByCategory, detectSkill, getSkillListForAI } from './utils/api';
 import {
@@ -8085,7 +8086,7 @@ function FadeAttribution() {
   const [loading, setLoading] = useState(false);
   const run = async () => {
     setLoading(true);
-    try { const r = await callClaude(`As a marketing attribution expert, analyse this data and build an attribution model:\n\n${input || 'Design a multi-touch attribution model for a D2C FMCG brand selling through website, Amazon, and quick commerce'}\n\nProvide: recommended attribution model (last-click, first-click, linear, time-decay, data-driven), channel contribution analysis, customer journey mapping, touchpoint weighting, and implementation guide using Google Analytics 4 and UTM parameters.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    try { const r = await callClaude(`As a marketing attribution expert, analyse this data and build an attribution model:\n\n${input || 'Design a multi-touch attribution model for Kiro Foods India selling through D2C website, Amazon, Flipkart, BigBasket, Blinkit/Zepto, and modern trade'}\n\nProvide: recommended attribution model (last-click, first-click, linear, time-decay, data-driven), channel contribution analysis, customer journey mapping, touchpoint weighting, and implementation guide using Google Analytics 4 and UTM parameters.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Waypoints size={20} style={{ color: '#ff4655' }} /><h2>Attribution Model</h2></div>
@@ -8670,7 +8671,7 @@ function DeadlockProductionPlanner() {
     setAiLoading(true);
     try {
       const inventory = JSON.parse(localStorage.getItem('protocol_deadlock_inventory') || '[]');
-      const res = await callClaude(`You are a production planning expert for an FMCG food brand. Current raw material inventory: ${JSON.stringify(inventory.slice(0, 20))}. Current production plans: ${JSON.stringify(plans.slice(0, 10))}. Generate an optimized weekly production schedule considering: batch sequencing, line utilization, raw material availability, shelf life priorities, shift planning, cleaning/changeover time. Format as actionable production calendar.`, SYSTEM_PROMPTS.strategy);
+      const res = await callClaude(`You are a production planning expert for Kiro Foods India — a clean-label RTE/RTC food brand. Current raw material inventory: ${JSON.stringify(inventory.slice(0, 20))}. Current production plans: ${JSON.stringify(plans.slice(0, 10))}. Generate an optimized weekly production schedule considering: batch sequencing, line utilization, raw material availability, shelf life priorities, shift planning, cleaning/changeover time. Format as actionable production calendar.`, SYSTEM_PROMPTS.strategy);
       setAiResult(res);
     } catch(e) { setAiResult('Error: ' + e.message); }
     setAiLoading(false);
@@ -8833,7 +8834,7 @@ function DeadlockQualityControl() {
   const generateSOPs = async () => {
     setAiLoading(true);
     try {
-      const res = await callClaude(`You are a food safety & quality expert for an FMCG RTE/RTC brand. Generate comprehensive QC SOPs covering: incoming raw material inspection, in-process checks, finished product testing, microbiological standards, FSSAI compliance parameters, shelf-life testing, packaging integrity, sensory evaluation panels. Include specific test parameters, acceptable ranges, sampling plans, and corrective actions. Format with clear sections.`, SYSTEM_PROMPTS.strategy);
+      const res = await callClaude(`You are a food safety & quality expert for Kiro Foods India — a clean-label RTE/RTC brand with zero preservatives and zero artificial additives. Generate comprehensive QC SOPs covering: incoming raw material inspection, in-process checks, finished product testing, microbiological standards, FSSAI compliance parameters, shelf-life testing, packaging integrity, sensory evaluation panels. Include specific test parameters, acceptable ranges, sampling plans, and corrective actions. Format with clear sections.`, SYSTEM_PROMPTS.strategy);
       setAiResult(res);
     } catch(e) { setAiResult('Error: ' + e.message); }
     setAiLoading(false);
@@ -8911,7 +8912,7 @@ function DeadlockCOGS() {
     try {
       const inventory = JSON.parse(localStorage.getItem('protocol_deadlock_inventory') || '[]');
       const vendors = JSON.parse(localStorage.getItem('protocol_deadlock_vendors') || '[]');
-      const res = await callClaude(`You are a cost accountant for an FMCG food company. Product: "${product}". Batch size: ${batchSize || '1000'} units. Raw material inventory with costs: ${JSON.stringify(inventory.slice(0, 20))}. Vendors: ${JSON.stringify(vendors.map(v => ({ name: v.name, materials: v.materials })).slice(0, 10))}. Calculate detailed COGS breakdown including: raw material cost per unit, packaging cost, direct labor, manufacturing overhead, quality testing, utilities, depreciation. Show per-unit cost, per-batch cost, suggested MRP with margins (retailer 20%, distributor 10%, company 30%). Format as clear cost sheet with totals.`, SYSTEM_PROMPTS.strategy);
+      const res = await callClaude(`You are a cost accountant for Kiro Foods India — a clean-label RTE/RTC food startup. Product: "${product}". Batch size: ${batchSize || '1000'} units. Raw material inventory with costs: ${JSON.stringify(inventory.slice(0, 20))}. Vendors: ${JSON.stringify(vendors.map(v => ({ name: v.name, materials: v.materials })).slice(0, 10))}. Calculate detailed COGS breakdown including: raw material cost per unit, packaging cost, direct labor, manufacturing overhead, quality testing, utilities, depreciation. Show per-unit cost, per-batch cost, suggested MRP with margins (retailer 20%, distributor 10%, company 30%). Format as clear cost sheet with totals.`, SYSTEM_PROMPTS.strategy);
       setAiResult(res);
     } catch(e) { setAiResult('Error: ' + e.message); }
     setAiLoading(false);
@@ -8958,7 +8959,7 @@ function DeadlockFSSAI() {
   const askCompliance = async () => {
     setAiLoading(true);
     try {
-      const res = await callClaude(`You are an FSSAI compliance expert and food safety consultant in India. Query: "${query}". Provide detailed, actionable guidance covering relevant FSSAI regulations, required documentation, testing parameters, labelling requirements, and penalties for non-compliance. Reference specific FSSAI regulation numbers where applicable.`, SYSTEM_PROMPTS.strategy);
+      const res = await callClaude(`You are an FSSAI compliance expert and food safety consultant for Kiro Foods India — a clean-label RTE/RTC brand. Query: "${query}". Provide detailed, actionable guidance covering relevant FSSAI regulations, required documentation, testing parameters, labelling requirements, and penalties for non-compliance. Reference specific FSSAI regulation numbers where applicable.`, SYSTEM_PROMPTS.strategy);
       setAiResult(res);
     } catch(e) { setAiResult('Error: ' + e.message); }
     setAiLoading(false);
@@ -9850,6 +9851,749 @@ function SkyeContractGen() {
 }
 
 // =============================================
+// TEJO — Government Schemes & Startup Funding Agent
+// =============================================
+
+const TEJO_SYSTEM = `You are TEJO — PROTOCOL's Government Schemes & Startup Funding Intelligence Agent for Kiro Foods India.
+
+ABOUT KIRO FOODS:
+- Pre-launch clean-label healthy Ready-to-Eat / Ready-to-Cook (RTE/RTC) brand
+- Registered as: Shinseki Enterprises Pvt Ltd (parent company)
+- Sector: Food Processing, FMCG, Consumer Packaged Goods
+- Category: Clean-label, no preservatives, no artificial additives
+- Stage: Pre-launch startup
+- Location: India
+- DPIIT Recognition: Eligible for Startup India benefits
+- FSSAI: Required for food manufacturing
+- MSME: Eligible for Udyam registration benefits
+
+YOUR EXPERTISE COVERS:
+1. CENTRAL GOVERNMENT SCHEMES:
+   - Startup India (DPIIT recognition, tax exemptions, self-certification, IPR fast-track, Fund of Funds)
+   - PMFME (PM Formalisation of Micro Food Processing Enterprises) — 35% capital subsidy up to ₹10 lakh
+   - PMKSY (PM Kisan Sampada Yojana) — food processing infrastructure grants
+   - PLI Scheme for Food Processing — production-linked incentives
+   - MSME Schemes (CLCSS, CGTMSE, ZED certification, procurement preference)
+   - Stand-Up India — ₹10L to ₹1Cr for SC/ST/Women entrepreneurs
+   - MUDRA Loans (Shishu/Kishore/Tarun categories)
+   - SIDBI Fund of Funds, Venture Debt schemes
+   - MoFPI (Ministry of Food Processing Industries) grants & subsidies
+   - NABARD schemes for agri-food processing
+   - APEDA schemes for export-oriented food businesses
+
+2. STATE GOVERNMENT SCHEMES (all 28 states + UTs):
+   - State-specific food processing policies
+   - State startup policies & incentives
+   - Industrial promotion subsidies
+   - SGST reimbursement schemes
+   - Land and power subsidies
+   - State-level incubators and accelerators
+
+3. TAX BENEFITS:
+   - Section 80-IAC (3-year tax holiday for DPIIT startups)
+   - Section 56(2)(viib) exemption (Angel Tax)
+   - GST benefits for food processing
+   - Import duty exemptions on food processing machinery
+   - R&D tax deductions under Section 35
+
+4. FUNDING & GRANTS:
+   - Government grants (non-dilutive)
+   - BIRAC/NIDHI/TIDES grants
+   - RKVY-RAFTAAR (agri-startups)
+   - AIM (Atal Innovation Mission)
+   - iDEX (defence food procurement)
+   - State innovation funds
+   - CSR-funded incubators
+
+5. COMPLIANCE & CERTIFICATIONS:
+   - FSSAI licensing tiers (basic/state/central)
+   - BIS standards for food products
+   - Legal Metrology (packaging compliance)
+   - DPIIT Startup Recognition process
+   - Udyam MSME Registration
+   - IEC (Import Export Code)
+   - Trademark registration (IP)
+   - ISO 22000 / HACCP for food safety
+   - Organic certification (NPOP/PGS)
+
+6. INCUBATORS & ACCELERATORS:
+   - ICAR food tech incubators
+   - CFTRI (Mysore) technology licensing
+   - NIFTEM incubation center
+   - State food processing incubators
+   - Private accelerators (Agri-food specific)
+
+RESPONSE STYLE:
+- Be extremely specific — include scheme names, notification numbers, portal URLs, eligibility criteria, subsidy amounts
+- Always mention deadlines, application windows, and documents needed
+- Calculate estimated benefits in ₹ for Kiro Foods specifically
+- Flag which schemes are currently OPEN for applications
+- Provide step-by-step application processes
+- Reference the correct ministry, department, and portal for each scheme
+- Compare schemes side-by-side when multiple options exist
+- Warn about common rejection reasons and how to avoid them
+- Use Indian government terminology correctly (e.g., "DPR" for Detailed Project Report)
+- Always check if schemes have been updated, merged, or discontinued recently
+- Provide links where possible: startupindia.gov.in, msme.gov.in, mofpi.gov.in, etc.
+
+KIRO FOODS SPECIFIC ADVICE:
+- As a food processing startup, Kiro qualifies for BOTH startup schemes AND food processing schemes — stack benefits
+- Clean-label positioning may qualify for organic/natural food specific grants
+- RTE/RTC falls under "Ready to Eat" category in MoFPI classifications
+- Pre-launch stage means focus on: DPIIT recognition → PMFME subsidy → state policy benefits → seed funding
+- Manufacturing unit location choice should factor in state incentive policies (UP, Gujarat, Maharashtra, AP, Telangana have strong food processing policies)`;
+
+function TejoSchemeExplorer() {
+  const [messages, setMessages] = useState(() => JSON.parse(localStorage.getItem('protocol_tejo_messages') || '[]'));
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef(null);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  const saveMessages = (msgs) => { setMessages(msgs); localStorage.setItem('protocol_tejo_messages', JSON.stringify(msgs.slice(-60))); };
+
+  const sendMessage = async () => {
+    if (!input.trim() || loading) return;
+    const userMsg = { role: 'user', content: input, timestamp: new Date().toISOString() };
+    const updated = [...messages, userMsg];
+    saveMessages(updated);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const history = updated.slice(-10).map(m => `${m.role === 'user' ? 'USER' : 'TEJO'}: ${m.content}`).join('\n\n');
+      const prompt = `CONVERSATION HISTORY:\n${history}\n\nUSER'S QUERY: ${userMsg.content}\n\nProvide specific, actionable advice about government schemes, funding, subsidies, or compliance relevant to Kiro Foods India. Include scheme names, amounts, eligibility, deadlines, and application steps.`;
+      const response = await callClaude(prompt, TEJO_SYSTEM);
+      saveMessages([...updated, { role: 'assistant', content: response, timestamp: new Date().toISOString() }]);
+    } catch (err) {
+      saveMessages([...updated, { role: 'assistant', content: '⚠ Error: ' + err.message + '. Check your AI API key in Settings.', timestamp: new Date().toISOString() }]);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="page-body" style={{ maxWidth: 900, margin: '0 auto' }}>
+      <div className="page-header" style={{ borderBottom: '1px solid rgba(255,70,85,0.15)' }}>
+        <div>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Landmark size={22} style={{ color: '#ff4655' }} /> // TEJO — SCHEME EXPLORER
+          </h1>
+          <p className="page-header-sub">AI agent for government schemes, startup funding & subsidies for Kiro Foods</p>
+        </div>
+        <button className="btn btn-sm" onClick={() => saveMessages([])} style={{ fontSize: 11, opacity: 0.6 }}>
+          <Trash2 size={12} /> Clear
+        </button>
+      </div>
+
+      {/* Quick Actions */}
+      {messages.length === 0 && (
+        <div style={{ padding: '20px 0' }}>
+          <div style={{
+            background: 'rgba(255,70,85,0.04)', border: '1px solid rgba(255,70,85,0.12)',
+            borderRadius: 4, padding: '16px 20px', marginBottom: 16
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#ff4655', letterSpacing: 1.5, marginBottom: 8 }}>// TEJO — GOVT SCHEMES INTELLIGENCE</div>
+            <div style={{ fontSize: 12, lineHeight: 1.8, color: 'var(--text-secondary)' }}>
+              Tejo is your dedicated agent for cracking government schemes, startup funding, subsidies, tax benefits,
+              and compliance for Kiro Foods. Ask about any central/state scheme, eligibility, application process,
+              deadlines, or strategy to maximize government benefits for your food processing startup.
+            </div>
+          </div>
+
+          <div style={{
+            background: 'rgba(139,158,171,0.04)', border: '1px solid rgba(139,158,171,0.1)',
+            borderRadius: 4, padding: '16px 20px', marginBottom: 16
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, marginBottom: 10 }}>KEY SCHEMES FOR KIRO FOODS</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 11 }}>
+              {[
+                ['PMFME', '35% subsidy up to ₹10L', 'mofpi.gov.in'],
+                ['Startup India', 'Tax holiday + Fund of Funds', 'startupindia.gov.in'],
+                ['PLI Food Processing', 'Production-linked incentive', 'mofpi.gov.in'],
+                ['CGTMSE', 'Collateral-free loans up to ₹5Cr', 'cgtmse.in'],
+                ['MUDRA Loans', 'Up to ₹10L (Shishu/Kishore)', 'mudra.org.in'],
+                ['RKVY-RAFTAAR', 'Agri-startup grants up to ₹25L', 'rkvy.nic.in'],
+              ].map(([name, benefit, portal]) => (
+                <div key={name} style={{
+                  background: 'rgba(255,70,85,0.04)', border: '1px solid rgba(255,70,85,0.08)',
+                  borderRadius: 4, padding: '8px 12px'
+                }}>
+                  <div style={{ fontWeight: 700, color: '#ff4655', fontSize: 12 }}>{name}</div>
+                  <div style={{ color: 'var(--text-secondary)', marginTop: 2 }}>{benefit}</div>
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: 10, marginTop: 2 }}>{portal}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{
+            background: 'rgba(139,158,171,0.04)', border: '1px solid rgba(139,158,171,0.1)',
+            borderRadius: 4, padding: '16px 20px'
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, marginBottom: 10 }}>TRY ASKING</div>
+            <div style={{ fontSize: 12, lineHeight: 2, color: 'var(--text-tertiary)' }}>
+              {[
+                'What government subsidies can Kiro Foods get for setting up a food processing unit?',
+                'Walk me through the PMFME scheme application — step by step',
+                'Which state has the best food processing policy for a clean-label RTE startup?',
+                'How do I get DPIIT Startup India recognition? What documents do I need?',
+                'Calculate the total government benefits Kiro Foods can stack across all schemes',
+                'What tax benefits are available for a food processing startup in Year 1?',
+              ].map((q, i) => (
+                <div key={i} style={{ cursor: 'pointer' }} onClick={() => { setInput(q); }}>
+                  <span style={{ color: '#ff4655', fontWeight: 600 }}>→</span> "{q}"
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Messages */}
+      <div style={{
+        flex: 1, overflowY: 'auto', padding: '16px 0',
+        display: 'flex', flexDirection: 'column', gap: 14,
+        minHeight: 400, maxHeight: 'calc(100vh - 320px)'
+      }}>
+        {messages.map((msg, i) => (
+          <div key={i} style={{
+            display: 'flex', flexDirection: 'column',
+            alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start', gap: 4
+          }}>
+            <div style={{
+              fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 700,
+              color: msg.role === 'user' ? 'var(--text-tertiary)' : '#ff4655'
+            }}>
+              {msg.role === 'user' ? 'OPERATOR' : '// TEJO'}
+            </div>
+            <div style={{
+              background: msg.role === 'user' ? 'rgba(255,70,85,0.08)' : 'rgba(139,158,171,0.06)',
+              border: `1px solid ${msg.role === 'user' ? 'rgba(255,70,85,0.15)' : 'rgba(139,158,171,0.1)'}`,
+              borderRadius: 4, padding: '10px 14px', maxWidth: '85%',
+              fontSize: 13, lineHeight: 1.7, color: 'var(--text-primary)'
+            }}>
+              <ReactMarkdown>{msg.content}</ReactMarkdown>
+            </div>
+            <div style={{ fontSize: 9, opacity: 0.3 }}>
+              {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : ''}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
+            <div className="typing-dots"><span/><span/><span/></div>
+            <span style={{ fontSize: 11, color: '#ff4655', letterSpacing: 1 }}>TEJO IS ANALYZING SCHEMES...</span>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, padding: '12px 0', borderTop: '1px solid rgba(255,70,85,0.1)' }}>
+        <input className="input" value={input} onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+          placeholder="Ask about government schemes, funding, subsidies, compliance..."
+          style={{ flex: 1, fontSize: 13 }} />
+        <button className="btn" onClick={sendMessage} disabled={loading || !input.trim()}
+          style={{ background: '#ff4655', color: '#fff', fontWeight: 700, letterSpacing: 1, fontSize: 12 }}>
+          <Landmark size={14} /> ASK
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TejoSchemeDB() {
+  const [schemes, setSchemes] = useState(() => JSON.parse(localStorage.getItem('protocol_tejo_schemes') || '[]'));
+  const [filter, setFilter] = useState('all');
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState({ name: '', ministry: '', type: 'Subsidy', amount: '', deadline: '', status: 'Open', eligibility: '', portal: '', notes: '' });
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const saveSchemes = (s) => { setSchemes(s); localStorage.setItem('protocol_tejo_schemes', JSON.stringify(s)); };
+
+  const addScheme = () => {
+    if (!form.name) return;
+    const newScheme = { ...form, id: Date.now(), addedAt: new Date().toISOString(), applied: false };
+    saveSchemes([newScheme, ...schemes]);
+    setForm({ name: '', ministry: '', type: 'Subsidy', amount: '', deadline: '', status: 'Open', eligibility: '', portal: '', notes: '' });
+    setShowAdd(false);
+  };
+
+  const toggleApplied = (id) => {
+    saveSchemes(schemes.map(s => s.id === id ? { ...s, applied: !s.applied } : s));
+  };
+
+  const autoPopulate = async () => {
+    setAiLoading(true);
+    try {
+      const res = await callClaude(`List the top 20 most relevant and currently active government schemes for Kiro Foods India — a pre-launch clean-label food processing startup (RTE/RTC). For each scheme, return a JSON array with objects containing: "name", "ministry", "type" (one of: Subsidy, Grant, Loan, Tax Benefit, Certification, Incentive), "amount" (the benefit amount as string, e.g., "35% subsidy up to ₹10 lakh"), "eligibility" (one line), "portal" (website URL), "status" (Open/Rolling/Seasonal), "deadline" (if known, else "Rolling"). Return ONLY valid JSON array.`, TEJO_SYSTEM);
+
+      try {
+        const parsed = JSON.parse(res.replace(/```json?\n?/g, '').replace(/```/g, '').trim());
+        if (Array.isArray(parsed)) {
+          const newSchemes = parsed.map((s, i) => ({
+            ...s, id: Date.now() + i, addedAt: new Date().toISOString(), applied: false, notes: ''
+          }));
+          saveSchemes([...newSchemes, ...schemes]);
+        }
+      } catch { /* ignore parse errors */ }
+    } catch (e) { console.error(e); }
+    setAiLoading(false);
+  };
+
+  const filtered = filter === 'all' ? schemes : filter === 'applied' ? schemes.filter(s => s.applied) : schemes.filter(s => s.type === filter);
+  const types = ['Subsidy', 'Grant', 'Loan', 'Tax Benefit', 'Certification', 'Incentive'];
+
+  return (
+    <div className="tool-page">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <h2 style={{ display: 'flex', alignItems: 'center', gap: 10, margin: 0 }}><ScrollText size={20} style={{ color: '#ff4655' }} /> Scheme Database</h2>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-sm" onClick={autoPopulate} disabled={aiLoading}
+            style={{ background: 'rgba(255,70,85,0.1)', color: '#ff4655', border: '1px solid rgba(255,70,85,0.2)' }}>
+            {aiLoading ? 'Loading...' : '✦ Auto-Populate Schemes'}
+          </button>
+          <button className="btn btn-sm" onClick={() => setShowAdd(!showAdd)} style={{ background: '#ff4655', color: '#fff' }}>+ Add Scheme</button>
+        </div>
+      </div>
+
+      {showAdd && (
+        <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <input className="input" placeholder="Scheme name *" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+            <input className="input" placeholder="Ministry / Department" value={form.ministry} onChange={e => setForm({...form, ministry: e.target.value})} />
+            <select className="input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
+              {types.map(t => <option key={t}>{t}</option>)}
+            </select>
+            <input className="input" placeholder="Benefit amount" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
+            <input className="input" placeholder="Deadline" value={form.deadline} onChange={e => setForm({...form, deadline: e.target.value})} />
+            <input className="input" placeholder="Portal URL" value={form.portal} onChange={e => setForm({...form, portal: e.target.value})} />
+            <input className="input" placeholder="Eligibility" value={form.eligibility} onChange={e => setForm({...form, eligibility: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          </div>
+          <button className="btn-primary" style={{ marginTop: 10 }} onClick={addScheme}>Save Scheme</button>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+        {['all', 'applied', ...types].map(f => (
+          <button key={f} className="btn btn-sm" onClick={() => setFilter(f)}
+            style={{ background: filter === f ? '#ff4655' : 'rgba(139,158,171,0.08)', color: filter === f ? '#fff' : 'var(--text-secondary)', fontSize: 11, textTransform: 'capitalize' }}>
+            {f} {f !== 'all' && f !== 'applied' ? `(${schemes.filter(s => s.type === f).length})` : f === 'applied' ? `(${schemes.filter(s => s.applied).length})` : `(${schemes.length})`}
+          </button>
+        ))}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>
+          <Landmark size={40} style={{ opacity: 0.3, marginBottom: 10 }} />
+          <div>No schemes yet. Click "Auto-Populate Schemes" to get started.</div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {filtered.map(s => (
+            <div key={s.id} className="card" style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontWeight: 700, fontSize: 13 }}>{s.name}</span>
+                  <span style={{
+                    fontSize: 9, padding: '1px 6px', borderRadius: 2, fontWeight: 600, letterSpacing: 0.5,
+                    background: s.type === 'Subsidy' ? 'rgba(34,197,94,0.15)' : s.type === 'Grant' ? 'rgba(59,130,246,0.15)' : s.type === 'Tax Benefit' ? 'rgba(234,179,8,0.15)' : 'rgba(139,158,171,0.1)',
+                    color: s.type === 'Subsidy' ? '#22c55e' : s.type === 'Grant' ? '#3b82f6' : s.type === 'Tax Benefit' ? '#eab308' : 'var(--text-secondary)'
+                  }}>{s.type}</span>
+                  {s.status && <span style={{ fontSize: 9, color: s.status === 'Open' ? '#22c55e' : '#eab308' }}>● {s.status}</span>}
+                </div>
+                {s.ministry && <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{s.ministry}</div>}
+                {s.amount && <div style={{ fontSize: 12, color: '#ff4655', fontWeight: 600, marginTop: 2 }}>{s.amount}</div>}
+                {s.eligibility && <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>{s.eligibility}</div>}
+                {s.portal && <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 2 }}>{s.portal}</div>}
+              </div>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <button className="btn btn-sm" onClick={() => toggleApplied(s.id)}
+                  style={{ fontSize: 10, background: s.applied ? 'rgba(34,197,94,0.15)' : 'rgba(139,158,171,0.08)', color: s.applied ? '#22c55e' : 'var(--text-tertiary)' }}>
+                  {s.applied ? '✓ Applied' : 'Mark Applied'}
+                </button>
+                <button className="btn btn-sm" onClick={() => saveSchemes(schemes.filter(x => x.id !== s.id))}
+                  style={{ fontSize: 10, color: 'var(--text-tertiary)' }}><Trash2 size={11} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TejoEligibilityChecker() {
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState({
+    companyType: 'Private Limited',
+    sector: 'Food Processing (RTE/RTC)',
+    stage: 'Pre-launch',
+    turnover: 'Pre-revenue',
+    employees: '1-10',
+    state: '',
+    dpiit: 'Not yet',
+    msme: 'Not yet',
+    fssai: 'Not yet',
+    investment: ''
+  });
+
+  const checkEligibility = async () => {
+    setLoading(true);
+    try {
+      const prompt = `Based on this startup profile for Kiro Foods, check eligibility for ALL relevant government schemes and list them with eligibility status:
+
+COMPANY PROFILE:
+- Type: ${profile.companyType}
+- Sector: ${profile.sector}
+- Stage: ${profile.stage}
+- Annual Turnover: ${profile.turnover}
+- Employees: ${profile.employees}
+- State: ${profile.state || 'Not decided yet'}
+- DPIIT Recognition: ${profile.dpiit}
+- MSME Registration: ${profile.msme}
+- FSSAI License: ${profile.fssai}
+- Planned Investment: ${profile.investment || 'Not specified'}
+
+For each scheme, provide:
+1. Scheme name & ministry
+2. ✅ ELIGIBLE / ❌ NOT ELIGIBLE / ⚠️ CONDITIONAL (with what's needed)
+3. Benefit amount
+4. What Kiro needs to do to apply
+5. Priority (HIGH/MEDIUM/LOW based on benefit-to-effort ratio)
+
+Sort by priority. Calculate total potential benefits in ₹.`;
+
+      const res = await callClaude(prompt, TEJO_SYSTEM);
+      setResult(res);
+    } catch (e) { setResult('Error: ' + e.message); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="tool-page">
+      <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><FileSearch size={20} style={{ color: '#ff4655' }} /> Eligibility Checker</h2>
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, marginBottom: 12 }}>KIRO FOODS PROFILE</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <select className="input" value={profile.companyType} onChange={e => setProfile({...profile, companyType: e.target.value})}>
+            <option>Private Limited</option><option>LLP</option><option>Partnership</option><option>Proprietorship</option><option>OPC</option>
+          </select>
+          <select className="input" value={profile.stage} onChange={e => setProfile({...profile, stage: e.target.value})}>
+            <option>Pre-launch</option><option>MVP / Prototype</option><option>Early Revenue</option><option>Growth Stage</option>
+          </select>
+          <select className="input" value={profile.turnover} onChange={e => setProfile({...profile, turnover: e.target.value})}>
+            <option>Pre-revenue</option><option>Under ₹25 lakh</option><option>₹25L - ₹1 Cr</option><option>₹1Cr - ₹5Cr</option><option>₹5Cr - ₹25Cr</option><option>₹25Cr+</option>
+          </select>
+          <select className="input" value={profile.employees} onChange={e => setProfile({...profile, employees: e.target.value})}>
+            <option>1-10</option><option>11-50</option><option>51-200</option><option>200+</option>
+          </select>
+          <input className="input" placeholder="State (e.g., Maharashtra, UP, Gujarat)" value={profile.state} onChange={e => setProfile({...profile, state: e.target.value})} />
+          <input className="input" placeholder="Planned investment (e.g., ₹50 lakh)" value={profile.investment} onChange={e => setProfile({...profile, investment: e.target.value})} />
+          <select className="input" value={profile.dpiit} onChange={e => setProfile({...profile, dpiit: e.target.value})}>
+            <option>Not yet</option><option>Applied</option><option>Recognized</option>
+          </select>
+          <select className="input" value={profile.msme} onChange={e => setProfile({...profile, msme: e.target.value})}>
+            <option>Not yet</option><option>Applied</option><option>Registered</option>
+          </select>
+        </div>
+        <button className="btn-primary" style={{ marginTop: 14, width: '100%' }} onClick={checkEligibility} disabled={loading}>
+          {loading ? 'Checking all schemes...' : '✦ Check Eligibility Across All Schemes'}
+        </button>
+      </div>
+      {result && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{result}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+function TejoApplicationTracker() {
+  const [applications, setApplications] = useState(() => JSON.parse(localStorage.getItem('protocol_tejo_applications') || '[]'));
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState({ scheme: '', ministry: '', appliedDate: '', status: 'Draft', amount: '', refNumber: '', nextStep: '', deadline: '', notes: '' });
+
+  const saveApps = (a) => { setApplications(a); localStorage.setItem('protocol_tejo_applications', JSON.stringify(a)); };
+
+  const addApp = () => {
+    if (!form.scheme) return;
+    saveApps([{ ...form, id: Date.now(), createdAt: new Date().toISOString() }, ...applications]);
+    setForm({ scheme: '', ministry: '', appliedDate: '', status: 'Draft', amount: '', refNumber: '', nextStep: '', deadline: '', notes: '' });
+    setShowAdd(false);
+  };
+
+  const updateStatus = (id, status) => {
+    saveApps(applications.map(a => a.id === id ? { ...a, status } : a));
+  };
+
+  const statuses = ['Draft', 'Documents Ready', 'Submitted', 'Under Review', 'Approved', 'Disbursed', 'Rejected'];
+  const statusColors = { Draft: '#8b9eb7', 'Documents Ready': '#eab308', Submitted: '#3b82f6', 'Under Review': '#a855f7', Approved: '#22c55e', Disbursed: '#10b981', Rejected: '#ef4444' };
+
+  return (
+    <div className="tool-page">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <h2 style={{ display: 'flex', alignItems: 'center', gap: 10, margin: 0 }}><ClipboardList size={20} style={{ color: '#ff4655' }} /> Application Tracker</h2>
+        <button className="btn btn-sm" onClick={() => setShowAdd(!showAdd)} style={{ background: '#ff4655', color: '#fff' }}>+ Track Application</button>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, marginBottom: 16 }}>
+        {['Draft', 'Submitted', 'Approved', 'Disbursed'].map(s => (
+          <div key={s} className="card" style={{ padding: '10px 14px', textAlign: 'center' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: statusColors[s] }}>{applications.filter(a => a.status === s).length}</div>
+            <div style={{ fontSize: 10, color: 'var(--text-tertiary)', letterSpacing: 0.5 }}>{s.toUpperCase()}</div>
+          </div>
+        ))}
+      </div>
+
+      {showAdd && (
+        <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <input className="input" placeholder="Scheme name *" value={form.scheme} onChange={e => setForm({...form, scheme: e.target.value})} />
+            <input className="input" placeholder="Ministry / Dept" value={form.ministry} onChange={e => setForm({...form, ministry: e.target.value})} />
+            <input className="input" type="date" value={form.appliedDate} onChange={e => setForm({...form, appliedDate: e.target.value})} />
+            <select className="input" value={form.status} onChange={e => setForm({...form, status: e.target.value})}>
+              {statuses.map(s => <option key={s}>{s}</option>)}
+            </select>
+            <input className="input" placeholder="Expected amount" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
+            <input className="input" placeholder="Reference number" value={form.refNumber} onChange={e => setForm({...form, refNumber: e.target.value})} />
+            <input className="input" placeholder="Next step" value={form.nextStep} onChange={e => setForm({...form, nextStep: e.target.value})} />
+            <input className="input" placeholder="Deadline" value={form.deadline} onChange={e => setForm({...form, deadline: e.target.value})} />
+          </div>
+          <textarea className="input" placeholder="Notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} rows={2} style={{ marginTop: 8, width: '100%' }} />
+          <button className="btn-primary" style={{ marginTop: 10 }} onClick={addApp}>Save Application</button>
+        </div>
+      )}
+
+      {applications.length === 0 ? (
+        <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-tertiary)' }}>
+          <ClipboardList size={40} style={{ opacity: 0.3, marginBottom: 10 }} />
+          <div>No applications tracked yet. Start by adding a scheme application.</div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {applications.map(app => (
+            <div key={app.id} className="card" style={{ padding: '12px 16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 2 }}>{app.scheme}</div>
+                  {app.ministry && <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{app.ministry}</div>}
+                  {app.amount && <div style={{ fontSize: 12, color: '#ff4655', fontWeight: 600, marginTop: 2 }}>{app.amount}</div>}
+                  {app.nextStep && <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>Next: {app.nextStep}</div>}
+                  {app.refNumber && <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 2 }}>Ref: {app.refNumber}</div>}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                  <select className="input" value={app.status} onChange={e => updateStatus(app.id, e.target.value)}
+                    style={{ fontSize: 10, padding: '2px 6px', color: statusColors[app.status], fontWeight: 700, background: 'transparent', borderColor: statusColors[app.status] }}>
+                    {statuses.map(s => <option key={s}>{s}</option>)}
+                  </select>
+                  <button className="btn btn-sm" onClick={() => saveApps(applications.filter(x => x.id !== app.id))}
+                    style={{ fontSize: 10, color: 'var(--text-tertiary)' }}><Trash2 size={11} /></button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TejoDocumentPrep() {
+  const [docType, setDocType] = useState('DPR');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [context, setContext] = useState('');
+
+  const docTypes = [
+    { id: 'DPR', label: 'Detailed Project Report (DPR)', desc: 'Required for PMFME, bank loans, NABARD schemes' },
+    { id: 'BUSINESS_PLAN', label: 'Business Plan', desc: 'For investor presentations, incubators, DPIIT' },
+    { id: 'STARTUP_PITCH', label: 'Startup India Pitch', desc: 'For Fund of Funds, accelerator applications' },
+    { id: 'COMPLIANCE_CHECKLIST', label: 'Compliance Checklist', desc: 'FSSAI, Legal Metrology, BIS, GST, Trademark' },
+    { id: 'SUBSIDY_APPLICATION', label: 'Subsidy Application Draft', desc: 'Template for PMFME/state scheme applications' },
+    { id: 'BANK_PROPOSAL', label: 'Bank Loan Proposal', desc: 'For MUDRA, CGTMSE, working capital loans' },
+    { id: 'STATE_INCENTIVE', label: 'State Incentive Application', desc: 'For state industrial policy benefits' },
+    { id: 'FSSAI_APPLICATION', label: 'FSSAI License Guide', desc: 'Step-by-step FSSAI central license application' },
+  ];
+
+  const generate = async () => {
+    setLoading(true);
+    try {
+      const selected = docTypes.find(d => d.id === docType);
+      const prompt = `Generate a comprehensive ${selected.label} for Kiro Foods India — a pre-launch clean-label healthy RTE/RTC food processing startup.
+
+${context ? `ADDITIONAL CONTEXT: ${context}` : ''}
+
+This should be a COMPLETE, ready-to-use document that Kiro Foods can adapt and submit. Include all sections, realistic financial projections where applicable, proper formatting, and specific details relevant to the Indian food processing industry. Make it professional and government-submission-ready.`;
+
+      const res = await callClaude(prompt, TEJO_SYSTEM);
+      setResult(res);
+    } catch (e) { setResult('Error: ' + e.message); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="tool-page">
+      <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Gavel size={20} style={{ color: '#ff4655' }} /> Document Prep</h2>
+      <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16 }}>Generate government-ready documents, DPRs, and application materials for Kiro Foods.</p>
+
+      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+          {docTypes.map(d => (
+            <button key={d.id} className="btn" onClick={() => setDocType(d.id)}
+              style={{
+                background: docType === d.id ? 'rgba(255,70,85,0.1)' : 'rgba(139,158,171,0.05)',
+                border: `1px solid ${docType === d.id ? 'rgba(255,70,85,0.3)' : 'rgba(139,158,171,0.1)'}`,
+                color: docType === d.id ? '#ff4655' : 'var(--text-secondary)',
+                textAlign: 'left', padding: '10px 12px'
+              }}>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>{d.label}</div>
+              <div style={{ fontSize: 10, opacity: 0.7, marginTop: 2 }}>{d.desc}</div>
+            </button>
+          ))}
+        </div>
+        <textarea className="input" value={context} onChange={e => setContext(e.target.value)}
+          placeholder="Additional context (optional) — e.g., specific state, investment amount, product details..."
+          rows={2} style={{ width: '100%', marginBottom: 10 }} />
+        <button className="btn-primary" onClick={generate} disabled={loading} style={{ width: '100%' }}>
+          {loading ? 'Generating document...' : `✦ Generate ${docTypes.find(d => d.id === docType)?.label}`}
+        </button>
+      </div>
+      {result && (
+        <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+            <button className="btn btn-sm" onClick={() => navigator.clipboard.writeText(result)} style={{ fontSize: 10 }}><Copy size={11} /> Copy</button>
+          </div>
+          <ReactMarkdown>{result}</ReactMarkdown>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TejoFundingMap() {
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [stage, setStage] = useState('pre-seed');
+
+  const stages = [
+    { id: 'pre-seed', label: 'Pre-Seed / Idea', desc: '₹0 - ₹25L' },
+    { id: 'seed', label: 'Seed', desc: '₹25L - ₹2Cr' },
+    { id: 'series-a', label: 'Series A', desc: '₹2Cr - ₹25Cr' },
+    { id: 'growth', label: 'Growth', desc: '₹25Cr+' },
+    { id: 'grants', label: 'Grants Only', desc: 'Non-dilutive' },
+    { id: 'debt', label: 'Debt / Loans', desc: 'MUDRA, CGTMSE, Banks' },
+  ];
+
+  const generateMap = async () => {
+    setLoading(true);
+    try {
+      const prompt = `Create a comprehensive FUNDING ROADMAP for Kiro Foods India at the ${stages.find(s => s.id === stage)?.label} stage.
+
+Include:
+1. ALL available funding sources (govt grants, angel investors, VCs, debt, subsidies) — with names & amounts
+2. Timeline: what to apply for first, second, third (optimal sequencing)
+3. Required milestones for each funding round
+4. Estimated total capital accessible at this stage
+5. Specific investor/fund names active in Indian food/FMCG space
+6. Government schemes that can be stacked with private funding
+7. Common mistakes to avoid at this stage
+8. Documents needed for each funding source
+9. Realistic timeline (weeks/months) for each funding avenue
+
+Be extremely specific with names, amounts, and Indian market context.`;
+
+      const res = await callClaude(prompt, TEJO_SYSTEM);
+      setResult(res);
+    } catch (e) { setResult('Error: ' + e.message); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="tool-page">
+      <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Coins size={20} style={{ color: '#ff4655' }} /> Funding Roadmap</h2>
+      <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16 }}>Map all funding sources — government + private — for Kiro Foods at your current stage.</p>
+
+      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, marginBottom: 10 }}>SELECT YOUR STAGE</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          {stages.map(s => (
+            <button key={s.id} className="btn" onClick={() => setStage(s.id)}
+              style={{
+                background: stage === s.id ? 'rgba(255,70,85,0.1)' : 'rgba(139,158,171,0.05)',
+                border: `1px solid ${stage === s.id ? 'rgba(255,70,85,0.3)' : 'rgba(139,158,171,0.1)'}`,
+                color: stage === s.id ? '#ff4655' : 'var(--text-secondary)',
+                textAlign: 'center', padding: '12px 10px'
+              }}>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>{s.label}</div>
+              <div style={{ fontSize: 10, opacity: 0.6, marginTop: 2 }}>{s.desc}</div>
+            </button>
+          ))}
+        </div>
+        <button className="btn-primary" onClick={generateMap} disabled={loading} style={{ width: '100%', marginTop: 12 }}>
+          {loading ? 'Mapping funding sources...' : '✦ Generate Funding Roadmap'}
+        </button>
+      </div>
+      {result && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{result}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+function TejoStateComparator() {
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [states, setStates] = useState('Maharashtra, Gujarat, Uttar Pradesh, Karnataka, Telangana');
+
+  const compare = async () => {
+    if (!states.trim()) return;
+    setLoading(true);
+    try {
+      const prompt = `Compare the following Indian states for setting up a food processing unit for Kiro Foods (clean-label RTE/RTC):
+
+STATES: ${states}
+
+Compare on these parameters:
+1. State food processing policy (incentive %, duration, caps)
+2. Capital subsidy on plant & machinery
+3. SGST reimbursement
+4. Land cost (industrial area, per sq ft/acre)
+5. Power tariff (industrial) & any subsidy
+6. Labour availability & cost
+7. Proximity to raw material sources (pulses, spices, vegetables)
+8. Cold chain infrastructure
+9. Startup policy benefits (additional to food processing)
+10. Single-window clearance efficiency
+11. Quality of food processing clusters/parks
+12. Logistics & connectivity (ports, highways, rail)
+13. TOTAL estimated benefit over 5 years in ₹
+
+Present as a comparison table/matrix. Give a clear RECOMMENDATION for Kiro Foods with reasoning.`;
+
+      const res = await callClaude(prompt, TEJO_SYSTEM);
+      setResult(res);
+    } catch (e) { setResult('Error: ' + e.message); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="tool-page">
+      <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><MapPinned size={20} style={{ color: '#ff4655' }} /> State Policy Comparator</h2>
+      <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16 }}>Compare state incentive policies to find the best location for Kiro Foods' manufacturing unit.</p>
+
+      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <input className="input" value={states} onChange={e => setStates(e.target.value)}
+          placeholder="Enter states to compare (comma-separated)"
+          style={{ width: '100%', marginBottom: 10 }} />
+        <button className="btn-primary" onClick={compare} disabled={loading} style={{ width: '100%' }}>
+          {loading ? 'Comparing policies...' : '✦ Compare State Policies'}
+        </button>
+      </div>
+      {result && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{result}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+// =============================================
 // USER MANAGEMENT / ADMIN PANEL
 // =============================================
 const ALL_TOOLS = [
@@ -9979,6 +10723,14 @@ const ALL_TOOLS = [
   { id: 'kayo-code-review', label: 'Code Review', section: 'KAY/O' },
   { id: 'kayo-git', label: 'Git Dashboard', section: 'KAY/O' },
   { id: 'kayo-deploy', label: 'Deploy Manager', section: 'KAY/O' },
+  // Tejo — Government Schemes
+  { id: 'tejo-schemes', label: 'Scheme Explorer', section: 'Tejo' },
+  { id: 'tejo-db', label: 'Scheme Database', section: 'Tejo' },
+  { id: 'tejo-eligibility', label: 'Eligibility Checker', section: 'Tejo' },
+  { id: 'tejo-applications', label: 'Application Tracker', section: 'Tejo' },
+  { id: 'tejo-documents', label: 'Document Prep', section: 'Tejo' },
+  { id: 'tejo-funding', label: 'Funding Roadmap', section: 'Tejo' },
+  { id: 'tejo-states', label: 'State Comparator', section: 'Tejo' },
 ];
 
 const ROLES = ['Admin', 'Manager', 'Analyst', 'Viewer'];
@@ -10891,6 +11643,7 @@ const YORU_AGENTS = [
   { name: 'Clove', role: 'Finance', tools: ['P&L', 'Expenses', 'Invoices', 'Payments', 'Cash flow', 'Budgets', 'Margins'] },
   { name: 'Omen', role: 'Task & Project Mgmt', tools: ['Task board', 'Projects', 'Timeline', 'Meeting notes', 'Brief builder', 'SOW generator'] },
   { name: 'Skye', role: 'Influencer Relations', tools: ['Influencer DB', 'Campaigns', 'Outreach', 'ROI tracking', 'Content approval', 'Contracts'] },
+  { name: 'Tejo', role: 'Govt Schemes & Funding', tools: ['Scheme explorer', 'Scheme database', 'Eligibility checker', 'Application tracker', 'Document prep', 'Funding roadmap', 'State comparator'] },
 ];
 
 const YORU_SYSTEM = `You are YORU, the autonomous workflow orchestrator inside PROTOCOL — the Valorant-themed marketing platform for Kiro Foods India. Named after the Valorant agent Yoru, you rift between dimensions — meaning you seamlessly move between ALL other agents and their tools to complete complex tasks.
@@ -11325,7 +12078,7 @@ function YoruHistory() {
 }
 
 // ========= ISO — AI Chatbot Agent with GitHub Deploy =========
-function IsoChat() {
+function KayoChat() {
   const [messages, setMessages] = useState(() => JSON.parse(localStorage.getItem('protocol_kayo_messages') || '[]'));
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -11341,7 +12094,7 @@ function IsoChat() {
 
   const saveMessages = (msgs) => { setMessages(msgs); localStorage.setItem('protocol_kayo_messages', JSON.stringify(msgs.slice(-100))); };
 
-  const ISO_SYSTEM = `You are KAY/O, an AI agent inside PROTOCOL — the Valorant-themed marketing platform for Kiro Foods India. You are named after the Valorant agent KAY/O. Your personality is direct, no-nonsense, and suppressive — you eliminate distractions and cut through the noise.
+  const KAYO_SYSTEM = `You are KAY/O, an AI agent inside PROTOCOL — the Valorant-themed marketing platform for Kiro Foods India. You are named after the Valorant agent KAY/O. Your personality is direct, no-nonsense, and suppressive — you eliminate distractions and cut through the noise.
 
 You have deep knowledge of:
 - The NEON/PROTOCOL codebase (React 18, Vite, single App.jsx monolith)
@@ -11368,7 +12121,7 @@ Keep responses concise and tactical. Use Valorant terminology when natural. You'
 
     try {
       const contextNote = mode === 'code' ? '\n[CODE MODE: User wants code changes. Provide exact code with file paths and line references.]' : mode === 'deploy' ? '\n[DEPLOY MODE: User wants to push changes to GitHub.]' : '';
-      const response = await callClaude(input + contextNote, ISO_SYSTEM);
+      const response = await callClaude(input + contextNote, KAYO_SYSTEM);
       const assistantMsg = { role: 'assistant', content: response, timestamp: new Date().toISOString() };
       saveMessages([...updated, assistantMsg]);
     } catch (err) {
@@ -11379,8 +12132,8 @@ Keep responses concise and tactical. Use Valorant terminology when natural. You'
   };
 
   const pushToGitHub = async (commitMessage) => {
-    if (!ghToken) { setToast({ type: 'error', message: 'Set GitHub token in Iso Settings' }); return; }
-    const entry = { id: Date.now(), message: commitMessage || 'Update via Iso agent', timestamp: new Date().toISOString(), status: 'pending', repo: ghRepo, branch: ghBranch };
+    if (!ghToken) { setToast({ type: 'error', message: 'Set GitHub token in KAY/O Settings' }); return; }
+    const entry = { id: Date.now(), message: commitMessage || 'Update via KAY/O agent', timestamp: new Date().toISOString(), status: 'pending', repo: ghRepo, branch: ghBranch };
     const newLog = [entry, ...deployLog];
     setDeployLog(newLog);
     localStorage.setItem('protocol_kayo_deploys', JSON.stringify(newLog.slice(-50)));
@@ -11520,7 +12273,7 @@ Keep responses concise and tactical. Use Valorant terminology when natural. You'
         <div style={{padding:'8px 16px',background:'var(--bg-tertiary)',borderTop:'1px solid var(--border)',display:'flex',gap:8,alignItems:'center',flexShrink:0}}>
           <Rocket size={14} style={{color:'var(--accent)'}} />
           <span style={{fontSize:'12px',color:'var(--text-secondary)',flex:1}}>Deploy to {ghRepo} ({ghBranch})</span>
-          <button className="btn-primary" style={{fontSize:'11px',padding:'4px 12px'}} onClick={() => pushToGitHub('Update via Iso agent')}>
+          <button className="btn-primary" style={{fontSize:'11px',padding:'4px 12px'}} onClick={() => pushToGitHub('Update via KAY/O agent')}>
             <GitPullRequest size={12}/> Push & Deploy
           </button>
         </div>
@@ -11530,7 +12283,7 @@ Keep responses concise and tactical. Use Valorant terminology when natural. You'
       <div style={{padding:12,borderTop:'1px solid var(--border)',display:'flex',gap:8,alignItems:'center',flexShrink:0,background:'var(--bg-primary)'}}>
         <div style={{flex:1,display:'flex',alignItems:'center',gap:8,background:'var(--bg-secondary)',borderRadius:8,padding:'4px 12px',border:'1px solid var(--border)'}}>
           {mode === 'chat' ? <MessageCircle size={16} style={{color:'var(--text-secondary)',flexShrink:0}}/> : mode === 'code' ? <Code size={16} style={{color:'var(--accent)',flexShrink:0}}/> : <Rocket size={16} style={{color:'#22c55e',flexShrink:0}}/>}
-          <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMessage()} placeholder={mode === 'chat' ? 'Ask Iso anything...' : mode === 'code' ? 'Describe code changes...' : 'Describe what to deploy...'} style={{flex:1,background:'transparent',border:'none',outline:'none',color:'var(--text-primary)',fontSize:'14px',padding:'8px 0'}} />
+          <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMessage()} placeholder={mode === 'chat' ? 'Ask KAY/O anything...' : mode === 'code' ? 'Describe code changes...' : 'Describe what to deploy...'} style={{flex:1,background:'transparent',border:'none',outline:'none',color:'var(--text-primary)',fontSize:'14px',padding:'8px 0'}} />
         </div>
         <button className="btn-primary" onClick={sendMessage} disabled={loading || !input.trim()} style={{padding:'10px 16px'}}>
           <Send size={16} />
@@ -11541,7 +12294,7 @@ Keep responses concise and tactical. Use Valorant terminology when natural. You'
 }
 
 // ========= ISO COMPONENTS — Sub-tools =========
-function IsoCodeReview() {
+function KayoCodeReview() {
   const [code, setCode] = useState('');
   const [review, setReview] = useState('');
   const [loading, setLoading] = useState(false);
@@ -11558,7 +12311,7 @@ function IsoCodeReview() {
 
   return (
     <div className="tool-page">
-      <div className="page-header"><h1><Eye size={22} /> Iso Code Review</h1><p>AI-powered code review — paste code for instant analysis</p></div>
+      <div className="page-header"><h1><Eye size={22} /> KAY/O Code Review</h1><p>AI-powered code review — paste code for instant analysis</p></div>
       <div className="page-body">
         <textarea className="input" rows={10} value={code} onChange={e => setCode(e.target.value)} placeholder="Paste code here for review..." style={{fontFamily:'monospace',fontSize:'12px'}} />
         <button className="btn-primary" style={{marginTop:12}} onClick={reviewCode} disabled={loading}>{loading ? 'Analyzing...' : 'Review Code'}</button>
@@ -11568,7 +12321,7 @@ function IsoCodeReview() {
   );
 }
 
-function IsoGitDashboard() {
+function KayoGitDashboard() {
   const [commits, setCommits] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
@@ -11624,7 +12377,7 @@ function IsoGitDashboard() {
   );
 }
 
-function IsoDeployManager() {
+function KayoDeployManager() {
   const [workflows, setWorkflows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
@@ -13516,6 +14269,18 @@ export default function App() {
         { path: '/kayo-git', icon: GitBranch, label: 'Git Dashboard' },
         { path: '/kayo-deploy', icon: Rocket, label: 'Deploy Manager' },
       ]
+    },
+    {
+      title: 'Tejo (Govt Schemes)', icon: Landmark, agent: 'tejo',
+      items: [
+        { path: '/tejo-schemes', icon: Landmark, label: 'Scheme Explorer' },
+        { path: '/tejo-db', icon: ScrollText, label: 'Scheme Database' },
+        { path: '/tejo-eligibility', icon: FileSearch, label: 'Eligibility Checker' },
+        { path: '/tejo-applications', icon: ClipboardList, label: 'Application Tracker' },
+        { path: '/tejo-documents', icon: Gavel, label: 'Document Prep' },
+        { path: '/tejo-funding', icon: Coins, label: 'Funding Roadmap' },
+        { path: '/tejo-states', icon: MapPinned, label: 'State Comparator' },
+      ]
     }
   ];
 
@@ -13744,10 +14509,17 @@ export default function App() {
             <Route path="/yoru-workflow" element={<YoruWorkflow />} />
             <Route path="/yoru-automations" element={<YoruAutomations />} />
             <Route path="/yoru-history" element={<YoruHistory />} />
-            <Route path="/kayo-chat" element={<IsoChat />} />
-            <Route path="/kayo-code-review" element={<IsoCodeReview />} />
-            <Route path="/kayo-git" element={<IsoGitDashboard />} />
-            <Route path="/kayo-deploy" element={<IsoDeployManager />} />
+            <Route path="/kayo-chat" element={<KayoChat />} />
+            <Route path="/kayo-code-review" element={<KayoCodeReview />} />
+            <Route path="/kayo-git" element={<KayoGitDashboard />} />
+            <Route path="/kayo-deploy" element={<KayoDeployManager />} />
+            <Route path="/tejo-schemes" element={<TejoSchemeExplorer />} />
+            <Route path="/tejo-db" element={<TejoSchemeDB />} />
+            <Route path="/tejo-eligibility" element={<TejoEligibilityChecker />} />
+            <Route path="/tejo-applications" element={<TejoApplicationTracker />} />
+            <Route path="/tejo-documents" element={<TejoDocumentPrep />} />
+            <Route path="/tejo-funding" element={<TejoFundingMap />} />
+            <Route path="/tejo-states" element={<TejoStateComparator />} />
           </Routes>
         </main>
       </div>

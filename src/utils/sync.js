@@ -85,6 +85,8 @@ const SYNC_KEYS = [
   // KAY/O — Dev Agent
   'protocol_kayo_messages', 'protocol_kayo_deploys',
   'protocol_kayo_gh_token', 'protocol_kayo_gh_repo', 'protocol_kayo_gh_branch',
+  // Tejo — Government Schemes
+  'protocol_tejo_messages', 'protocol_tejo_schemes', 'protocol_tejo_applications',
   // Email
   'protocol_email_accounts',
   // Firebase config (so other devices can auto-connect)
