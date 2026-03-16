@@ -9926,13 +9926,13 @@ const ALL_TOOLS = [
   { id: 'deadlock-cogs', label: 'COGS Calculator', section: 'Deadlock' },
   { id: 'deadlock-fssai', label: 'FSSAI Compliance', section: 'Deadlock' },
   { id: 'deadlock-recipes', label: 'Recipe Manager', section: 'Deadlock' },
-  { id: 'kayo-pnl', label: 'Profit & Loss', section: 'KAY/O' },
-  { id: 'kayo-expenses', label: 'Expense Tracker', section: 'KAY/O' },
-  { id: 'kayo-invoices', label: 'Invoice Generator', section: 'KAY/O' },
-  { id: 'kayo-payments', label: 'Payment Tracker', section: 'KAY/O' },
-  { id: 'kayo-cashflow', label: 'Cash Flow', section: 'KAY/O' },
-  { id: 'kayo-budgets', label: 'Budget Tracker', section: 'KAY/O' },
-  { id: 'kayo-margins', label: 'Margin Analysis', section: 'KAY/O' },
+  { id: 'clove-pnl', label: 'Profit & Loss', section: 'Clove' },
+  { id: 'clove-expenses', label: 'Expense Tracker', section: 'Clove' },
+  { id: 'clove-invoices', label: 'Invoice Generator', section: 'Clove' },
+  { id: 'clove-payments', label: 'Payment Tracker', section: 'Clove' },
+  { id: 'clove-cashflow', label: 'Cash Flow', section: 'Clove' },
+  { id: 'clove-budgets', label: 'Budget Tracker', section: 'Clove' },
+  { id: 'clove-margins', label: 'Margin Analysis', section: 'Clove' },
   { id: 'omen-tasks', label: 'Task Board', section: 'Omen' },
   { id: 'omen-projects', label: 'Project Tracker', section: 'Omen' },
   { id: 'omen-timeline', label: 'Timeline', section: 'Omen' },
@@ -9949,10 +9949,10 @@ const ALL_TOOLS = [
   { id: 'skye-contracts', label: 'Contracts', section: 'Skye' },
   { id: 'lobby-email', label: 'Protocol Mail', section: 'Lobby' },
   { id: 'settings', label: 'Settings', section: 'Lobby' },
-  { id: 'iso-chat', label: 'Iso Chat', section: 'Iso' },
-  { id: 'iso-code-review', label: 'Code Review', section: 'Iso' },
-  { id: 'iso-git', label: 'Git Dashboard', section: 'Iso' },
-  { id: 'iso-deploy', label: 'Deploy Manager', section: 'Iso' },
+  { id: 'kayo-chat', label: 'KAY/O Chat', section: 'KAY/O' },
+  { id: 'kayo-code-review', label: 'Code Review', section: 'KAY/O' },
+  { id: 'kayo-git', label: 'Git Dashboard', section: 'KAY/O' },
+  { id: 'kayo-deploy', label: 'Deploy Manager', section: 'KAY/O' },
 ];
 
 const ROLES = ['Admin', 'Manager', 'Analyst', 'Viewer'];
@@ -10729,22 +10729,22 @@ function LobbyEmail() {
 
 // ========= ISO — AI Chatbot Agent with GitHub Deploy =========
 function IsoChat() {
-  const [messages, setMessages] = useState(() => JSON.parse(localStorage.getItem('protocol_iso_messages') || '[]'));
+  const [messages, setMessages] = useState(() => JSON.parse(localStorage.getItem('protocol_kayo_messages') || '[]'));
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [mode, setMode] = useState('chat'); // chat, code, deploy
   const [codeContext, setCodeContext] = useState('');
-  const [deployLog, setDeployLog] = useState(() => JSON.parse(localStorage.getItem('protocol_iso_deploys') || '[]'));
+  const [deployLog, setDeployLog] = useState(() => JSON.parse(localStorage.getItem('protocol_kayo_deploys') || '[]'));
   const [showDeployHistory, setShowDeployHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [ghToken, setGhToken] = useState(() => localStorage.getItem('protocol_iso_gh_token') || '');
-  const [ghRepo, setGhRepo] = useState(() => localStorage.getItem('protocol_iso_gh_repo') || 'kirofoods/neon-marketing');
-  const [ghBranch, setGhBranch] = useState(() => localStorage.getItem('protocol_iso_gh_branch') || 'main');
+  const [ghToken, setGhToken] = useState(() => localStorage.getItem('protocol_kayo_gh_token') || '');
+  const [ghRepo, setGhRepo] = useState(() => localStorage.getItem('protocol_kayo_gh_repo') || 'kirofoods/neon-marketing');
+  const [ghBranch, setGhBranch] = useState(() => localStorage.getItem('protocol_kayo_gh_branch') || 'main');
 
-  const saveMessages = (msgs) => { setMessages(msgs); localStorage.setItem('protocol_iso_messages', JSON.stringify(msgs.slice(-100))); };
+  const saveMessages = (msgs) => { setMessages(msgs); localStorage.setItem('protocol_kayo_messages', JSON.stringify(msgs.slice(-100))); };
 
-  const ISO_SYSTEM = `You are ISO, an AI agent inside PROTOCOL — the Valorant-themed marketing platform for Kiro Foods India. You are named after the Valorant agent Iso. Your personality is calm, precise, and focused — like a sharpshooter who never misses.
+  const ISO_SYSTEM = `You are KAY/O, an AI agent inside PROTOCOL — the Valorant-themed marketing platform for Kiro Foods India. You are named after the Valorant agent KAY/O. Your personality is direct, no-nonsense, and suppressive — you eliminate distractions and cut through the noise.
 
 You have deep knowledge of:
 - The NEON/PROTOCOL codebase (React 18, Vite, single App.jsx monolith)
@@ -10786,7 +10786,7 @@ Keep responses concise and tactical. Use Valorant terminology when natural. You'
     const entry = { id: Date.now(), message: commitMessage || 'Update via Iso agent', timestamp: new Date().toISOString(), status: 'pending', repo: ghRepo, branch: ghBranch };
     const newLog = [entry, ...deployLog];
     setDeployLog(newLog);
-    localStorage.setItem('protocol_iso_deploys', JSON.stringify(newLog.slice(-50)));
+    localStorage.setItem('protocol_kayo_deploys', JSON.stringify(newLog.slice(-50)));
 
     try {
       // GitHub API: Get current file SHA, update file content
@@ -10809,13 +10809,13 @@ Keep responses concise and tactical. Use Valorant terminology when natural. You'
 
       const finalLog = [entry, ...deployLog.filter(d => d.id !== entry.id)];
       setDeployLog(finalLog);
-      localStorage.setItem('protocol_iso_deploys', JSON.stringify(finalLog.slice(-50)));
+      localStorage.setItem('protocol_kayo_deploys', JSON.stringify(finalLog.slice(-50)));
       setToast({ type: dispatchRes.ok ? 'success' : 'error', message: entry.response });
     } catch (err) {
       entry.status = 'error'; entry.response = err.message;
       const finalLog = [entry, ...deployLog.filter(d => d.id !== entry.id)];
       setDeployLog(finalLog);
-      localStorage.setItem('protocol_iso_deploys', JSON.stringify(finalLog.slice(-50)));
+      localStorage.setItem('protocol_kayo_deploys', JSON.stringify(finalLog.slice(-50)));
       setToast({ type: 'error', message: err.message });
     }
   };
@@ -10832,7 +10832,7 @@ Keep responses concise and tactical. Use Valorant terminology when natural. You'
       {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
       <div className="page-header" style={{flexShrink:0}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8}}>
-          <h1><Bot size={22} /> Iso — Combat Dev Agent</h1>
+          <h1><Bot size={22} /> KAY/O — Dev Agent</h1>
           <div style={{display:'flex',gap:6}}>
             {['chat','code','deploy'].map(m => (
               <button key={m} className={mode === m ? 'btn-primary' : 'btn-secondary'} style={{fontSize:'11px',padding:'4px 12px',textTransform:'capitalize'}} onClick={() => setMode(m)}>
@@ -10854,15 +10854,15 @@ Keep responses concise and tactical. Use Valorant terminology when natural. You'
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
             <div>
               <label style={{fontSize:'11px',color:'var(--text-secondary)'}}>Personal Access Token</label>
-              <input className="input" type="password" value={ghToken} onChange={e => { setGhToken(e.target.value); localStorage.setItem('protocol_iso_gh_token', e.target.value); }} placeholder="ghp_..." />
+              <input className="input" type="password" value={ghToken} onChange={e => { setGhToken(e.target.value); localStorage.setItem('protocol_kayo_gh_token', e.target.value); }} placeholder="ghp_..." />
             </div>
             <div>
               <label style={{fontSize:'11px',color:'var(--text-secondary)'}}>Repository</label>
-              <input className="input" value={ghRepo} onChange={e => { setGhRepo(e.target.value); localStorage.setItem('protocol_iso_gh_repo', e.target.value); }} placeholder="owner/repo" />
+              <input className="input" value={ghRepo} onChange={e => { setGhRepo(e.target.value); localStorage.setItem('protocol_kayo_gh_repo', e.target.value); }} placeholder="owner/repo" />
             </div>
             <div>
               <label style={{fontSize:'11px',color:'var(--text-secondary)'}}>Branch</label>
-              <input className="input" value={ghBranch} onChange={e => { setGhBranch(e.target.value); localStorage.setItem('protocol_iso_gh_branch', e.target.value); }} placeholder="main" />
+              <input className="input" value={ghBranch} onChange={e => { setGhBranch(e.target.value); localStorage.setItem('protocol_kayo_gh_branch', e.target.value); }} placeholder="main" />
             </div>
           </div>
         </div>
@@ -10891,8 +10891,8 @@ Keep responses concise and tactical. Use Valorant terminology when natural. You'
         {messages.length === 0 && (
           <div style={{textAlign:'center',padding:'40px 20px',color:'var(--text-secondary)'}}>
             <Bot size={48} style={{opacity:0.3,marginBottom:12}} />
-            <h3 style={{color:'var(--text-primary)',fontSize:'16px',marginBottom:8}}>Iso Online</h3>
-            <p style={{fontSize:'13px',maxWidth:400,margin:'0 auto'}}>I'm your combat dev agent. Ask me anything about the platform, request code changes, or deploy updates to production.</p>
+            <h3 style={{color:'var(--text-primary)',fontSize:'16px',marginBottom:8}}>KAY/O Online</h3>
+            <p style={{fontSize:'13px',maxWidth:400,margin:'0 auto'}}>I'm your dev agent. Ask me anything about the platform, request code changes, or deploy updates to production. No more tricks.</p>
             <div style={{display:'flex',gap:8,justifyContent:'center',marginTop:16,flexWrap:'wrap'}}>
               {['How do I add a new agent?','Show me the route structure','What agents are in PROTOCOL?','Help me fix a bug'].map(q => (
                 <button key={q} className="btn-secondary" style={{fontSize:'11px',padding:'6px 12px'}} onClick={() => { setInput(q); }}>{q}</button>
@@ -10911,7 +10911,7 @@ Keep responses concise and tactical. Use Valorant terminology when natural. You'
         {loading && (
           <div style={{display:'flex',justifyContent:'flex-start'}}>
             <div style={{padding:'10px 14px',borderRadius:'12px 12px 12px 2px',background:'var(--bg-secondary)',color:'var(--text-secondary)',fontSize:'13px'}}>
-              <span className="typing-dots">Iso is thinking<span>.</span><span>.</span><span>.</span></span>
+              <span className="typing-dots">KAY/O is thinking<span>.</span><span>.</span><span>.</span></span>
             </div>
           </div>
         )}
@@ -10975,11 +10975,11 @@ function IsoGitDashboard() {
   const [commits, setCommits] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
-  const ghToken = localStorage.getItem('protocol_iso_gh_token') || '';
-  const ghRepo = localStorage.getItem('protocol_iso_gh_repo') || 'kirofoods/neon-marketing';
+  const ghToken = localStorage.getItem('protocol_kayo_gh_token') || '';
+  const ghRepo = localStorage.getItem('protocol_kayo_gh_repo') || 'kirofoods/neon-marketing';
 
   const fetchCommits = async () => {
-    if (!ghToken) { setToast({ type: 'error', message: 'Set GitHub token in Iso Chat settings' }); return; }
+    if (!ghToken) { setToast({ type: 'error', message: 'Set GitHub token in KAY/O Chat settings' }); return; }
     setLoading(true);
     try {
       const res = await fetch(`https://api.github.com/repos/${ghRepo}/commits?per_page=20`, {
@@ -11006,7 +11006,7 @@ function IsoGitDashboard() {
         <p>Recent commits to {ghRepo}</p>
       </div>
       <div className="page-body">
-        {!ghToken ? <p style={{color:'var(--text-secondary)'}}>Set your GitHub token in Iso Chat settings to view commits.</p> :
+        {!ghToken ? <p style={{color:'var(--text-secondary)'}}>Set your GitHub token in KAY/O Chat settings to view commits.</p> :
           loading ? <p style={{color:'var(--text-secondary)'}}>Loading...</p> :
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
             {commits.map(c => (
@@ -11031,8 +11031,8 @@ function IsoDeployManager() {
   const [workflows, setWorkflows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
-  const ghToken = localStorage.getItem('protocol_iso_gh_token') || '';
-  const ghRepo = localStorage.getItem('protocol_iso_gh_repo') || 'kirofoods/neon-marketing';
+  const ghToken = localStorage.getItem('protocol_kayo_gh_token') || '';
+  const ghRepo = localStorage.getItem('protocol_kayo_gh_repo') || 'kirofoods/neon-marketing';
 
   const fetchWorkflows = async () => {
     if (!ghToken) { setToast({ type: 'error', message: 'Set GitHub token' }); return; }
@@ -11064,7 +11064,7 @@ function IsoDeployManager() {
         <p>GitHub Actions workflow runs for {ghRepo}</p>
       </div>
       <div className="page-body">
-        {!ghToken ? <p style={{color:'var(--text-secondary)'}}>Set GitHub token in Iso Chat settings.</p> :
+        {!ghToken ? <p style={{color:'var(--text-secondary)'}}>Set GitHub token in KAY/O Chat settings.</p> :
           loading ? <p style={{color:'var(--text-secondary)'}}>Loading...</p> :
           <div className="table-wrapper">
             <table className="data-table">
@@ -11312,7 +11312,10 @@ function PinLogin({ onSuccess }) {
     };
   }, []);
 
+  const authAttempted = useRef(false);
   const tryAuth = (fullPin) => {
+    if (authAttempted.current) return; // Prevent double-fire
+    authAttempted.current = true;
     try {
       const result = authenticatePin(fullPin);
       if (result.success) {
@@ -11322,19 +11325,20 @@ function PinLogin({ onSuccess }) {
         setLockedIn(true);
         try { playLoginSuccess(); } catch (e) {}
         try { const a = new Audio('./sounds/spike-plant.mp3'); a.volume = 0.25; a.play().catch(() => {}); } catch (e) {}
-        // Shorter delay — 350ms for the "locked in" animation, then transition
         setTimeout(() => {
-          try { onSuccess(result.username, result.role); } catch (e) { console.error('[PinLogin] onSuccess error:', e); }
-        }, 350);
+          onSuccess(result.username, result.role);
+        }, 300);
       } else {
-        playLoginFail();
+        authAttempted.current = false;
+        try { playLoginFail(); } catch (e) {}
         setError(true);
         setShake(true);
         setTimeout(() => { setShake(false); setPin(['', '', '', '']); inputRefs[0].current?.focus(); }, 700);
       }
     } catch (err) {
+      authAttempted.current = false;
       console.error('[PinLogin] Auth error:', err);
-      playLoginFail();
+      try { playLoginFail(); } catch (e) {}
       setError(true);
       setShake(true);
       setTimeout(() => { setShake(false); setPin(['', '', '', '']); inputRefs[0].current?.focus(); }, 700);
@@ -11351,7 +11355,7 @@ function PinLogin({ onSuccess }) {
 
     // Play tactical digit sound
     if (digit) {
-      playDigitSound(index);
+      try { playDigitSound(index); } catch (e) {}
     }
 
     if (digit && index < 3) {
@@ -11624,7 +11628,6 @@ function SidebarSection({ title, icon: SectionIcon, items, currentPath, onToggle
   const hasActive = items.some(item => currentPath === item.path);
   const [open, setOpen] = useState(hasActive);
 
-  // Auto-open when navigating to a child, close others
   useEffect(() => { if (hasActive) setOpen(true); }, [hasActive]);
 
   const handleToggle = () => {
@@ -11633,19 +11636,26 @@ function SidebarSection({ title, icon: SectionIcon, items, currentPath, onToggle
     if (newState && onToggle) onToggle();
   };
 
+  // Split title into agent name and function: "AgentName (Function)"
+  const titleMatch = title.match(/^(.+?)(\s*\(.+\))?$/);
+  const agentName = titleMatch ? titleMatch[1] : title;
+  const funcLabel = titleMatch && titleMatch[2] ? titleMatch[2] : '';
+
   return (
-    <div style={{ marginBottom: 1 }}>
+    <div style={{ marginBottom: 2 }}>
       <button onClick={handleToggle} style={{
-        display: 'flex', alignItems: 'center', gap: 6, width: '100%',
-        padding: '6px 14px', border: 'none', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+        padding: '8px 14px', border: 'none', cursor: 'pointer',
         background: hasActive ? 'rgba(255,70,85,0.08)' : 'transparent',
         color: hasActive ? 'var(--accent)' : 'var(--text-secondary)',
-        fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
         borderRadius: 2, transition: 'all 0.15s',
         borderLeft: hasActive ? '2px solid var(--accent)' : '2px solid transparent',
       }}>
-        {SectionIcon && <SectionIcon size={13} style={{ opacity: 0.7 }} />}
-        <span style={{ flex: 1, textAlign: 'left' }}>{title}</span>
+        {SectionIcon && <SectionIcon size={14} style={{ opacity: 0.7, flexShrink: 0 }} />}
+        <span style={{ flex: 1, textAlign: 'left' }}>
+          <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase' }}>{agentName}</span>
+          {funcLabel && <span style={{ fontSize: 10, fontWeight: 500, opacity: 0.5, textTransform: 'none', letterSpacing: 0 }}>{funcLabel}</span>}
+        </span>
         <ChevronRight size={11} style={{
           transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
           transition: 'transform 0.2s', opacity: 0.4
@@ -12562,23 +12572,23 @@ export default function App() {
           hum.connect(hG); hG.connect(ctx.destination);
           hum.start(now + 0.1); hum.stop(now + 0.3);
         },
-        iso: () => {
-          // SHARPSHOOTER: Precise single-shot energy, focused beam
-          const shot = ctx.createOscillator(); const shotG = ctx.createGain();
-          shot.type = 'sawtooth'; shot.frequency.setValueAtTime(1200, now);
-          shot.frequency.exponentialRampToValueAtTime(200, now + 0.15);
-          shotG.gain.setValueAtTime(0.1, now);
-          shotG.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-          shot.connect(shotG); shotG.connect(ctx.destination);
-          shot.start(now); shot.stop(now + 0.15);
-          // Shield shimmer
-          const sh = ctx.createOscillator(); const shG = ctx.createGain();
-          sh.type = 'sine'; sh.frequency.setValueAtTime(2000, now + 0.08);
-          sh.frequency.exponentialRampToValueAtTime(1500, now + 0.2);
-          shG.gain.setValueAtTime(0.06, now + 0.08);
-          shG.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-          sh.connect(shG); shG.connect(ctx.destination);
-          sh.start(now + 0.08); sh.stop(now + 0.22);
+        clove: () => {
+          // CONTROLLER: Ethereal, ghostly presence — life manipulation
+          const ghost = ctx.createOscillator(); const ghostG = ctx.createGain();
+          ghost.type = 'sine'; ghost.frequency.setValueAtTime(600, now);
+          ghost.frequency.exponentialRampToValueAtTime(400, now + 0.2);
+          ghostG.gain.setValueAtTime(0.08, now);
+          ghostG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          ghost.connect(ghostG); ghostG.connect(ctx.destination);
+          ghost.start(now); ghost.stop(now + 0.25);
+          // Ethereal shimmer
+          const eth = ctx.createOscillator(); const ethG = ctx.createGain();
+          eth.type = 'triangle'; eth.frequency.setValueAtTime(1800, now + 0.05);
+          eth.frequency.exponentialRampToValueAtTime(1200, now + 0.2);
+          ethG.gain.setValueAtTime(0.05, now + 0.05);
+          ethG.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          eth.connect(ethG); ethG.connect(ctx.destination);
+          eth.start(now + 0.05); eth.stop(now + 0.22);
         },
       };
 
@@ -12790,15 +12800,15 @@ export default function App() {
       ]
     },
     {
-      title: 'KAY/O (Finance)', icon: BadgeDollarSign, agent: 'kayo',
+      title: 'Clove (Finance)', icon: BadgeDollarSign, agent: 'clove',
       items: [
-        { path: '/kayo-pnl', icon: FileBarChart, label: 'Profit & Loss' },
-        { path: '/kayo-expenses', icon: Wallet, label: 'Expense Tracker' },
-        { path: '/kayo-invoices', icon: Receipt, label: 'Invoice Generator' },
-        { path: '/kayo-payments', icon: ArrowUpDown, label: 'Payment Tracker' },
-        { path: '/kayo-cashflow', icon: TrendingDown, label: 'Cash Flow' },
-        { path: '/kayo-budgets', icon: PiggyBank, label: 'Budget Tracker' },
-        { path: '/kayo-margins', icon: Percent, label: 'Margin Analysis' },
+        { path: '/clove-pnl', icon: FileBarChart, label: 'Profit & Loss' },
+        { path: '/clove-expenses', icon: Wallet, label: 'Expense Tracker' },
+        { path: '/clove-invoices', icon: Receipt, label: 'Invoice Generator' },
+        { path: '/clove-payments', icon: ArrowUpDown, label: 'Payment Tracker' },
+        { path: '/clove-cashflow', icon: TrendingDown, label: 'Cash Flow' },
+        { path: '/clove-budgets', icon: PiggyBank, label: 'Budget Tracker' },
+        { path: '/clove-margins', icon: Percent, label: 'Margin Analysis' },
       ]
     },
     {
@@ -12837,12 +12847,12 @@ export default function App() {
       ]
     },
     {
-      title: 'Iso (Dev Agent)', icon: Terminal, agent: 'iso',
+      title: 'KAY/O (Dev Agent)', icon: Terminal, agent: 'kayo',
       items: [
-        { path: '/iso-chat', icon: MessageCircle, label: 'Iso Chat' },
-        { path: '/iso-code-review', icon: Eye, label: 'Code Review' },
-        { path: '/iso-git', icon: GitBranch, label: 'Git Dashboard' },
-        { path: '/iso-deploy', icon: Rocket, label: 'Deploy Manager' },
+        { path: '/kayo-chat', icon: MessageCircle, label: 'KAY/O Chat' },
+        { path: '/kayo-code-review', icon: Eye, label: 'Code Review' },
+        { path: '/kayo-git', icon: GitBranch, label: 'Git Dashboard' },
+        { path: '/kayo-deploy', icon: Rocket, label: 'Deploy Manager' },
       ]
     }
   ];
@@ -13043,13 +13053,13 @@ export default function App() {
             <Route path="/deadlock-cogs" element={<DeadlockCOGS />} />
             <Route path="/deadlock-fssai" element={<DeadlockFSSAI />} />
             <Route path="/deadlock-recipes" element={<DeadlockRecipeManager />} />
-            <Route path="/kayo-pnl" element={<KayoPnL />} />
-            <Route path="/kayo-expenses" element={<KayoExpenseTracker />} />
-            <Route path="/kayo-invoices" element={<KayoInvoiceGen />} />
-            <Route path="/kayo-payments" element={<KayoPaymentTracker />} />
-            <Route path="/kayo-cashflow" element={<KayoCashFlow />} />
-            <Route path="/kayo-budgets" element={<KayoBudgetTracker />} />
-            <Route path="/kayo-margins" element={<KayoMarginAnalysis />} />
+            <Route path="/clove-pnl" element={<KayoPnL />} />
+            <Route path="/clove-expenses" element={<KayoExpenseTracker />} />
+            <Route path="/clove-invoices" element={<KayoInvoiceGen />} />
+            <Route path="/clove-payments" element={<KayoPaymentTracker />} />
+            <Route path="/clove-cashflow" element={<KayoCashFlow />} />
+            <Route path="/clove-budgets" element={<KayoBudgetTracker />} />
+            <Route path="/clove-margins" element={<KayoMarginAnalysis />} />
             <Route path="/omen-tasks" element={<OmenTaskBoard />} />
             <Route path="/omen-projects" element={<OmenProjectTracker />} />
             <Route path="/omen-timeline" element={<OmenTimeline />} />
@@ -13068,10 +13078,10 @@ export default function App() {
             {isAdmin && <Route path="/user-management" element={<UserManagement />} />}
             <Route path="/lobby-email" element={<LobbyEmail />} />
             <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/iso-chat" element={<IsoChat />} />
-            <Route path="/iso-code-review" element={<IsoCodeReview />} />
-            <Route path="/iso-git" element={<IsoGitDashboard />} />
-            <Route path="/iso-deploy" element={<IsoDeployManager />} />
+            <Route path="/kayo-chat" element={<IsoChat />} />
+            <Route path="/kayo-code-review" element={<IsoCodeReview />} />
+            <Route path="/kayo-git" element={<IsoGitDashboard />} />
+            <Route path="/kayo-deploy" element={<IsoDeployManager />} />
           </Routes>
         </main>
       </div>
