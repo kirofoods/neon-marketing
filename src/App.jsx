@@ -71,7 +71,7 @@ class AppErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: '#0f1923', color: '#ece8e1', fontFamily: 'Inter, sans-serif', flexDirection: 'column', gap: 16 }}>
+          background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif', flexDirection: 'column', gap: 16 }}>
           <div style={{ fontSize: 48, fontWeight: 900, color: '#ff4655', letterSpacing: 4 }}>PROTOCOL</div>
           <div style={{ fontSize: 14, opacity: 0.7, letterSpacing: 2, textTransform: 'uppercase' }}>System Error — Reloading</div>
           <div style={{ fontSize: 11, opacity: 0.4, maxWidth: 400, textAlign: 'center' }}>
@@ -1129,7 +1129,7 @@ function Dashboard() {
   const chartColors = ['#ff4655', '#47b5ff', '#0ac18e', '#f5a623', '#a855f7', '#ec4899'];
 
   const seoHealth = Math.min(100, (seoData.trackedDomains * 25) + (seoData.totalKeywords * 0.5));
-  const tooltipStyle = { background: '#0f1923', border: '1px solid rgba(255,70,85,0.2)', borderRadius: 2, color: '#ece8e1' };
+  const tooltipStyle = { background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 2, color: 'var(--text-primary)' };
 
   return (
     <>
@@ -1152,7 +1152,7 @@ function Dashboard() {
           ].map(([label, val, color, Icon]) => (
             <div key={label} className="stat-card" style={{ borderColor: 'rgba(255,70,85,0.08)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#5e7382', textTransform: 'uppercase' }}>{label}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>{label}</div>
                 <Icon size={14} color={color} />
               </div>
               <div style={{ fontSize: 26, fontWeight: 800, color, letterSpacing: -0.5 }}>{val}</div>
@@ -1161,15 +1161,15 @@ function Dashboard() {
         </div>
 
         {/* FINANCIAL OVERVIEW BAR */}
-        <div className="card" style={{ padding: 20, marginBottom: 20, background: 'rgba(15,25,35,0.8)' }}>
+        <div className="card" style={{ padding: 20, marginBottom: 20, background: 'var(--bg-secondary)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ff4655' }}>// Financial Status</div>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent)' }}>// Financial Status</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: netPnL >= 0 ? '#0ac18e' : '#ff4655' }}>Net: {netPnL >= 0 ? '+' : ''}₹{netPnL.toLocaleString()}</div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
             {financeData.map(f => (
-              <div key={f.label} style={{ textAlign: 'center', padding: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 2, border: '1px solid rgba(255,70,85,0.06)' }}>
-                <div style={{ fontSize: 10, letterSpacing: 1.5, color: '#5e7382', textTransform: 'uppercase', marginBottom: 6 }}>{f.label}</div>
+              <div key={f.label} style={{ textAlign: 'center', padding: 12, background: 'var(--bg-tertiary)', borderRadius: 2, border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 10, letterSpacing: 1.5, color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: 6 }}>{f.label}</div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: f.color }}>₹{f.value.toLocaleString()}</div>
               </div>
             ))}
@@ -1180,12 +1180,12 @@ function Dashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16, marginBottom: 20 }}>
           {/* Agent Activity Bar Chart */}
           <div className="card" style={{ padding: 20 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ff4655', marginBottom: 16 }}>// Agent Data Counts</div>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 16 }}>// Agent Data Counts</div>
             <ResponsiveContainer width="100%" height={220}>
               <RechartsBarChart data={agentData} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,70,85,0.08)" />
-                <XAxis dataKey="name" stroke="#5e7382" style={{ fontSize: 11 }} />
-                <YAxis stroke="#5e7382" style={{ fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="name" stroke="var(--text-tertiary)" style={{ fontSize: 11 }} />
+                <YAxis stroke="var(--text-tertiary)" style={{ fontSize: 11 }} />
                 <RechartsTooltip contentStyle={tooltipStyle} />
                 <Bar dataKey="count" radius={[2, 2, 0, 0]}>
                   {agentData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
@@ -1196,7 +1196,7 @@ function Dashboard() {
 
           {/* Operations Status */}
           <div className="card" style={{ padding: 20 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ff4655', marginBottom: 16 }}>// Operations Status</div>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 16 }}>// Operations Status</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[
                 ['Production Plans', plans.length, plans.filter(p=>p.status==='Completed').length, '#0ac18e'],
@@ -1208,9 +1208,9 @@ function Dashboard() {
               ].map(([label, total, done, color]) => (
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 8, height: 8, background: color, borderRadius: 1, flexShrink: 0 }} />
-                  <div style={{ flex: 1, fontSize: 12, color: '#8b9eab' }}>{label}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#ece8e1' }}>{done}/{total}</div>
-                  <div style={{ width: 80, height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ flex: 1, fontSize: 12, color: 'var(--text-secondary)' }}>{label}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{done}/{total}</div>
+                  <div style={{ width: 80, height: 4, background: 'var(--bg-tertiary)', borderRadius: 2, overflow: 'hidden' }}>
                     <div style={{ width: total ? `${(done/total)*100}%` : '0%', height: '100%', background: color, borderRadius: 2, transition: 'width 0.5s ease' }} />
                   </div>
                 </div>
@@ -1223,32 +1223,32 @@ function Dashboard() {
             <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ff4655', marginBottom: 16 }}>// SEO & Content Intel</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
               <div style={{ textAlign: 'center', padding: 12, background: 'rgba(255,70,85,0.04)', borderRadius: 2 }}>
-                <div style={{ fontSize: 10, color: '#5e7382', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Domains</div>
+                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Domains</div>
                 <div style={{ fontSize: 22, fontWeight: 700, color: '#ff4655' }}>{seoData.trackedDomains}</div>
               </div>
               <div style={{ textAlign: 'center', padding: 12, background: 'rgba(71,181,255,0.04)', borderRadius: 2 }}>
-                <div style={{ fontSize: 10, color: '#5e7382', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Keywords</div>
+                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Keywords</div>
                 <div style={{ fontSize: 22, fontWeight: 700, color: '#47b5ff' }}>{seoData.totalKeywords}</div>
               </div>
             </div>
             <div style={{ marginBottom: 10 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
-                <span style={{ color: '#5e7382' }}>SEO Health</span><span style={{ color: '#0ac18e', fontWeight: 600 }}>{Math.round(seoHealth)}%</span>
+                <span style={{ color: 'var(--text-tertiary)' }}>SEO Health</span><span style={{ color: '#0ac18e', fontWeight: 600 }}>{Math.round(seoHealth)}%</span>
               </div>
-              <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: 6, background: 'var(--bg-tertiary)', borderRadius: 2, overflow: 'hidden' }}>
                 <div style={{ width: `${Math.min(100, seoHealth)}%`, height: '100%', background: 'linear-gradient(90deg, #ff4655, #0ac18e)', borderRadius: 2 }} />
               </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '8px 0', borderTop: '1px solid rgba(255,70,85,0.06)' }}>
-              <span style={{ color: '#5e7382' }}>Influencer Reach</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '8px 0', borderTop: '1px solid var(--border)' }}>
+              <span style={{ color: 'var(--text-tertiary)' }}>Influencer Reach</span>
               <span style={{ color: '#ec4899', fontWeight: 600 }}>{totalInfluencerReach > 1000000 ? (totalInfluencerReach/1000000).toFixed(1)+'M' : totalInfluencerReach > 1000 ? (totalInfluencerReach/1000).toFixed(0)+'K' : totalInfluencerReach}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '8px 0', borderTop: '1px solid rgba(255,70,85,0.06)' }}>
-              <span style={{ color: '#5e7382' }}>Low Stock Alerts</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '8px 0', borderTop: '1px solid var(--border)' }}>
+              <span style={{ color: 'var(--text-tertiary)' }}>Low Stock Alerts</span>
               <span style={{ color: lowStock > 0 ? '#ff4655' : '#0ac18e', fontWeight: 600 }}>{lowStock}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '8px 0', borderTop: '1px solid rgba(255,70,85,0.06)' }}>
-              <span style={{ color: '#5e7382' }}>Outstanding (Recv - Pay)</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '8px 0', borderTop: '1px solid var(--border)' }}>
+              <span style={{ color: 'var(--text-tertiary)' }}>Outstanding (Recv - Pay)</span>
               <span style={{ color: '#f5a623', fontWeight: 600 }}>₹{(receivables - payables).toLocaleString()}</span>
             </div>
           </div>
@@ -1257,10 +1257,10 @@ function Dashboard() {
           <div className="card" style={{ padding: 20 }}>
             <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ff4655', marginBottom: 16 }}>// Active Projects</div>
             {projects.length === 0 ? (
-              <div style={{ color: '#5e7382', fontSize: 12, textAlign: 'center', padding: 20 }}>No projects yet. Create one in Omen.</div>
+              <div style={{ color: 'var(--text-tertiary)', fontSize: 12, textAlign: 'center', padding: 20 }}>No projects yet. Create one in Omen.</div>
             ) : projects.slice(0, 5).map(p => (
-              <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,70,85,0.06)', fontSize: 12 }}>
-                <div><div style={{ fontWeight: 600, color: '#ece8e1' }}>{p.name}</div><div style={{ fontSize: 10, color: '#5e7382' }}>{p.department}</div></div>
+              <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 12 }}>
+                <div><div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.name}</div><div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{p.department}</div></div>
                 <span style={{ padding: '2px 8px', fontSize: 10, borderRadius: 2, background: p.status==='Active' ? 'rgba(10,193,142,0.15)' : 'rgba(255,70,85,0.1)', color: p.status==='Active' ? '#0ac18e' : '#ff4655' }}>{p.status}</span>
               </div>
             ))}
@@ -1271,12 +1271,12 @@ function Dashboard() {
         <div className="card" style={{ padding: 20, marginBottom: 20 }}>
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ff4655', marginBottom: 12 }}>// Recent Searches</div>
           {history.length === 0 ? (
-            <p style={{ color: '#5e7382', fontSize: 12 }}>No searches yet. Use Cypher to start acquiring leads.</p>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>No searches yet. Use Cypher to start acquiring leads.</p>
           ) : (
             history.slice(0, 5).map((h, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: i % 2 === 0 ? 'rgba(255,70,85,0.02)' : 'transparent', borderRadius: 2, marginBottom: 2 }}>
-                <div><div style={{ fontSize: 13, fontWeight: 500 }}>{h.query}</div><div style={{ fontSize: 11, color: '#5e7382' }}>{h.location || 'No location'} • {h.resultCount} results</div></div>
-                <span style={{ fontSize: 11, color: '#5e7382' }}>{new Date(h.date).toLocaleDateString()}</span>
+                <div><div style={{ fontSize: 13, fontWeight: 500 }}>{h.query}</div><div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{h.location || 'No location'} • {h.resultCount} results</div></div>
+                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{new Date(h.date).toLocaleDateString()}</span>
               </div>
             ))
           )}
@@ -1984,15 +1984,15 @@ function MyLeads() {
         {/* Lead Profile Card Modal */}
         {viewLead && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setViewLead(null)}>
-            <div onClick={e => e.stopPropagation()} style={{ background: '#1a2634', borderRadius: 12, width: '100%', maxWidth: 480, border: '1px solid #2a3a4a', overflow: 'hidden' }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: 'var(--card-bg)', borderRadius: 12, width: '100%', maxWidth: 480, border: '1px solid var(--border-light)', overflow: 'hidden' }}>
               {/* Header with name and close */}
-              <div style={{ background: '#0f1923', padding: '20px 24px', borderBottom: '2px solid #ff4655', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ background: 'var(--bg-primary)', padding: '20px 24px', borderBottom: '2px solid #ff4655', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                   <div style={{ fontSize: 11, color: '#ff4655', letterSpacing: 2, fontWeight: 600, marginBottom: 4 }}>LEAD PROFILE</div>
-                  <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: '#ece8e1' }}>{viewLead.name}</h3>
-                  {viewLead.type && <span style={{ fontSize: 11, color: '#8b9eb7', marginTop: 4, display: 'inline-block', background: '#0f1923', border: '1px solid #2a3a4a', padding: '2px 8px', borderRadius: 4 }}>{viewLead.type?.replace(/_/g, ' ')}</span>}
+                  <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>{viewLead.name}</h3>
+                  {viewLead.type && <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4, display: 'inline-block', background: 'var(--bg-primary)', border: '1px solid var(--border-light)', padding: '2px 8px', borderRadius: 4 }}>{viewLead.type?.replace(/_/g, ' ')}</span>}
                 </div>
-                <button onClick={() => setViewLead(null)} style={{ background: 'none', border: 'none', color: '#8b9eb7', cursor: 'pointer', fontSize: 18 }}>✕</button>
+                <button onClick={() => setViewLead(null)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 18 }}>✕</button>
               </div>
 
               {/* Body */}
@@ -2004,7 +2004,7 @@ function MyLeads() {
                       <Phone size={18} /> Call {viewLead.phone}
                     </a>
                   ) : (
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', background: '#1e293b', color: '#8b9eb7', borderRadius: 8, fontSize: 14 }}>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', background: 'var(--bg-elevated)', color: 'var(--text-secondary)', borderRadius: 8, fontSize: 14 }}>
                       <Phone size={18} /> No phone number
                     </div>
                   )}
@@ -2013,17 +2013,17 @@ function MyLeads() {
                 {/* Quick actions */}
                 <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
                   {viewLead.email && (
-                    <a href={`mailto:${viewLead.email.split(',')[0]}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 12px', background: '#1e293b', color: '#06b6d4', borderRadius: 8, textDecoration: 'none', fontSize: 12, border: '1px solid #2a3a4a' }}>
+                    <a href={`mailto:${viewLead.email.split(',')[0]}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 12px', background: 'var(--bg-elevated)', color: '#06b6d4', borderRadius: 8, textDecoration: 'none', fontSize: 12, border: '1px solid var(--border-light)' }}>
                       <Mail size={14} /> Email
                     </a>
                   )}
                   {viewLead.website && (
-                    <a href={viewLead.website} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 12px', background: '#1e293b', color: '#a78bfa', borderRadius: 8, textDecoration: 'none', fontSize: 12, border: '1px solid #2a3a4a' }}>
+                    <a href={viewLead.website} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 12px', background: 'var(--bg-elevated)', color: '#a78bfa', borderRadius: 8, textDecoration: 'none', fontSize: 12, border: '1px solid var(--border-light)' }}>
                       <Globe size={14} /> Website
                     </a>
                   )}
                   {viewLead.mapsUrl && (
-                    <a href={viewLead.mapsUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 12px', background: '#1e293b', color: '#4ade80', borderRadius: 8, textDecoration: 'none', fontSize: 12, border: '1px solid #2a3a4a' }}>
+                    <a href={viewLead.mapsUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 12px', background: 'var(--bg-elevated)', color: '#4ade80', borderRadius: 8, textDecoration: 'none', fontSize: 12, border: '1px solid var(--border-light)' }}>
                       <MapPin size={14} /> Maps
                     </a>
                   )}
@@ -2033,31 +2033,31 @@ function MyLeads() {
                 <div style={{ display: 'grid', gap: 12 }}>
                   {viewLead.address && (
                     <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                      <MapPin size={16} style={{ color: '#8b9eb7', marginTop: 2, flexShrink: 0 }} />
-                      <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Address</div><div style={{ fontSize: 13, color: '#ece8e1' }}>{viewLead.address}</div></div>
+                      <MapPin size={16} style={{ color: 'var(--text-secondary)', marginTop: 2, flexShrink: 0 }} />
+                      <div><div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Address</div><div style={{ fontSize: 13, color: 'var(--text-primary)' }}>{viewLead.address}</div></div>
                     </div>
                   )}
                   {viewLead.email && (
                     <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                      <Mail size={16} style={{ color: '#8b9eb7', marginTop: 2, flexShrink: 0 }} />
-                      <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Email</div><div style={{ fontSize: 13, color: '#06b6d4' }}>{viewLead.email}</div></div>
+                      <Mail size={16} style={{ color: 'var(--text-secondary)', marginTop: 2, flexShrink: 0 }} />
+                      <div><div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Email</div><div style={{ fontSize: 13, color: '#06b6d4' }}>{viewLead.email}</div></div>
                     </div>
                   )}
                   {viewLead.rating && (
                     <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                       <Star size={16} style={{ color: '#f59e0b', marginTop: 2, flexShrink: 0 }} />
-                      <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Rating</div><div style={{ fontSize: 13, color: '#ece8e1' }}>{viewLead.rating} / 5 ({viewLead.reviewCount || 0} reviews)</div></div>
+                      <div><div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Rating</div><div style={{ fontSize: 13, color: 'var(--text-primary)' }}>{viewLead.rating} / 5 ({viewLead.reviewCount || 0} reviews)</div></div>
                     </div>
                   )}
                   {viewLead.status && (
                     <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                      <Building2 size={16} style={{ color: '#8b9eb7', marginTop: 2, flexShrink: 0 }} />
-                      <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Status</div><div style={{ fontSize: 13, color: viewLead.status === 'OPERATIONAL' ? '#4ade80' : '#f59e0b' }}>{viewLead.status}</div></div>
+                      <Building2 size={16} style={{ color: 'var(--text-secondary)', marginTop: 2, flexShrink: 0 }} />
+                      <div><div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Status</div><div style={{ fontSize: 13, color: viewLead.status === 'OPERATIONAL' ? '#4ade80' : '#f59e0b' }}>{viewLead.status}</div></div>
                     </div>
                   )}
                   <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                    <Clock size={16} style={{ color: '#8b9eb7', marginTop: 2, flexShrink: 0 }} />
-                    <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Scraped</div><div style={{ fontSize: 13, color: '#ece8e1' }}>{new Date(viewLead.scrapedAt).toLocaleDateString()}</div></div>
+                    <Clock size={16} style={{ color: 'var(--text-secondary)', marginTop: 2, flexShrink: 0 }} />
+                    <div><div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Scraped</div><div style={{ fontSize: 13, color: 'var(--text-primary)' }}>{new Date(viewLead.scrapedAt).toLocaleDateString()}</div></div>
                   </div>
                 </div>
 
@@ -6288,7 +6288,7 @@ function MarketingSkillsHub() {
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto' }}>
       <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Marketing Skills Hub</h2>
-      <p style={{ color: '#94a3b8', marginBottom: 24, fontSize: 14 }}>
+      <p style={{ color: 'var(--text-secondary)', marginBottom: 24, fontSize: 14 }}>
         33 AI marketing skills powered by coreyhaines31/marketingskills — each with expert-level frameworks, templates, and Kiro Foods context built in.
       </p>
 
@@ -6302,7 +6302,7 @@ function MarketingSkillsHub() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                   <IconComp size={18} style={{ color }} />
                   <h3 style={{ fontSize: 16, fontWeight: 600, color }}>{category}</h3>
-                  <span style={{ fontSize: 12, color: '#64748b', background: '#1e293b', padding: '2px 8px', borderRadius: 99 }}>{skills.length} skills</span>
+                  <span style={{ fontSize: 12, color: 'var(--text-tertiary)', background: 'var(--bg-elevated)', padding: '2px 8px', borderRadius: 99 }}>{skills.length} skills</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10 }}>
                   {skills.map(skill => (
@@ -6310,14 +6310,14 @@ function MarketingSkillsHub() {
                       key={skill.key}
                       onClick={() => setSelectedSkill(skill)}
                       style={{
-                        background: '#0f172a', border: '1px solid #1e293b', borderRadius: 10, padding: '14px 16px',
+                        background: 'var(--bg-secondary)', border: '1px solid #1e293b', borderRadius: 10, padding: '14px 16px',
                         textAlign: 'left', cursor: 'pointer', transition: 'all 0.2s',
                       }}
                       onMouseOver={e => { e.currentTarget.style.borderColor = color; e.currentTarget.style.background = '#1e293b'; }}
                       onMouseOut={e => { e.currentTarget.style.borderColor = '#1e293b'; e.currentTarget.style.background = '#0f172a'; }}
                     >
                       <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{skill.name}</div>
-                      <div style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.4 }}>{skill.description}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4 }}>{skill.description}</div>
                     </button>
                   ))}
                 </div>
@@ -6330,14 +6330,14 @@ function MarketingSkillsHub() {
           <button onClick={() => { setSelectedSkill(null); setResult(''); setUserInput(''); }} style={{ background: 'none', border: 'none', color: '#7c3aed', cursor: 'pointer', marginBottom: 16, fontSize: 14, display: 'flex', alignItems: 'center', gap: 4 }}>
             ← Back to all skills
           </button>
-          <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, padding: 24, marginBottom: 16 }}>
+          <div style={{ background: 'var(--bg-secondary)', border: '1px solid #1e293b', borderRadius: 12, padding: 24, marginBottom: 16 }}>
             <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{selectedSkill.name}</h3>
-            <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 16 }}>{selectedSkill.description}</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 16 }}>{selectedSkill.description}</p>
             <textarea
               value={userInput}
               onChange={e => setUserInput(e.target.value)}
               placeholder={`Describe what you need from the ${selectedSkill.name} skill...\n\nExamples:\n- "Analyze our homepage for conversion optimization"\n- "Write ad copy for our new Paneer Butter Masala product"\n- "Create a 5-email welcome sequence for new subscribers"`}
-              style={{ width: '100%', minHeight: 150, background: '#1e293b', border: '1px solid #334155', borderRadius: 8, padding: 12, color: '#e2e8f0', fontSize: 14, resize: 'vertical' }}
+              style={{ width: '100%', minHeight: 150, background: 'var(--bg-elevated)', border: '1px solid #334155', borderRadius: 8, padding: 12, color: '#e2e8f0', fontSize: 14, resize: 'vertical' }}
             />
             <button
               onClick={handleRunSkill}
@@ -6351,10 +6351,10 @@ function MarketingSkillsHub() {
             </button>
           </div>
           {result && (
-            <div style={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: 12, padding: 24 }}>
+            <div style={{ background: 'var(--bg-secondary)', border: '1px solid #1e293b', borderRadius: 12, padding: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <h4 style={{ fontSize: 16, fontWeight: 600 }}>Result</h4>
-                <button onClick={() => navigator.clipboard.writeText(result)} style={{ background: '#1e293b', border: 'none', color: '#94a3b8', padding: '6px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}>
+                <button onClick={() => navigator.clipboard.writeText(result)} style={{ background: 'var(--bg-elevated)', border: 'none', color: 'var(--text-secondary)', padding: '6px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}>
                   Copy
                 </button>
               </div>
@@ -6421,7 +6421,7 @@ function SkillPanel({ skillKey }) {
     <div style={{ maxWidth: 900, margin: '0 auto', height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>{skill.name}</h2>
-        <p style={{ color: '#94a3b8', fontSize: 13 }}>{skill.description} • Powered by Protocol Marketing Skills Engine</p>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{skill.description} • Powered by Protocol Marketing Skills Engine</p>
       </div>
 
       {messages.length === 0 && (
@@ -6429,7 +6429,7 @@ function SkillPanel({ skillKey }) {
           <div style={{ textAlign: 'center', maxWidth: 500 }}>
             <Zap size={40} style={{ color: '#7c3aed', marginBottom: 12 }} />
             <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Start a conversation</h3>
-            <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 20 }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 20 }}>
               This skill has deep expertise in {skill.name.toLowerCase()} with Kiro Foods context built in. Ask anything.
             </p>
           </div>
@@ -6439,7 +6439,7 @@ function SkillPanel({ skillKey }) {
                 <button
                   key={i}
                   onClick={() => { setInput(prompt); }}
-                  style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8, padding: '8px 14px', color: '#e2e8f0', fontSize: 13, cursor: 'pointer' }}
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid #334155', borderRadius: 8, padding: '8px 14px', color: '#e2e8f0', fontSize: 13, cursor: 'pointer' }}
                 >
                   {prompt}
                 </button>
@@ -6464,7 +6464,7 @@ function SkillPanel({ skillKey }) {
           ))}
           {loading && (
             <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <div style={{ background: '#1e293b', padding: '12px 16px', borderRadius: 12, color: '#94a3b8', fontSize: 14 }}>
+              <div style={{ background: 'var(--bg-elevated)', padding: '12px 16px', borderRadius: 12, color: 'var(--text-secondary)', fontSize: 14 }}>
                 Thinking...
               </div>
             </div>
@@ -6479,7 +6479,7 @@ function SkillPanel({ skillKey }) {
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
           placeholder={`Ask ${skill.name} anything...`}
-          style={{ flex: 1, background: '#1e293b', border: '1px solid #334155', borderRadius: 10, padding: '12px 16px', color: '#e2e8f0', fontSize: 14 }}
+          style={{ flex: 1, background: 'var(--bg-elevated)', border: '1px solid #334155', borderRadius: 10, padding: '12px 16px', color: '#e2e8f0', fontSize: 14 }}
         />
         <button
           onClick={handleSend}
@@ -8015,7 +8015,7 @@ function JettCampaignManager() {
     setForm({ name: '', platform: 'google', objective: 'conversions', budget: '', startDate: '', endDate: '' }); setShowCreate(false);
   };
   return (<><div className="tool-header"><Flame size={20} style={{ color: '#ff4655' }} /><h2>Campaign Manager</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Create and manage paid ad campaigns across Google, Meta, and Amazon.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>Create and manage paid ad campaigns across Google, Meta, and Amazon.</p>
     <button className="btn" onClick={() => setShowCreate(!showCreate)} style={{ marginBottom: 16 }}>+ New Campaign</button>
     {showCreate && (<div className="card" style={{ marginBottom: 16, display: 'grid', gap: 10 }}>
       <input className="input" placeholder="Campaign name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
@@ -8030,18 +8030,18 @@ function JettCampaignManager() {
       </div>
       <button className="btn" onClick={createCampaign}>Create Campaign</button>
     </div>)}
-    {campaigns.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 40 }}>No campaigns yet. Create your first campaign above.</div> :
+    {campaigns.length === 0 ? <div className="card" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>No campaigns yet. Create your first campaign above.</div> :
     <div style={{ display: 'grid', gap: 12 }}>{campaigns.map(c => (
       <div key={c.id} className="card" style={{ borderLeft: `3px solid ${c.platform === 'google' ? '#4285f4' : c.platform === 'meta' ? '#1877f2' : '#ff9900'}` }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div><strong>{c.name}</strong><span style={{ color: '#8b9eb7', marginLeft: 8, fontSize: 12 }}>{c.platform.toUpperCase()} · {c.objective}</span></div>
+          <div><strong>{c.name}</strong><span style={{ color: 'var(--text-secondary)', marginLeft: 8, fontSize: 12 }}>{c.platform.toUpperCase()} · {c.objective}</span></div>
           <span style={{ padding: '2px 10px', borderRadius: 4, fontSize: 11, background: c.status === 'active' ? '#16a34a22' : '#ff465522', color: c.status === 'active' ? '#4ade80' : '#ff4655' }}>{c.status.toUpperCase()}</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginTop: 12 }}>
-          <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Budget</div><div style={{ fontWeight: 600 }}>₹{c.budget}/day</div></div>
-          <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Spent</div><div style={{ fontWeight: 600 }}>₹{c.spent}</div></div>
-          <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Clicks</div><div style={{ fontWeight: 600 }}>{c.clicks}</div></div>
-          <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>ROAS</div><div style={{ fontWeight: 600 }}>{c.roas}x</div></div>
+          <div><div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Budget</div><div style={{ fontWeight: 600 }}>₹{c.budget}/day</div></div>
+          <div><div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Spent</div><div style={{ fontWeight: 600 }}>₹{c.spent}</div></div>
+          <div><div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Clicks</div><div style={{ fontWeight: 600 }}>{c.clicks}</div></div>
+          <div><div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>ROAS</div><div style={{ fontWeight: 600 }}>{c.roas}x</div></div>
         </div>
       </div>
     ))}</div>}
@@ -8058,7 +8058,7 @@ function JettBudgetOptimizer() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Wallet size={20} style={{ color: '#ff4655' }} /><h2>Budget Optimizer</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>AI-powered budget allocation and bid optimization across all paid channels.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>AI-powered budget allocation and bid optimization across all paid channels.</p>
     <textarea className="input" rows={5} placeholder="Paste your current budget breakdown, campaign performance data, or describe your ad spend goals..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Optimizing...' : 'Optimize Budget'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8070,13 +8070,13 @@ function JettROASTracker() {
   const totalSpent = campaigns.reduce((s, c) => s + (Number(c.spent) || 0), 0);
   const totalBudget = campaigns.reduce((s, c) => s + (Number(c.budget) * 30 || 0), 0);
   return (<><div className="tool-header"><LineChart size={20} style={{ color: '#ff4655' }} /><h2>ROAS Tracker</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Track return on ad spend across all campaigns and channels.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>Track return on ad spend across all campaigns and channels.</p>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
-      {[{ label: 'Total Budget', value: `₹${totalBudget.toLocaleString()}`, color: '#8b9eb7' }, { label: 'Total Spent', value: `₹${totalSpent.toLocaleString()}`, color: '#06b6d4' }, { label: 'Active Campaigns', value: campaigns.filter(c => c.status === 'active').length, color: '#4ade80' }, { label: 'Avg ROAS', value: campaigns.length ? (campaigns.reduce((s, c) => s + (Number(c.roas) || 0), 0) / campaigns.length).toFixed(1) + 'x' : '0x', color: '#ff4655' }].map((m, i) => (
+      {[{ label: 'Total Budget', value: `₹${totalBudget.toLocaleString()}`, color: 'var(--text-secondary)' }, { label: 'Total Spent', value: `₹${totalSpent.toLocaleString()}`, color: '#06b6d4' }, { label: 'Active Campaigns', value: campaigns.filter(c => c.status === 'active').length, color: '#4ade80' }, { label: 'Avg ROAS', value: campaigns.length ? (campaigns.reduce((s, c) => s + (Number(c.roas) || 0), 0) / campaigns.length).toFixed(1) + 'x' : '0x', color: '#ff4655' }].map((m, i) => (
         <div key={i} className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 11, color: m.color }}>{m.label}</div><div style={{ fontSize: 24, fontWeight: 700 }}>{m.value}</div></div>
       ))}
     </div>
-    {campaigns.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No campaign data yet. Create campaigns in Campaign Manager.</div> :
+    {campaigns.length === 0 ? <div className="card" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 30 }}>No campaign data yet. Create campaigns in Campaign Manager.</div> :
     <div style={{ display: 'grid', gap: 10 }}>{campaigns.map(c => (
       <div key={c.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{c.name}</strong><span style={{ color: c.roas >= 3 ? '#4ade80' : c.roas >= 1 ? '#f5a623' : '#ff4655', fontWeight: 600 }}>{c.roas}x ROAS</span></div></div>
     ))}</div>}
@@ -8088,7 +8088,7 @@ function JettABTests() {
   const [form, setForm] = useState({ name: '', variantA: '', variantB: '', metric: 'ctr' });
   const saveTests = (t) => { setTests(t); localStorage.setItem('protocol_jett_abtests', JSON.stringify(t)); };
   return (<><div className="tool-header"><SplitSquareVertical size={20} style={{ color: '#ff4655' }} /><h2>A/B Tests</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Create and track A/B tests for ad creatives, copy, and landing pages.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Create and track A/B tests for ad creatives, copy, and landing pages.</p>
     <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
       <input className="input" placeholder="Test name (e.g. Homepage Hero CTA)" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -8097,7 +8097,7 @@ function JettABTests() {
       </div>
       <button className="btn" onClick={() => { if (!form.name) return; saveTests([...tests, { ...form, id: Date.now(), status: 'running', winner: null }]); setForm({ name: '', variantA: '', variantB: '', metric: 'ctr' }); }}>Create Test</button>
     </div>
-    {tests.map(t => (<div key={t.id} className="card" style={{ marginBottom: 8 }}><strong>{t.name}</strong><span style={{ marginLeft: 8, fontSize: 12, color: '#8b9eb7' }}>{t.status}</span><div style={{ fontSize: 13, color: '#8b9eb7', marginTop: 4 }}>A: {t.variantA} vs B: {t.variantB}</div></div>))}
+    {tests.map(t => (<div key={t.id} className="card" style={{ marginBottom: 8 }}><strong>{t.name}</strong><span style={{ marginLeft: 8, fontSize: 12, color: 'var(--text-secondary)' }}>{t.status}</span><div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>A: {t.variantA} vs B: {t.variantB}</div></div>))}
   </>);
 }
 
@@ -8107,7 +8107,7 @@ function SageCustomerDB() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', segment: 'prospect', source: '', notes: '' });
   const save = (c) => { setCustomers(c); localStorage.setItem('protocol_sage_customers', JSON.stringify(c)); };
   return (<><div className="tool-header"><Users size={20} style={{ color: '#ff4655' }} /><h2>Customer Database</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Central CRM for all customer and prospect data.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Central CRM for all customer and prospect data.</p>
     <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
         <input className="input" placeholder="Name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
@@ -8121,9 +8121,9 @@ function SageCustomerDB() {
       </div>
       <button className="btn" onClick={() => { if (!form.name) return; save([...customers, { ...form, id: Date.now(), createdAt: Date.now(), ltv: 0, orders: 0 }]); setForm({ name: '', email: '', phone: '', segment: 'prospect', source: '', notes: '' }); }}>Add Customer</button>
     </div>
-    <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>{['all','prospect','lead','customer','vip','churned'].map(s => <span key={s} style={{ fontSize: 12, color: '#8b9eb7', cursor: 'pointer' }}>{s.toUpperCase()} ({customers.filter(c => s === 'all' || c.segment === s).length})</span>)}</div>
-    {customers.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No customers yet.</div> :
-    <div style={{ display: 'grid', gap: 8 }}>{customers.map(c => (<div key={c.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{c.name}</strong><span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: '#ff465522', color: '#ff4655' }}>{c.segment}</span></div><div style={{ fontSize: 12, color: '#8b9eb7' }}>{c.email} · {c.phone}</div></div>))}</div>}
+    <div style={{ marginBottom: 12, display: 'flex', gap: 12 }}>{['all','prospect','lead','customer','vip','churned'].map(s => <span key={s} style={{ fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer' }}>{s.toUpperCase()} ({customers.filter(c => s === 'all' || c.segment === s).length})</span>)}</div>
+    {customers.length === 0 ? <div className="card" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 30 }}>No customers yet.</div> :
+    <div style={{ display: 'grid', gap: 8 }}>{customers.map(c => (<div key={c.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{c.name}</strong><span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: '#ff465522', color: '#ff4655' }}>{c.segment}</span></div><div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{c.email} · {c.phone}</div></div>))}</div>}
   </>);
 }
 
@@ -8137,7 +8137,7 @@ function SageLifecycle() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Repeat2 size={20} style={{ color: '#ff4655' }} /><h2>Lifecycle Tracker</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Map and optimize the customer journey from awareness to advocacy.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Map and optimize the customer journey from awareness to advocacy.</p>
     <textarea className="input" rows={5} placeholder="Describe your customer segments, purchase patterns, or paste customer data..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Analyzing...' : 'Analyze Lifecycle'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8154,7 +8154,7 @@ function SageRetention() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Heart size={20} style={{ color: '#ff4655' }} /><h2>Retention Engine</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Build loyalty programs, reduce churn, and maximize customer lifetime value.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Build loyalty programs, reduce churn, and maximize customer lifetime value.</p>
     <textarea className="input" rows={4} placeholder="Describe your retention challenge or leave blank for a full playbook..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Building...' : 'Build Retention Strategy'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8166,13 +8166,13 @@ function SageChurnPredictor() {
   const churned = customers.filter(c => c.segment === 'churned').length;
   const atRisk = customers.filter(c => c.segment === 'customer' && c.orders < 2).length;
   return (<><div className="tool-header"><AlertTriangle size={20} style={{ color: '#ff4655' }} /><h2>Churn Predictor</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Identify at-risk customers before they leave.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>Identify at-risk customers before they leave.</p>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
       <div className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 11, color: '#4ade80' }}>Active</div><div style={{ fontSize: 28, fontWeight: 700 }}>{customers.filter(c => c.segment === 'customer' || c.segment === 'vip').length}</div></div>
       <div className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 11, color: '#f5a623' }}>At Risk</div><div style={{ fontSize: 28, fontWeight: 700 }}>{atRisk}</div></div>
       <div className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 11, color: '#ff4655' }}>Churned</div><div style={{ fontSize: 28, fontWeight: 700 }}>{churned}</div></div>
     </div>
-    <div className="card" style={{ color: '#8b9eb7' }}>Add customers to the Customer Database to start tracking churn signals. The predictor analyses purchase frequency, recency, and engagement patterns.</div>
+    <div className="card" style={{ color: 'var(--text-secondary)' }}>Add customers to the Customer Database to start tracking churn signals. The predictor analyses purchase frequency, recency, and engagement patterns.</div>
   </>);
 }
 
@@ -8189,7 +8189,7 @@ function ViperDripBuilder() {
     catch (e) { setAiResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Send size={20} style={{ color: '#ff4655' }} /><h2>Drip Campaign Builder</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Create automated email sequences for every stage of the customer journey.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Create automated email sequences for every stage of the customer journey.</p>
     <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
       <input className="input" placeholder="Sequence name (e.g. Welcome Series)" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -8199,7 +8199,7 @@ function ViperDripBuilder() {
       <button className="btn" onClick={generate} disabled={loading}>{loading ? 'Generating...' : 'Generate Sequence with AI'}</button>
     </div>
     {aiResult && <div className="card" style={{ whiteSpace: 'pre-wrap' }}>{aiResult}</div>}
-    {sequences.map(s => (<div key={s.id} className="card" style={{ marginTop: 8 }}><strong>{s.name}</strong><span style={{ marginLeft: 8, fontSize: 12, color: '#8b9eb7' }}>{s.type} · {s.emails} emails</span></div>))}
+    {sequences.map(s => (<div key={s.id} className="card" style={{ marginTop: 8 }}><strong>{s.name}</strong><span style={{ marginLeft: 8, fontSize: 12, color: 'var(--text-secondary)' }}>{s.type} · {s.emails} emails</span></div>))}
   </>);
 }
 
@@ -8213,7 +8213,7 @@ function ViperNewsletter() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Mail size={20} style={{ color: '#ff4655' }} /><h2>Newsletter Editor</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>AI-powered newsletter creation with brand voice enforcement.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>AI-powered newsletter creation with brand voice enforcement.</p>
     <textarea className="input" rows={4} placeholder="Newsletter topic, key updates, or content brief..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Writing...' : 'Generate Newsletter'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8224,11 +8224,11 @@ function ViperSegmentation() {
   const customers = JSON.parse(localStorage.getItem('protocol_sage_customers') || '[]');
   const segments = { prospect: customers.filter(c => c.segment === 'prospect'), lead: customers.filter(c => c.segment === 'lead'), customer: customers.filter(c => c.segment === 'customer'), vip: customers.filter(c => c.segment === 'vip'), churned: customers.filter(c => c.segment === 'churned') };
   return (<><div className="tool-header"><Filter size={20} style={{ color: '#ff4655' }} /><h2>Audience Segmentation</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Segment your audience for targeted email campaigns.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>Segment your audience for targeted email campaigns.</p>
     <div style={{ display: 'grid', gap: 12 }}>{Object.entries(segments).map(([key, list]) => (
-      <div key={key} className="card"><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div><strong style={{ textTransform: 'capitalize' }}>{key}</strong><span style={{ marginLeft: 8, color: '#8b9eb7', fontSize: 12 }}>{list.length} contacts</span></div><button className="btn" style={{ fontSize: 11, padding: '4px 12px' }}>Create Campaign →</button></div></div>
+      <div key={key} className="card"><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div><strong style={{ textTransform: 'capitalize' }}>{key}</strong><span style={{ marginLeft: 8, color: 'var(--text-secondary)', fontSize: 12 }}>{list.length} contacts</span></div><button className="btn" style={{ fontSize: 11, padding: '4px 12px' }}>Create Campaign →</button></div></div>
     ))}</div>
-    {customers.length === 0 && <div className="card" style={{ marginTop: 12, textAlign: 'center', color: '#8b9eb7' }}>Add customers via Sage's Customer Database to segment them here.</div>}
+    {customers.length === 0 && <div className="card" style={{ marginTop: 12, textAlign: 'center', color: 'var(--text-secondary)' }}>Add customers via Sage's Customer Database to segment them here.</div>}
   </>);
 }
 
@@ -8243,7 +8243,7 @@ function ReynaDiscovery() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Crown size={20} style={{ color: '#ff4655' }} /><h2>Influencer Discovery</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Find and evaluate influencers for brand partnerships.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Find and evaluate influencers for brand partnerships.</p>
     <textarea className="input" rows={3} placeholder="Describe your campaign, target audience, budget range, or specific niches..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Searching...' : 'Find Influencers'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8260,7 +8260,7 @@ function ReynaOutreach() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Handshake size={20} style={{ color: '#ff4655' }} /><h2>Outreach Manager</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Generate personalized outreach templates and manage influencer communications.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Generate personalized outreach templates and manage influencer communications.</p>
     <textarea className="input" rows={3} placeholder="Describe the influencer, campaign, or outreach context..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Generating...' : 'Generate Outreach'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8272,7 +8272,7 @@ function ReynaCampaignTracker() {
   const [form, setForm] = useState({ influencer: '', platform: 'instagram', deliverables: '', budget: '', status: 'outreach' });
   const save = (c) => { setCampaigns(c); localStorage.setItem('protocol_reyna_campaigns', JSON.stringify(c)); };
   return (<><div className="tool-header"><Target size={20} style={{ color: '#ff4655' }} /><h2>Campaign Tracker</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Track influencer campaigns from outreach to ROI measurement.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Track influencer campaigns from outreach to ROI measurement.</p>
     <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         <input className="input" placeholder="Influencer name" value={form.influencer} onChange={e => setForm({...form, influencer: e.target.value})} />
@@ -8285,7 +8285,7 @@ function ReynaCampaignTracker() {
       </div>
       <button className="btn" onClick={() => { if (!form.influencer) return; save([...campaigns, { ...form, id: Date.now() }]); setForm({ influencer: '', platform: 'instagram', deliverables: '', budget: '', status: 'outreach' }); }}>Add Campaign</button>
     </div>
-    {campaigns.map(c => (<div key={c.id} className="card" style={{ marginBottom: 8, borderLeft: '3px solid #ff4655' }}><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{c.influencer}</strong><span style={{ fontSize: 11, color: '#8b9eb7' }}>{c.status.toUpperCase()}</span></div><div style={{ fontSize: 12, color: '#8b9eb7' }}>{c.platform} · {c.deliverables} · ₹{c.budget}</div></div>))}
+    {campaigns.map(c => (<div key={c.id} className="card" style={{ marginBottom: 8, borderLeft: '3px solid #ff4655' }}><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{c.influencer}</strong><span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{c.status.toUpperCase()}</span></div><div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{c.platform} · {c.deliverables} · ₹{c.budget}</div></div>))}
   </>);
 }
 
@@ -8299,7 +8299,7 @@ function ReynaUGCHub() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Heart size={20} style={{ color: '#ff4655' }} /><h2>UGC Hub</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Collect, curate, and amplify user-generated content.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Collect, curate, and amplify user-generated content.</p>
     <textarea className="input" rows={3} placeholder="Describe your UGC goals or campaign..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Building...' : 'Build UGC Strategy'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8312,7 +8312,7 @@ function PhoenixCalendar() {
   const [form, setForm] = useState({ content: '', platform: 'instagram', date: '', time: '10:00', status: 'draft' });
   const save = (p) => { setPosts(p); localStorage.setItem('protocol_phoenix_posts', JSON.stringify(p)); };
   return (<><div className="tool-header"><CalendarDays size={20} style={{ color: '#ff4655' }} /><h2>Content Calendar</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Plan and schedule social media content across all platforms.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Plan and schedule social media content across all platforms.</p>
     <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
       <textarea className="input" rows={3} placeholder="Post content..." value={form.content} onChange={e => setForm({...form, content: e.target.value})} style={{ width: '100%' }} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
@@ -8323,9 +8323,9 @@ function PhoenixCalendar() {
       </div>
       <button className="btn" onClick={() => { if (!form.content) return; save([...posts, { ...form, id: Date.now() }]); setForm({ content: '', platform: 'instagram', date: '', time: '10:00', status: 'draft' }); }}>Add to Calendar</button>
     </div>
-    {posts.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No scheduled posts yet.</div> :
+    {posts.length === 0 ? <div className="card" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 30 }}>No scheduled posts yet.</div> :
     <div style={{ display: 'grid', gap: 8 }}>{posts.sort((a, b) => new Date(a.date) - new Date(b.date)).map(p => (
-      <div key={p.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><div><strong>{p.platform}</strong><span style={{ marginLeft: 8, fontSize: 12, color: '#8b9eb7' }}>{p.date} {p.time}</span></div><span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: p.status === 'published' ? '#16a34a22' : p.status === 'scheduled' ? '#06b6d422' : '#8b9eb722', color: p.status === 'published' ? '#4ade80' : p.status === 'scheduled' ? '#06b6d4' : '#8b9eb7' }}>{p.status}</span></div><div style={{ fontSize: 13, color: '#c0c8d4', marginTop: 6 }}>{p.content.slice(0, 120)}{p.content.length > 120 ? '...' : ''}</div></div>
+      <div key={p.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><div><strong>{p.platform}</strong><span style={{ marginLeft: 8, fontSize: 12, color: 'var(--text-secondary)' }}>{p.date} {p.time}</span></div><span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: p.status === 'published' ? '#16a34a22' : p.status === 'scheduled' ? '#06b6d422' : '#8b9eb722', color: p.status === 'published' ? '#4ade80' : p.status === 'scheduled' ? '#06b6d4' : '#8b9eb7' }}>{p.status}</span></div><div style={{ fontSize: 13, color: '#c0c8d4', marginTop: 6 }}>{p.content.slice(0, 120)}{p.content.length > 120 ? '...' : ''}</div></div>
     ))}</div>}
   </>);
 }
@@ -8340,7 +8340,7 @@ function PhoenixScheduler() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Clock size={20} style={{ color: '#ff4655' }} /><h2>Smart Scheduler</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>AI-optimized posting schedule based on audience behavior and platform algorithms.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>AI-optimized posting schedule based on audience behavior and platform algorithms.</p>
     <textarea className="input" rows={3} placeholder="Describe your social media goals, target audience, or content themes..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Planning...' : 'Generate Schedule'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8352,13 +8352,13 @@ function PhoenixEngagement() {
   const published = posts.filter(p => p.status === 'published').length;
   const scheduled = posts.filter(p => p.status === 'scheduled').length;
   return (<><div className="tool-header"><ThumbsUp size={20} style={{ color: '#ff4655' }} /><h2>Engagement Tracker</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Monitor engagement metrics across all social platforms.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>Monitor engagement metrics across all social platforms.</p>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
-      {[{ label: 'Published', value: published, color: '#4ade80' }, { label: 'Scheduled', value: scheduled, color: '#06b6d4' }, { label: 'Drafts', value: posts.filter(p => p.status === 'draft').length, color: '#8b9eb7' }, { label: 'Total Posts', value: posts.length, color: '#ff4655' }].map((m, i) => (
+      {[{ label: 'Published', value: published, color: '#4ade80' }, { label: 'Scheduled', value: scheduled, color: '#06b6d4' }, { label: 'Drafts', value: posts.filter(p => p.status === 'draft').length, color: 'var(--text-secondary)' }, { label: 'Total Posts', value: posts.length, color: '#ff4655' }].map((m, i) => (
         <div key={i} className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 11, color: m.color }}>{m.label}</div><div style={{ fontSize: 24, fontWeight: 700 }}>{m.value}</div></div>
       ))}
     </div>
-    <div className="card" style={{ color: '#8b9eb7' }}>Connect your social media accounts to start tracking real engagement data. Currently showing content calendar metrics.</div>
+    <div className="card" style={{ color: 'var(--text-secondary)' }}>Connect your social media accounts to start tracking real engagement data. Currently showing content calendar metrics.</div>
   </>);
 }
 
@@ -8372,7 +8372,7 @@ function PhoenixCommunity() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><UsersRound size={20} style={{ color: '#ff4655' }} /><h2>Community Inbox</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Manage community interactions and build brand advocates.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Manage community interactions and build brand advocates.</p>
     <textarea className="input" rows={3} placeholder="Describe your community management needs or paste comments to respond to..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Generating...' : 'Generate Community Playbook'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8390,7 +8390,7 @@ function AstraMediaPlanner() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Tv size={20} style={{ color: '#ff4655' }} /><h2>Media Planner</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>AI-powered media planning across TV, print, digital, OOH, and radio.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>AI-powered media planning across TV, print, digital, OOH, and radio.</p>
     <textarea className="input" rows={4} placeholder="Describe your media objectives, target audience, budget, and timeline..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Planning...' : 'Generate Media Plan'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8404,7 +8404,7 @@ function AstraGRPCalculator() {
   const [tvr, setTvr] = useState('');
   const grp = reach && frequency ? (parseFloat(reach) * parseFloat(frequency)).toFixed(0) : spots && tvr ? (parseInt(spots) * parseFloat(tvr)).toFixed(0) : '';
   return (<><div className="tool-header"><Calculator size={20} style={{ color: '#ff4655' }} /><h2>GRP Calculator</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Calculate Gross Rating Points, reach, frequency, and CPRP for media buys.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>Calculate Gross Rating Points, reach, frequency, and CPRP for media buys.</p>
     <div className="card" style={{ marginBottom: 16 }}>
       <div style={{ fontWeight: 600, marginBottom: 12 }}>Method 1: Reach × Frequency</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
@@ -8417,7 +8417,7 @@ function AstraGRPCalculator() {
         <input className="input" placeholder="TVR per spot" type="number" step="0.1" value={tvr} onChange={e => setTvr(e.target.value)} />
       </div>
     </div>
-    {grp && <div className="card" style={{ textAlign: 'center', padding: 30 }}><div style={{ fontSize: 14, color: '#8b9eb7' }}>Gross Rating Points</div><div style={{ fontSize: 48, fontWeight: 700, color: '#ff4655' }}>{grp} GRPs</div></div>}
+    {grp && <div className="card" style={{ textAlign: 'center', padding: 30 }}><div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Gross Rating Points</div><div style={{ fontSize: 48, fontWeight: 700, color: '#ff4655' }}>{grp} GRPs</div></div>}
   </>);
 }
 
@@ -8431,7 +8431,7 @@ function AstraMediaMix() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Orbit size={20} style={{ color: '#ff4655' }} /><h2>Media Mix Optimizer</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Optimize budget allocation across media channels for maximum impact.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Optimize budget allocation across media channels for maximum impact.</p>
     <textarea className="input" rows={4} placeholder="Enter your current media mix, budget, objectives, and any constraints..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Optimizing...' : 'Optimize Mix'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8450,7 +8450,7 @@ function FadeUTMBuilder() {
   const url = base ? `${base}${base.includes('?') ? '&' : '?'}${[source && `utm_source=${encodeURIComponent(source)}`, medium && `utm_medium=${encodeURIComponent(medium)}`, campaign && `utm_campaign=${encodeURIComponent(campaign)}`, content && `utm_content=${encodeURIComponent(content)}`, term && `utm_term=${encodeURIComponent(term)}`].filter(Boolean).join('&')}` : '';
   const saveUTM = () => { if (!url) return; const h = [{ url, source, medium, campaign, content, term, createdAt: Date.now() }, ...history]; setHistory(h); localStorage.setItem('protocol_fade_utms', JSON.stringify(h)); navigator.clipboard.writeText(url); };
   return (<><div className="tool-header"><Link size={20} style={{ color: '#ff4655' }} /><h2>UTM Builder</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Build tracked URLs for campaign attribution.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Build tracked URLs for campaign attribution.</p>
     <div className="card" style={{ display: 'grid', gap: 8, marginBottom: 16 }}>
       <input className="input" placeholder="Base URL (e.g. https://kirofoods.com/products)" value={base} onChange={e => setBase(e.target.value)} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
@@ -8462,10 +8462,10 @@ function FadeUTMBuilder() {
         <input className="input" placeholder="Content (optional)" value={content} onChange={e => setContent(e.target.value)} />
         <input className="input" placeholder="Term (optional)" value={term} onChange={e => setTerm(e.target.value)} />
       </div>
-      {url && <div style={{ background: '#0f1923', padding: 10, borderRadius: 6, fontSize: 12, wordBreak: 'break-all', color: '#06b6d4' }}>{url}</div>}
+      {url && <div style={{ background: 'var(--bg-primary)', padding: 10, borderRadius: 6, fontSize: 12, wordBreak: 'break-all', color: '#06b6d4' }}>{url}</div>}
       <button className="btn" onClick={saveUTM}>Copy & Save UTM</button>
     </div>
-    {history.length > 0 && <div><div style={{ fontWeight: 600, marginBottom: 8 }}>Recent UTMs</div>{history.slice(0, 10).map((h, i) => (<div key={i} className="card" style={{ marginBottom: 6, fontSize: 12 }}><div style={{ color: '#06b6d4', wordBreak: 'break-all' }}>{h.url}</div><div style={{ color: '#8b9eb7', marginTop: 4 }}>{h.source}/{h.medium}/{h.campaign}</div></div>))}</div>}
+    {history.length > 0 && <div><div style={{ fontWeight: 600, marginBottom: 8 }}>Recent UTMs</div>{history.slice(0, 10).map((h, i) => (<div key={i} className="card" style={{ marginBottom: 6, fontSize: 12 }}><div style={{ color: '#06b6d4', wordBreak: 'break-all' }}>{h.url}</div><div style={{ color: 'var(--text-secondary)', marginTop: 4 }}>{h.source}/{h.medium}/{h.campaign}</div></div>))}</div>}
   </>);
 }
 
@@ -8479,7 +8479,7 @@ function FadeAttribution() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Waypoints size={20} style={{ color: '#ff4655' }} /><h2>Attribution Model</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Build multi-touch attribution models to understand what drives conversions.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Build multi-touch attribution models to understand what drives conversions.</p>
     <textarea className="input" rows={4} placeholder="Describe your marketing channels, conversion events, and customer journey data..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Modeling...' : 'Build Attribution Model'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8496,7 +8496,7 @@ function FadeFunnelAnalyzer() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Scan size={20} style={{ color: '#ff4655' }} /><h2>Funnel Analyzer</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Find and fix conversion funnel leaks across your customer journey.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Find and fix conversion funnel leaks across your customer journey.</p>
     <textarea className="input" rows={4} placeholder="Paste your funnel data (stage → visitors → conversions) or describe your funnel..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Analyzing...' : 'Analyze Funnel'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8514,7 +8514,7 @@ function GekkoBroadcast() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><SmartphoneNfc size={20} style={{ color: '#ff4655' }} /><h2>WhatsApp Broadcast</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Create WhatsApp broadcast campaigns with templates and scheduling.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Create WhatsApp broadcast campaigns with templates and scheduling.</p>
     <textarea className="input" rows={3} placeholder="Describe your broadcast campaign goal, audience segment, or offer..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Creating...' : 'Generate Broadcast Campaign'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8531,7 +8531,7 @@ function GekkoChatbot() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Bot size={20} style={{ color: '#ff4655' }} /><h2>Chatbot Builder</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Design conversational chatbot flows for WhatsApp and website.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Design conversational chatbot flows for WhatsApp and website.</p>
     <textarea className="input" rows={3} placeholder="Describe the chatbot's purpose, key flows, and target platform..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Designing...' : 'Design Chatbot Flow'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8548,7 +8548,7 @@ function GekkoReferral() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Gift size={20} style={{ color: '#ff4655' }} /><h2>Referral Program</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Design and manage viral referral programs.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Design and manage viral referral programs.</p>
     <textarea className="input" rows={3} placeholder="Describe your referral program goals, budget per referral, or existing program to optimize..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Designing...' : 'Design Referral Program'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8566,7 +8566,7 @@ function BreachPressRelease() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Newspaper size={20} style={{ color: '#ff4655' }} /><h2>Press Release Generator</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Generate professional press releases for launches, announcements, and milestones.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Generate professional press releases for launches, announcements, and milestones.</p>
     <textarea className="input" rows={4} placeholder="Describe the announcement: what's happening, why it matters, key quotes, and target media..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Writing...' : 'Generate Press Release'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8578,7 +8578,7 @@ function BreachMediaList() {
   const [form, setForm] = useState({ name: '', outlet: '', beat: '', email: '', phone: '', tier: 'tier1' });
   const save = (l) => { setLists(l); localStorage.setItem('protocol_breach_medialist', JSON.stringify(l)); };
   return (<><div className="tool-header"><Users size={20} style={{ color: '#ff4655' }} /><h2>Media List Manager</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Build and manage journalist and media contact database.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Build and manage journalist and media contact database.</p>
     <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
         <input className="input" placeholder="Journalist name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
@@ -8592,8 +8592,8 @@ function BreachMediaList() {
       </div>
       <button className="btn" onClick={() => { if (!form.name) return; save([...lists, { ...form, id: Date.now() }]); setForm({ name: '', outlet: '', beat: '', email: '', phone: '', tier: 'tier1' }); }}>Add Contact</button>
     </div>
-    {lists.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No media contacts yet.</div> :
-    <div style={{ display: 'grid', gap: 8 }}>{lists.map(c => (<div key={c.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{c.name}</strong><span style={{ fontSize: 11, color: '#8b9eb7' }}>{c.tier.toUpperCase()}</span></div><div style={{ fontSize: 12, color: '#8b9eb7' }}>{c.outlet} · {c.beat} · {c.email}</div></div>))}</div>}
+    {lists.length === 0 ? <div className="card" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 30 }}>No media contacts yet.</div> :
+    <div style={{ display: 'grid', gap: 8 }}>{lists.map(c => (<div key={c.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{c.name}</strong><span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{c.tier.toUpperCase()}</span></div><div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{c.outlet} · {c.beat} · {c.email}</div></div>))}</div>}
   </>);
 }
 
@@ -8607,7 +8607,7 @@ function BreachCrisisPlaybook() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Siren size={20} style={{ color: '#ff4655' }} /><h2>Crisis Playbook</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Pre-built crisis response protocols and communication templates.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Pre-built crisis response protocols and communication templates.</p>
     <textarea className="input" rows={4} placeholder="Describe the crisis scenario or leave blank for a complete playbook..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Building...' : 'Generate Crisis Playbook'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8624,7 +8624,7 @@ function BreachSentimentMonitor() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Activity size={20} style={{ color: '#ff4655' }} /><h2>Sentiment Monitor</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Track and analyse brand sentiment across all channels.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Track and analyse brand sentiment across all channels.</p>
     <textarea className="input" rows={4} placeholder="Paste brand mentions, reviews, social comments, or keywords to monitor..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Analyzing...' : 'Analyze Sentiment'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8650,11 +8650,11 @@ function HarborDistributorDB() {
   const stats = { total: partners.length, cnf: partners.filter(p => p.type === 'cnf').length, ss: partners.filter(p => p.type === 'superstockist').length, dist: partners.filter(p => p.type === 'distributor').length, active: partners.filter(p => p.status === 'active').length };
 
   return (<><div className="tool-header"><Truck size={20} style={{ color: '#ff4655' }} /><h2>Distribution Network</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Manage your C&F agents, super stockists, and distributors.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>Manage your C&F agents, super stockists, and distributors.</p>
 
     {/* Stats row */}
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 16 }}>
-      {[{ label: 'Total Partners', value: stats.total, color: '#ece8e1' }, { label: 'C&F Agents', value: stats.cnf, color: '#a78bfa' }, { label: 'Super Stockists', value: stats.ss, color: '#06b6d4' }, { label: 'Distributors', value: stats.dist, color: '#f5a623' }, { label: 'Active', value: stats.active, color: '#4ade80' }].map((m, i) => (
+      {[{ label: 'Total Partners', value: stats.total, color: 'var(--text-primary)' }, { label: 'C&F Agents', value: stats.cnf, color: '#a78bfa' }, { label: 'Super Stockists', value: stats.ss, color: '#06b6d4' }, { label: 'Distributors', value: stats.dist, color: '#f5a623' }, { label: 'Active', value: stats.active, color: '#4ade80' }].map((m, i) => (
         <div key={i} className="card" style={{ textAlign: 'center', padding: '12px 8px' }}><div style={{ fontSize: 10, color: m.color, fontWeight: 600, letterSpacing: 1 }}>{m.label.toUpperCase()}</div><div style={{ fontSize: 22, fontWeight: 700 }}>{m.value}</div></div>
       ))}
     </div>
@@ -8712,13 +8712,13 @@ function HarborDistributorDB() {
         <textarea className="input" placeholder="Notes (existing brands, infrastructure, references...)" rows={2} value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} style={{ width: '100%' }} />
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn" onClick={() => { if (!form.name) return; save([...partners, { ...form, id: Date.now(), createdAt: Date.now(), status: 'prospect', monthlyTarget: 0, monthlySales: 0, outstanding: 0, lastOrder: null }]); setForm({ name: '', type: 'distributor', territory: '', city: '', state: '', phone: '', email: '', contactPerson: '', gstNo: '', panNo: '', creditLimit: '', creditDays: '30', godownSize: '', vehicleCount: '', retailerCount: '', grade: 'B', status: 'prospect', bankName: '', accountNo: '', ifsc: '', notes: '' }); setShowAdd(false); }}>Save Partner</button>
-          <button className="btn" onClick={() => setShowAdd(false)} style={{ background: 'transparent', border: '1px solid #2a3a4a' }}>Cancel</button>
+          <button className="btn" onClick={() => setShowAdd(false)} style={{ background: 'transparent', border: '1px solid var(--border-light)' }}>Cancel</button>
         </div>
       </div>
     </div>)}
 
     {/* Partner list */}
-    {filtered.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 40 }}>No channel partners yet. Add your first distributor, super stockist, or C&F agent above.</div> :
+    {filtered.length === 0 ? <div className="card" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>No channel partners yet. Add your first distributor, super stockist, or C&F agent above.</div> :
     <div style={{ display: 'grid', gap: 10 }}>{filtered.map(p => (
       <div key={p.id} className="card" style={{ cursor: 'pointer', borderLeft: `3px solid ${p.type === 'cnf' ? '#a78bfa' : p.type === 'superstockist' ? '#06b6d4' : p.type === 'distributor' ? '#f5a623' : '#4ade80'}` }} onClick={() => setViewPartner(p)}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -8731,7 +8731,7 @@ function HarborDistributorDB() {
             <span style={{ fontSize: 13, fontWeight: 700, color: p.grade === 'A' ? '#4ade80' : p.grade === 'B' ? '#f5a623' : '#ff4655' }}>Grade {p.grade}</span>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 12, color: '#8b9eb7' }}>
+        <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
           <span>{p.territory || p.city}{p.state ? `, ${p.state}` : ''}</span>
           <span>{p.contactPerson}</span>
           {p.phone && <span>{p.phone}</span>}
@@ -8743,38 +8743,38 @@ function HarborDistributorDB() {
     {/* Partner Profile Modal */}
     {viewPartner && (
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflow: 'auto' }} onClick={() => setViewPartner(null)}>
-        <div onClick={e => e.stopPropagation()} style={{ background: '#1a2634', borderRadius: 12, width: '100%', maxWidth: 560, border: '1px solid #2a3a4a', overflow: 'hidden', maxHeight: '90vh', overflowY: 'auto' }}>
-          <div style={{ background: '#0f1923', padding: '20px 24px', borderBottom: `2px solid ${viewPartner.type === 'cnf' ? '#a78bfa' : viewPartner.type === 'superstockist' ? '#06b6d4' : '#f5a623'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div onClick={e => e.stopPropagation()} style={{ background: 'var(--card-bg)', borderRadius: 12, width: '100%', maxWidth: 560, border: '1px solid var(--border-light)', overflow: 'hidden', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: 'var(--bg-primary)', padding: '20px 24px', borderBottom: `2px solid ${viewPartner.type === 'cnf' ? '#a78bfa' : viewPartner.type === 'superstockist' ? '#06b6d4' : '#f5a623'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <div style={{ fontSize: 11, color: '#ff4655', letterSpacing: 2, fontWeight: 600, marginBottom: 4 }}>CHANNEL PARTNER</div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: '#ece8e1' }}>{viewPartner.name}</h3>
-              <span style={{ fontSize: 12, color: '#8b9eb7' }}>{viewPartner.type === 'cnf' ? 'C&F Agent' : viewPartner.type === 'superstockist' ? 'Super Stockist' : viewPartner.type === 'distributor' ? 'Distributor' : 'Key Retailer'} · Grade {viewPartner.grade}</span>
+              <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>{viewPartner.name}</h3>
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{viewPartner.type === 'cnf' ? 'C&F Agent' : viewPartner.type === 'superstockist' ? 'Super Stockist' : viewPartner.type === 'distributor' ? 'Distributor' : 'Key Retailer'} · Grade {viewPartner.grade}</span>
             </div>
-            <button onClick={() => setViewPartner(null)} style={{ background: 'none', border: 'none', color: '#8b9eb7', cursor: 'pointer', fontSize: 18 }}>✕</button>
+            <button onClick={() => setViewPartner(null)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 18 }}>✕</button>
           </div>
           <div style={{ padding: '20px 24px' }}>
             {/* Quick actions */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
               {viewPartner.phone && <a href={`tel:${viewPartner.phone}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', background: '#16a34a', color: '#fff', borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 13 }}><Phone size={16} /> Call</a>}
               {viewPartner.phone && <a href={`https://wa.me/${viewPartner.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', background: '#25d36622', color: '#25d366', borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 13, border: '1px solid #25d36644' }}><MessageSquare size={16} /> WhatsApp</a>}
-              {viewPartner.email && <a href={`mailto:${viewPartner.email}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', background: '#1e293b', color: '#06b6d4', borderRadius: 8, textDecoration: 'none', fontSize: 13, border: '1px solid #2a3a4a' }}><Mail size={14} /> Email</a>}
+              {viewPartner.email && <a href={`mailto:${viewPartner.email}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', background: 'var(--bg-elevated)', color: '#06b6d4', borderRadius: 8, textDecoration: 'none', fontSize: 13, border: '1px solid var(--border-light)' }}><Mail size={14} /> Email</a>}
             </div>
             {/* Status toggle */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
               {['prospect', 'onboarding', 'active', 'inactive'].map(s => (
-                <button key={s} className="btn" style={{ fontSize: 11, padding: '4px 10px', background: viewPartner.status === s ? '#ff465533' : 'transparent', color: viewPartner.status === s ? '#ff4655' : '#8b9eb7', border: '1px solid #2a3a4a' }} onClick={() => { const updated = partners.map(p => p.id === viewPartner.id ? { ...p, status: s } : p); save(updated); setViewPartner({ ...viewPartner, status: s }); }}>{s.toUpperCase()}</button>
+                <button key={s} className="btn" style={{ fontSize: 11, padding: '4px 10px', background: viewPartner.status === s ? '#ff465533' : 'transparent', color: viewPartner.status === s ? '#ff4655' : '#8b9eb7', border: '1px solid var(--border-light)' }} onClick={() => { const updated = partners.map(p => p.id === viewPartner.id ? { ...p, status: s } : p); save(updated); setViewPartner({ ...viewPartner, status: s }); }}>{s.toUpperCase()}</button>
               ))}
             </div>
             {/* Details */}
             <div style={{ display: 'grid', gap: 10 }}>
               {[['Territory', viewPartner.territory], ['Location', `${viewPartner.city}${viewPartner.state ? ', ' + viewPartner.state : ''}`], ['Contact', viewPartner.contactPerson], ['GST', viewPartner.gstNo], ['PAN', viewPartner.panNo], ['Credit Limit', viewPartner.creditLimit ? `₹${Number(viewPartner.creditLimit).toLocaleString()}` : '—'], ['Credit Days', `${viewPartner.creditDays} days`], ['Godown', viewPartner.godownSize ? `${viewPartner.godownSize} sq ft` : '—'], ['Vehicles', viewPartner.vehicleCount || '—'], ['Retailer Reach', viewPartner.retailerCount || '—'], ['Bank', viewPartner.bankName], ['Account', viewPartner.accountNo], ['IFSC', viewPartner.ifsc]].filter(([, v]) => v && v !== '—' && v !== ', ').map(([label, value], i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', padding: '6px 0' }}>
-                  <span style={{ fontSize: 12, color: '#8b9eb7' }}>{label}</span>
-                  <span style={{ fontSize: 13, color: '#ece8e1' }}>{value}</span>
+                  <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{label}</span>
+                  <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>{value}</span>
                 </div>
               ))}
             </div>
-            {viewPartner.notes && <div style={{ marginTop: 12, padding: 10, background: '#0f1923', borderRadius: 6, fontSize: 12, color: '#8b9eb7' }}>{viewPartner.notes}</div>}
+            {viewPartner.notes && <div style={{ marginTop: 12, padding: 10, background: 'var(--bg-primary)', borderRadius: 6, fontSize: 12, color: 'var(--text-secondary)' }}>{viewPartner.notes}</div>}
           </div>
         </div>
       </div>
@@ -8805,8 +8805,8 @@ function HarborOnboarding() {
     setChecklists(updated); localStorage.setItem('protocol_harbor_onboarding', JSON.stringify(updated));
   };
   return (<><div className="tool-header"><CheckCircle2 size={20} style={{ color: '#ff4655' }} /><h2>Partner Onboarding</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Step-by-step onboarding checklist for new channel partners.</p>
-    {prospects.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No prospects or onboarding partners. Add partners in Distribution Network first.</div> :
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>Step-by-step onboarding checklist for new channel partners.</p>
+    {prospects.length === 0 ? <div className="card" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 30 }}>No prospects or onboarding partners. Add partners in Distribution Network first.</div> :
     <div style={{ display: 'grid', gap: 16 }}>{prospects.map(p => {
       const checks = checklists[String(p.id)] || {};
       const completed = steps.filter(s => checks[s.id]).length;
@@ -8814,13 +8814,13 @@ function HarborOnboarding() {
       return (
         <div key={p.id} className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div><strong>{p.name}</strong><span style={{ marginLeft: 8, fontSize: 12, color: '#8b9eb7' }}>{p.type === 'cnf' ? 'C&F' : p.type === 'superstockist' ? 'SS' : 'Distributor'} · {p.city}</span></div>
+            <div><strong>{p.name}</strong><span style={{ marginLeft: 8, fontSize: 12, color: 'var(--text-secondary)' }}>{p.type === 'cnf' ? 'C&F' : p.type === 'superstockist' ? 'SS' : 'Distributor'} · {p.city}</span></div>
             <span style={{ fontSize: 13, fontWeight: 700, color: pct === 100 ? '#4ade80' : pct > 50 ? '#f5a623' : '#ff4655' }}>{pct}%</span>
           </div>
-          <div style={{ background: '#0f1923', borderRadius: 4, height: 6, marginBottom: 12 }}><div style={{ background: pct === 100 ? '#4ade80' : '#ff4655', height: '100%', borderRadius: 4, width: `${pct}%`, transition: 'width 0.3s' }} /></div>
+          <div style={{ background: 'var(--bg-primary)', borderRadius: 4, height: 6, marginBottom: 12 }}><div style={{ background: pct === 100 ? '#4ade80' : '#ff4655', height: '100%', borderRadius: 4, width: `${pct}%`, transition: 'width 0.3s' }} /></div>
           <div style={{ display: 'grid', gap: 4 }}>{steps.map(s => (
             <div key={s.id} onClick={() => toggleStep(p.id, s.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px', borderRadius: 4, cursor: 'pointer', background: checks[s.id] ? '#16a34a11' : 'transparent' }}>
-              <div style={{ width: 20, height: 20, borderRadius: 4, border: checks[s.id] ? '2px solid #4ade80' : '2px solid #2a3a4a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#4ade80' }}>{checks[s.id] ? '✓' : ''}</div>
+              <div style={{ width: 20, height: 20, borderRadius: 4, border: checks[s.id] ? '2px solid #4ade80' : '2px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#4ade80' }}>{checks[s.id] ? '✓' : ''}</div>
               <span style={{ fontSize: 13, color: checks[s.id] ? '#4ade80' : '#ece8e1', textDecoration: checks[s.id] ? 'line-through' : 'none', opacity: checks[s.id] ? 0.7 : 1 }}>{s.icon} {s.label}</span>
             </div>
           ))}</div>
@@ -8842,7 +8842,7 @@ function HarborTradeSchemes() {
     catch (e) { setAiResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><Receipt size={20} style={{ color: '#ff4655' }} /><h2>Trade Schemes</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Create and manage trade schemes for distributors, stockists, and retailers.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Create and manage trade schemes for distributors, stockists, and retailers.</p>
 
     <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 8 }}>
@@ -8863,10 +8863,10 @@ function HarborTradeSchemes() {
       <button className="btn" onClick={() => { if (!form.name) return; save([...schemes, { ...form, id: Date.now(), status: 'active' }]); setForm({ name: '', type: 'quantity', target: '', reward: '', validFrom: '', validTo: '', applicableTo: 'all' }); }}>Add Scheme</button>
     </div>
 
-    <button className="btn" onClick={generateScheme} disabled={loading} style={{ marginBottom: 16, background: '#0f1923', border: '1px solid #ff4655', color: '#ff4655' }}>{loading ? 'Generating...' : '🤖 AI: Generate Complete Trade Scheme Package'}</button>
+    <button className="btn" onClick={generateScheme} disabled={loading} style={{ marginBottom: 16, background: 'var(--bg-primary)', border: '1px solid #ff4655', color: '#ff4655' }}>{loading ? 'Generating...' : '🤖 AI: Generate Complete Trade Scheme Package'}</button>
 
     {schemes.length > 0 && <div style={{ display: 'grid', gap: 8, marginBottom: 16 }}>{schemes.map(s => (
-      <div key={s.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{s.name}</strong><span style={{ fontSize: 11, color: '#8b9eb7' }}>{s.type.toUpperCase()} · {s.applicableTo}</span></div><div style={{ fontSize: 12, color: '#8b9eb7', marginTop: 4 }}>Target: {s.target} → Reward: {s.reward} | {s.validFrom} to {s.validTo}</div></div>
+      <div key={s.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{s.name}</strong><span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{s.type.toUpperCase()} · {s.applicableTo}</span></div><div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>Target: {s.target} → Reward: {s.reward} | {s.validFrom} to {s.validTo}</div></div>
     ))}</div>}
 
     {aiResult && <div className="card" style={{ whiteSpace: 'pre-wrap' }}>{aiResult}</div>}
@@ -8883,10 +8883,10 @@ function HarborOrderTracker() {
   const totalPending = orders.filter(o => o.status === 'pending' || o.status === 'dispatched').reduce((s, o) => s + (Number(o.amount) || 0), 0);
 
   return (<><div className="tool-header"><Package size={20} style={{ color: '#ff4655' }} /><h2>Order Tracker</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Track primary and secondary sales, dispatch status, and outstanding payments.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>Track primary and secondary sales, dispatch status, and outstanding payments.</p>
 
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
-      {[{ label: 'Total Orders', value: orders.length, color: '#ece8e1' }, { label: 'Primary Sales', value: `₹${(totalPrimary / 100000).toFixed(1)}L`, color: '#4ade80' }, { label: 'Outstanding', value: `₹${(totalPending / 100000).toFixed(1)}L`, color: '#f5a623' }, { label: 'This Month', value: orders.filter(o => new Date(o.date).getMonth() === new Date().getMonth()).length, color: '#06b6d4' }].map((m, i) => (
+      {[{ label: 'Total Orders', value: orders.length, color: 'var(--text-primary)' }, { label: 'Primary Sales', value: `₹${(totalPrimary / 100000).toFixed(1)}L`, color: '#4ade80' }, { label: 'Outstanding', value: `₹${(totalPending / 100000).toFixed(1)}L`, color: '#f5a623' }, { label: 'This Month', value: orders.filter(o => new Date(o.date).getMonth() === new Date().getMonth()).length, color: '#06b6d4' }].map((m, i) => (
         <div key={i} className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 10, color: m.color, fontWeight: 600 }}>{m.label.toUpperCase()}</div><div style={{ fontSize: 22, fontWeight: 700 }}>{m.value}</div></div>
       ))}
     </div>
@@ -8911,11 +8911,11 @@ function HarborOrderTracker() {
       <button className="btn" onClick={() => { if (!form.partnerId || !form.amount) return; const partner = partners.find(p => String(p.id) === form.partnerId); save([...orders, { ...form, id: Date.now(), date: new Date().toISOString(), partnerName: partner?.name || 'Unknown' }]); setForm({ partnerId: '', type: 'primary', items: '', amount: '', status: 'pending' }); }}>Log Order</button>
     </div>
 
-    {orders.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No orders logged yet.</div> :
+    {orders.length === 0 ? <div className="card" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 30 }}>No orders logged yet.</div> :
     <div style={{ display: 'grid', gap: 8 }}>{orders.sort((a, b) => b.date?.localeCompare(a.date)).map(o => (
       <div key={o.id} className="card" style={{ borderLeft: `3px solid ${o.status === 'paid' ? '#4ade80' : o.status === 'delivered' ? '#06b6d4' : o.status === 'dispatched' ? '#f5a623' : '#ff4655'}` }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{o.partnerName}</strong><span style={{ fontWeight: 600, color: '#ece8e1' }}>₹{Number(o.amount).toLocaleString()}</span></div>
-        <div style={{ fontSize: 12, color: '#8b9eb7', marginTop: 4 }}>{o.type.toUpperCase()} · {o.items} · <span style={{ color: o.status === 'paid' ? '#4ade80' : '#f5a623' }}>{o.status.toUpperCase()}</span> · {new Date(o.date).toLocaleDateString()}</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{o.partnerName}</strong><span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>₹{Number(o.amount).toLocaleString()}</span></div>
+        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{o.type.toUpperCase()} · {o.items} · <span style={{ color: o.status === 'paid' ? '#4ade80' : '#f5a623' }}>{o.status.toUpperCase()}</span> · {new Date(o.date).toLocaleDateString()}</div>
       </div>
     ))}</div>}
   </>);
@@ -8933,8 +8933,8 @@ function HarborTerritory() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><MapPinned size={20} style={{ color: '#ff4655' }} /><h2>Territory Planner</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Plan territory coverage, distribution hierarchy, and expansion roadmap.</p>
-    <div className="card" style={{ marginBottom: 12, padding: 12, fontSize: 12, color: '#8b9eb7' }}>Currently tracking {partners.length} channel partners across {new Set(partners.map(p => p.state).filter(Boolean)).size} states and {new Set(partners.map(p => p.city).filter(Boolean)).size} cities.</div>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Plan territory coverage, distribution hierarchy, and expansion roadmap.</p>
+    <div className="card" style={{ marginBottom: 12, padding: 12, fontSize: 12, color: 'var(--text-secondary)' }}>Currently tracking {partners.length} channel partners across {new Set(partners.map(p => p.state).filter(Boolean)).size} states and {new Set(partners.map(p => p.city).filter(Boolean)).size} cities.</div>
     <textarea className="input" rows={4} placeholder="Describe your distribution goals, target markets, budget, or specific territory questions..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Planning...' : 'Generate Territory Plan'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -8965,20 +8965,20 @@ function HarborScorecard() {
   };
 
   return (<><div className="tool-header"><Award size={20} style={{ color: '#ff4655' }} /><h2>Performance Scorecard</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Grade and analyse distributor performance with AI-powered insights.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>Grade and analyse distributor performance with AI-powered insights.</p>
 
-    {partnerPerformance.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No active partners with order data yet.</div> :
+    {partnerPerformance.length === 0 ? <div className="card" style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 30 }}>No active partners with order data yet.</div> :
     <div style={{ display: 'grid', gap: 8, marginBottom: 16 }}>{partnerPerformance.map((p, i) => (
       <div key={p.id} className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div><span style={{ color: '#8b9eb7', fontSize: 12, marginRight: 8 }}>#{i + 1}</span><strong>{p.name}</strong><span style={{ marginLeft: 8, fontSize: 11, color: '#8b9eb7' }}>{p.type === 'cnf' ? 'C&F' : p.type === 'superstockist' ? 'SS' : 'Dist'}</span></div>
+          <div><span style={{ color: 'var(--text-secondary)', fontSize: 12, marginRight: 8 }}>#{i + 1}</span><strong>{p.name}</strong><span style={{ marginLeft: 8, fontSize: 11, color: 'var(--text-secondary)' }}>{p.type === 'cnf' ? 'C&F' : p.type === 'superstockist' ? 'SS' : 'Dist'}</span></div>
           <span style={{ fontWeight: 700, color: p.grade === 'A' ? '#4ade80' : p.grade === 'B' ? '#f5a623' : '#ff4655' }}>Grade {p.grade}</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginTop: 8 }}>
-          <div><div style={{ fontSize: 10, color: '#8b9eb7' }}>BILLING</div><div style={{ fontWeight: 600 }}>₹{(p.totalBilling / 1000).toFixed(0)}K</div></div>
-          <div><div style={{ fontSize: 10, color: '#8b9eb7' }}>ORDERS</div><div style={{ fontWeight: 600 }}>{p.orderCount}</div></div>
-          <div><div style={{ fontSize: 10, color: '#8b9eb7' }}>COLLECTION</div><div style={{ fontWeight: 600, color: p.collectionRate >= 80 ? '#4ade80' : '#f5a623' }}>{p.collectionRate}%</div></div>
-          <div><div style={{ fontSize: 10, color: '#8b9eb7' }}>RETAILERS</div><div style={{ fontWeight: 600 }}>{p.retailerCount || '—'}</div></div>
+          <div><div style={{ fontSize: 10, color: 'var(--text-secondary)' }}>BILLING</div><div style={{ fontWeight: 600 }}>₹{(p.totalBilling / 1000).toFixed(0)}K</div></div>
+          <div><div style={{ fontSize: 10, color: 'var(--text-secondary)' }}>ORDERS</div><div style={{ fontWeight: 600 }}>{p.orderCount}</div></div>
+          <div><div style={{ fontSize: 10, color: 'var(--text-secondary)' }}>COLLECTION</div><div style={{ fontWeight: 600, color: p.collectionRate >= 80 ? '#4ade80' : '#f5a623' }}>{p.collectionRate}%</div></div>
+          <div><div style={{ fontSize: 10, color: 'var(--text-secondary)' }}>RETAILERS</div><div style={{ fontWeight: 600 }}>{p.retailerCount || '—'}</div></div>
         </div>
       </div>
     ))}</div>}
@@ -8999,7 +8999,7 @@ function HarborAgreementGen() {
     catch (e) { setResult('Error: ' + e.message); } setLoading(false);
   };
   return (<><div className="tool-header"><FileText size={20} style={{ color: '#ff4655' }} /><h2>Agreement Generator</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Generate distribution agreements, appointment letters, and trade contracts.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>Generate distribution agreements, appointment letters, and trade contracts.</p>
     <textarea className="input" rows={4} placeholder="Describe the agreement type, partner details, territory, terms, or special conditions..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
     <button className="btn" onClick={run} disabled={loading}>{loading ? 'Generating...' : 'Generate Agreement'}</button>
     {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
@@ -9013,9 +9013,9 @@ function HarborClaimsTracker() {
   const save = (c) => { setClaims(c); localStorage.setItem('protocol_harbor_claims', JSON.stringify(c)); };
   const totalPending = claims.filter(c => c.status === 'pending').reduce((s, c) => s + (Number(c.amount) || 0), 0);
   return (<><div className="tool-header"><CircleDollarSign size={20} style={{ color: '#ff4655' }} /><h2>Claims & Settlements</h2></div>
-    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Track scheme claims, damage claims, returns, and credit notes.</p>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>Track scheme claims, damage claims, returns, and credit notes.</p>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
-      {[{ label: 'Total Claims', value: claims.length, color: '#ece8e1' }, { label: 'Pending Amount', value: `₹${(totalPending / 1000).toFixed(0)}K`, color: '#f5a623' }, { label: 'Settled', value: claims.filter(c => c.status === 'settled').length, color: '#4ade80' }].map((m, i) => (
+      {[{ label: 'Total Claims', value: claims.length, color: 'var(--text-primary)' }, { label: 'Pending Amount', value: `₹${(totalPending / 1000).toFixed(0)}K`, color: '#f5a623' }, { label: 'Settled', value: claims.filter(c => c.status === 'settled').length, color: '#4ade80' }].map((m, i) => (
         <div key={i} className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 10, color: m.color, fontWeight: 600 }}>{m.label.toUpperCase()}</div><div style={{ fontSize: 22, fontWeight: 700 }}>{m.value}</div></div>
       ))}
     </div>
@@ -9036,7 +9036,7 @@ function HarborClaimsTracker() {
     {claims.map(c => (
       <div key={c.id} className="card" style={{ marginBottom: 8, borderLeft: `3px solid ${c.status === 'settled' ? '#4ade80' : c.status === 'approved' ? '#06b6d4' : '#f5a623'}` }}>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{c.partnerName}</strong><span style={{ fontWeight: 600 }}>₹{Number(c.amount).toLocaleString()}</span></div>
-        <div style={{ fontSize: 12, color: '#8b9eb7', marginTop: 4 }}>{c.type.toUpperCase()} · {c.description} · <span style={{ color: c.status === 'settled' ? '#4ade80' : '#f5a623' }}>{c.status.toUpperCase()}</span></div>
+        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{c.type.toUpperCase()} · {c.description} · <span style={{ color: c.status === 'settled' ? '#4ade80' : '#f5a623' }}>{c.status.toUpperCase()}</span></div>
       </div>
     ))}
   </>);
@@ -9512,7 +9512,7 @@ function KayoExpenseTracker() {
       </div>}
       {Object.keys(byCategory).length > 0 && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
         <h4 style={{ marginBottom: 8, fontSize: 13 }}>Category Breakdown</h4>
-        {Object.entries(byCategory).sort((a,b) => b[1]-a[1]).map(([cat, amt]) => <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}><span>{cat}</span><span style={{ fontWeight: 600 }}>₹{amt.toLocaleString()} ({Math.round(amt/total*100)}%)</span></div>)}
+        {Object.entries(byCategory).sort((a,b) => b[1]-a[1]).map(([cat, amt]) => <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '4px 0', borderBottom: '1px solid var(--border)' }}><span>{cat}</span><span style={{ fontWeight: 600 }}>₹{amt.toLocaleString()} ({Math.round(amt/total*100)}%)</span></div>)}
       </div>}
       <div className="table-wrapper"><table className="data-table"><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Paid To</th><th>Mode</th><th>Actions</th></tr></thead><tbody>
         {expenses.sort((a,b) => b.date?.localeCompare(a.date)).map(e => <tr key={e.id}><td>{e.date}</td><td style={{fontWeight:600}}>{e.description}</td><td>{e.category}</td>
@@ -9723,7 +9723,7 @@ function OmenTaskBoard() {
         <button className="btn-primary" style={{ marginTop: 10 }} onClick={addTask}>Create Task</button>
       </div>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, minHeight: 200 }}>
-        {statuses.map(status => <div key={status} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 8, padding: 10, border: '1px solid rgba(255,255,255,0.06)' }}>
+        {statuses.map(status => <div key={status} style={{ background: 'var(--bg-tertiary)', borderRadius: 8, padding: 10, border: '1px solid var(--border)' }}>
           <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 10, display: 'flex', justifyContent: 'space-between' }}><span>{status}</span><span style={{ opacity: 0.4 }}>{filtered.filter(t=>t.status===status).length}</span></div>
           {filtered.filter(t => t.status === status).map(t => <div key={t.id} className="card" style={{ padding: 10, marginBottom: 8, cursor: 'pointer' }}>
             <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t.title}</div>
@@ -10169,7 +10169,7 @@ function SkyeContentApproval() {
               <button onClick={() => deletePost(p.id)} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button>
             </div>
           </div>
-          {p.caption && <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6, background: 'rgba(255,255,255,0.03)', padding: 8, borderRadius: 4 }}>{p.caption}</div>}
+          {p.caption && <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6, background: 'var(--bg-tertiary)', padding: 8, borderRadius: 4 }}>{p.caption}</div>}
           {p.hashtags && <div style={{ fontSize: 11, color: '#3b82f6', marginTop: 4 }}>{p.hashtags}</div>}
         </div>)}
       </div>
