@@ -4678,16 +4678,15 @@ function WebsiteAnalysis() {
   const [results, setResults] = useState(null);
   const [aiReport, setAiReport] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
-  const [autoPdfPending, setAutoPdfPending] = useState(false);
+  const autoPdfRef = useRef(false);
 
-  // Auto-download PDF when AI report arrives after a fresh analysis
-  React.useEffect(() => {
-    if (autoPdfPending && aiReport && results && !loadingAI) {
-      setAutoPdfPending(false);
-      // Small delay to let state settle, then auto-download
-      setTimeout(() => { downloadPDFReport(); }, 500);
+  // Auto-download PDF once AI report + results are both ready
+  useEffect(() => {
+    if (autoPdfRef.current && aiReport && results && !loadingAI) {
+      autoPdfRef.current = false;
+      setTimeout(() => { downloadPDFReport(); }, 600);
     }
-  }, [aiReport, autoPdfPending, loadingAI]);
+  }, [aiReport, results, loadingAI]);
 
   const runFullAnalysis = async () => {
     if (!url.trim()) return;
@@ -4760,6 +4759,7 @@ function WebsiteAnalysis() {
 
       setProgress('Generating PDF report...');
       setToast({ message: 'Analysis complete! PDF report will download automatically.', type: 'success' });
+      autoPdfRef.current = true;
     } catch (e) {
       setToast({ message: `Analysis error: ${e.message}`, type: 'error' });
       if (data.siteAudit || data.domainOverview) { setResults(data); setStep(2); }
@@ -6806,13 +6806,15 @@ function NotificationBell() {
   // Auto-generate system notifications based on app state
   useEffect(() => {
     const sys = [];
-    if (!isApiKeySet()) sys.push({ id: 'sys_ai', type: 'alert', title: 'AI provider not configured', body: 'Go to Settings → add Claude, OpenAI, or Gemini key', read: false, createdAt: new Date().toISOString(), system: true });
-    if (!isApifyTokenSet()) sys.push({ id: 'sys_apify', type: 'info', title: 'Apify token missing', body: 'Scrapers need an Apify token. Add one in Settings.', read: false, createdAt: new Date().toISOString(), system: true });
+    if (!isApiKeySet()) sys.push({ id: 'sys_ai', type: 'alert', title: 'AI provider not configured', body: 'Go to Settings → add Claude, OpenAI, or Gemini key', createdAt: new Date().toISOString(), system: true });
+    if (!isApifyTokenSet()) sys.push({ id: 'sys_apify', type: 'info', title: 'Apify token missing', body: 'Scrapers need an Apify token. Add one in Settings.', createdAt: new Date().toISOString(), system: true });
     if (isShopifyConnected()) sys.push({ id: 'sys_shopify', type: 'update', title: 'Shopify connected', body: `Store: ${getShopifyStoreName()}`, read: true, createdAt: new Date().toISOString(), system: true });
-    // Merge with existing, don't duplicate system ones
+    // Merge: preserve read state of existing system notifications
     setNotifications(prev => {
       const userNotes = prev.filter(n => !n.system);
-      return [...sys, ...userNotes];
+      const prevSysMap = Object.fromEntries(prev.filter(n => n.system).map(n => [n.id, n]));
+      const merged = sys.map(s => ({ ...s, read: prevSysMap[s.id]?.read || false }));
+      return [...merged, ...userNotes];
     });
   }, [open]);
 
@@ -11904,6 +11906,9 @@ WHEN A USER ASKS:
 4. Format outputs as: Metrics → Recommendations → Action Plan → Success Metrics
 
 TONE: Direct, confident, tactical. You see the full local SEO picture. You think in terms of rankings, reviews, and revenue. You tie every action back to Kiro's pre-launch goals: build authority, collect reviews, rank in local pack, prepare for market entry.`;
+
+// Utility: safe JSON parse for Waylay components (value, fallback)
+const safeJSON = (val, fallback = []) => { try { return val ? JSON.parse(val) : fallback; } catch { return fallback; } };
 
 function WaylayGBPManager() {
   const [messages, setMessages] = useState(() => safeJSON(localStorage.getItem('protocol_waylay_messages'), []));
