@@ -11320,10 +11320,12 @@ function PinLogin({ onSuccess }) {
         sessionStorage.setItem('kj_auth', 'true');
         setWelcomeUser(result.username);
         setLockedIn(true);
-        playLoginSuccess();
-        // Also try the spike-plant .mp3 as extra layer
+        try { playLoginSuccess(); } catch (e) {}
         try { const a = new Audio('./sounds/spike-plant.mp3'); a.volume = 0.25; a.play().catch(() => {}); } catch (e) {}
-        setTimeout(() => onSuccess(result.username, result.role), 500);
+        // Shorter delay — 350ms for the "locked in" animation, then transition
+        setTimeout(() => {
+          try { onSuccess(result.username, result.role); } catch (e) { console.error('[PinLogin] onSuccess error:', e); }
+        }, 350);
       } else {
         playLoginFail();
         setError(true);
@@ -11618,11 +11620,11 @@ function AdminPanel() {
 // MAIN APP
 // =============================================
 // Collapsible sidebar section component
-function SidebarSection({ title, icon: SectionIcon, items, currentPath, agentFaceEl, subtitle, onToggle }) {
+function SidebarSection({ title, icon: SectionIcon, items, currentPath, onToggle }) {
   const hasActive = items.some(item => currentPath === item.path);
   const [open, setOpen] = useState(hasActive);
 
-  // Auto-open when navigating to a child
+  // Auto-open when navigating to a child, close others
   useEffect(() => { if (hasActive) setOpen(true); }, [hasActive]);
 
   const handleToggle = () => {
@@ -11632,40 +11634,34 @@ function SidebarSection({ title, icon: SectionIcon, items, currentPath, agentFac
   };
 
   return (
-    <div style={{ marginBottom: 2 }}>
+    <div style={{ marginBottom: 1 }}>
       <button onClick={handleToggle} style={{
-        display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-        padding: '8px 16px', border: 'none', cursor: 'pointer',
-        background: hasActive ? 'rgba(124,58,237,0.08)' : 'transparent',
-        color: hasActive ? 'var(--accent)' : 'var(--text-tertiary)',
-        fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1,
-        borderRadius: 'var(--radius-sm)', transition: 'all 0.15s'
+        display: 'flex', alignItems: 'center', gap: 6, width: '100%',
+        padding: '6px 14px', border: 'none', cursor: 'pointer',
+        background: hasActive ? 'rgba(255,70,85,0.08)' : 'transparent',
+        color: hasActive ? 'var(--accent)' : 'var(--text-secondary)',
+        fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
+        borderRadius: 2, transition: 'all 0.15s',
+        borderLeft: hasActive ? '2px solid var(--accent)' : '2px solid transparent',
       }}>
-        {agentFaceEl || (SectionIcon && <SectionIcon size={13} />)}
-        <span style={{ flex: 1, textAlign: 'left' }}>
-          {title}
-          {subtitle && <span style={{ display: 'block', fontSize: 8, fontWeight: 500, textTransform: 'none', letterSpacing: 0, opacity: 0.6, marginTop: 1 }}>{subtitle}</span>}
-        </span>
-        <ChevronRight size={12} style={{
+        {SectionIcon && <SectionIcon size={13} style={{ opacity: 0.7 }} />}
+        <span style={{ flex: 1, textAlign: 'left' }}>{title}</span>
+        <ChevronRight size={11} style={{
           transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
-          transition: 'transform 0.2s', opacity: 0.6
+          transition: 'transform 0.2s', opacity: 0.4
         }} />
-        <span style={{
-          fontSize: 9, background: 'var(--bg-tertiary)', borderRadius: 8,
-          padding: '1px 6px', color: 'var(--text-tertiary)', fontWeight: 600
-        }}>{items.length}</span>
       </button>
       <div style={{
-        maxHeight: open ? items.length * 42 + 10 : 0,
-        overflow: 'hidden', transition: 'max-height 0.25s ease-in-out'
+        maxHeight: open ? items.length * 36 + 6 : 0,
+        overflow: 'hidden', transition: 'max-height 0.2s ease-in-out'
       }}>
         {items.map(item => {
           const Icon = item.icon;
           return (
             <NavLink key={item.path} to={item.path}
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-              end={item.path === '/'} style={{ paddingLeft: 28, fontSize: 13 }}>
-              <Icon size={15} /> {item.label}
+              end={item.path === '/'} style={{ paddingLeft: 26, fontSize: 12, padding: '5px 12px 5px 26px' }}>
+              <Icon size={13} /> {item.label}
             </NavLink>
           );
         })}
@@ -11706,21 +11702,31 @@ export default function App() {
   // Global audio context for UI sounds (shared ref — must be before early return)
   const uiAudioCtxRef = useRef(null);
 
-  // Play "Choose your agent" on dashboard load (after login)
+  // Play "Choose your agent" on dashboard load (after login) — MP3 first, TTS fallback
   const hasPlayedChooseAgent = useRef(false);
   useEffect(() => {
     if (authenticated && !hasPlayedChooseAgent.current && !soundsMuted) {
       hasPlayedChooseAgent.current = true;
-      try {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance("Choose your agent.");
-        u.rate = 0.82; u.pitch = 0.5; u.volume = 0.95;
-        const voices = window.speechSynthesis.getVoices();
-        const pick = voices.find(v => /male|daniel|james|google uk english male/i.test(v.name))
-          || voices.find(v => /english/i.test(v.lang || v.name));
-        if (pick) u.voice = pick;
-        window.speechSynthesis.speak(u);
-      } catch (e) {}
+      // Delay slightly so the dashboard renders first
+      setTimeout(() => {
+        try {
+          const audio = new Audio('./voicelines/lobby.mp3');
+          audio.volume = 0.85;
+          audio.play().catch(() => {
+            // Fallback to speech synthesis
+            try {
+              window.speechSynthesis.cancel();
+              const u = new SpeechSynthesisUtterance("Choose your agent.");
+              u.rate = 0.82; u.pitch = 0.5; u.volume = 0.95;
+              const voices = window.speechSynthesis.getVoices();
+              const pick = voices.find(v => /male|daniel|james|google uk english male/i.test(v.name))
+                || voices.find(v => /english/i.test(v.lang || v.name));
+              if (pick) u.voice = pick;
+              window.speechSynthesis.speak(u);
+            } catch (e) {}
+          });
+        } catch (e) {}
+      }, 300);
     }
   }, [authenticated]);
 
@@ -11993,61 +11999,30 @@ export default function App() {
     } catch (e) {}
   };
 
-  // Agent ult voicelines — MP3 first, speech synthesis fallback
+  // Agent ult voicelines — MP3/OGG audio file playback
+  // Place real Valorant agent voice files in public/voicelines/{agent}.mp3 or .ogg
   const voicelineAudioRef = React.useRef(null);
   const playUltVoiceline = (agent) => {
     try {
-      // MP3 voiceline paths — place real Valorant agent voice MP3s in public/voicelines/
-      // File naming: {agentname}.mp3 (e.g., jett.mp3, sage.mp3, reyna.mp3)
-      const mp3Path = `./voicelines/${agent}.mp3`;
-
       // Stop any currently playing voiceline
       if (voicelineAudioRef.current) {
         voicelineAudioRef.current.pause();
         voicelineAudioRef.current.currentTime = 0;
       }
 
-      const audio = new Audio(mp3Path);
+      // Try MP3 first, then OGG
+      const audio = new Audio(`./voicelines/${agent}.mp3`);
       audio.volume = 0.85;
       voicelineAudioRef.current = audio;
 
-      // Try MP3 first — on error, fall back to speech synthesis
       audio.play().catch(() => {
-        // Fallback: speech synthesis
-        const lines = {
-          brimstone: "Open up the sky!",
-          chamber: "They are so dead.",
-          cypher: "I know exactly where you are.",
-          sova: "I am the hunter!",
-          killjoy: "You should run.",
-          neon: "Let's go!",
-          jett: "Watch this!",
-          sage: "You will not kill my allies!",
-          viper: "Don't get in my way.",
-          reyna: "The hunt begins!",
-          phoenix: "Jokes over, you're dead!",
-          astra: "You have no idea what I can do.",
-          fade: "Face your fear!",
-          gekko: "Go get them, buddy!",
-          breach: "Let's go!",
-          harbor: "I control the tide.",
-          deadlock: "No one escapes my grasp.",
-          kayo: "No more tricks.",
-          omen: "I am everywhere.",
-          skye: "Seek them out!",
-          lobby: "Choose your agent.",
-          iso: "Watch this, one shot is all I need."
-        };
-        const line = lines[agent];
-        if (!line) return;
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(line);
-        u.rate = 0.88; u.pitch = 0.6; u.volume = 0.9;
-        const voices = window.speechSynthesis.getVoices();
-        const pick = voices.find(v => /male|daniel|james|google uk english male/i.test(v.name))
-          || voices.find(v => /english/i.test(v.lang || v.name));
-        if (pick) u.voice = pick;
-        window.speechSynthesis.speak(u);
+        // Try OGG format
+        const ogg = new Audio(`./voicelines/${agent}.ogg`);
+        ogg.volume = 0.85;
+        voicelineAudioRef.current = ogg;
+        ogg.play().catch(() => {
+          // No audio file found — silent (no TTS fallback, user wants real voices only)
+        });
       });
     } catch (e) {}
   };
@@ -12644,8 +12619,7 @@ export default function App() {
 
   const navSections = [
     {
-      title: 'Brimstone', icon: LayoutDashboard, agentFace: 'brimstone',
-      subtitle: 'Commander — strategy, dashboards & overview',
+      title: 'Brimstone (Strategy)', icon: LayoutDashboard, agent: 'brimstone',
       items: [
         { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { path: '/leads-dashboard', icon: PieChart, label: 'Leads Analytics' },
@@ -12653,8 +12627,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Cypher', icon: Crosshair, agentFace: 'cypher',
-      subtitle: 'Information broker — lead acquisition & targeting',
+      title: 'Cypher (Leads)', icon: Crosshair, agent: 'cypher',
       items: [
         { path: '/search', icon: Search, label: 'Lead Search' },
         { path: '/emails', icon: Mail, label: 'Email Extractor' },
@@ -12663,8 +12636,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Chamber', icon: Instagram, agentFace: 'chamber',
-      subtitle: 'Weapons dealer — scrapes social intel',
+      title: 'Chamber (Social Intel)', icon: Instagram, agent: 'chamber',
       items: [
         { path: '/instagram', icon: Instagram, label: 'Instagram' },
         { path: '/facebook', icon: Facebook, label: 'Facebook / Meta' },
@@ -12674,8 +12646,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Killjoy', icon: Globe, agentFace: 'killjoy',
-      subtitle: 'Sentinel — SEO defense, audits & rank protection',
+      title: 'Killjoy (SEO)', icon: Globe, agent: 'killjoy',
       items: [
         { path: '/website-analysis', icon: Radar, label: 'Full Analysis' },
         { path: '/seo-dashboard', icon: BarChart3, label: 'SEO Dashboard' },
@@ -12686,8 +12657,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Sova', icon: Microscope, agentFace: 'sova',
-      subtitle: 'Hunter — recon, keyword tracking & competitor intel',
+      title: 'Sova (Research)', icon: Microscope, agent: 'sova',
       items: [
         { path: '/keyword-research', icon: Hash, label: 'Keyword Discovery' },
         { path: '/keyword-gap', icon: Target, label: 'Content Gaps' },
@@ -12702,8 +12672,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Neon', icon: Wand2, agentFace: 'neon',
-      subtitle: 'Duelist — AI content creation & copywriting',
+      title: 'Neon (Content)', icon: Wand2, agent: 'neon',
       items: [
         { path: '/content-hub', icon: Layers, label: 'Content Hub' },
         { path: '/blog', icon: BookOpen, label: 'Blog Writer' },
@@ -12718,8 +12687,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Jett', icon: Flame, agentFace: 'jett',
-      subtitle: 'Duelist — paid ads & performance marketing',
+      title: 'Jett (Ads)', icon: Flame, agent: 'jett',
       items: [
         { path: '/jett-campaigns', icon: Flame, label: 'Campaign Manager' },
         { path: '/jett-budget', icon: Wallet, label: 'Budget Optimizer' },
@@ -12728,8 +12696,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Sage', icon: Heart, agentFace: 'sage',
-      subtitle: 'Sentinel — CRM & customer relationships',
+      title: 'Sage (CRM)', icon: Heart, agent: 'sage',
       items: [
         { path: '/sage-customers', icon: Users, label: 'Customer Database' },
         { path: '/sage-lifecycle', icon: Repeat2, label: 'Lifecycle Tracker' },
@@ -12738,8 +12705,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Viper', icon: Send, agentFace: 'viper',
-      subtitle: 'Controller — email & drip marketing',
+      title: 'Viper (Email)', icon: Send, agent: 'viper',
       items: [
         { path: '/viper-drip', icon: Send, label: 'Drip Campaigns' },
         { path: '/viper-newsletter', icon: Mail, label: 'Newsletter Editor' },
@@ -12747,8 +12713,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Reyna', icon: Crown, agentFace: 'reyna',
-      subtitle: 'Duelist — influencer marketing & UGC',
+      title: 'Reyna (Influencers)', icon: Crown, agent: 'reyna',
       items: [
         { path: '/reyna-discover', icon: Crown, label: 'Influencer Discovery' },
         { path: '/reyna-outreach', icon: Handshake, label: 'Outreach Manager' },
@@ -12757,8 +12722,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Phoenix', icon: CalendarDays, agentFace: 'phoenix',
-      subtitle: 'Duelist — social media management',
+      title: 'Phoenix (Social)', icon: CalendarDays, agent: 'phoenix',
       items: [
         { path: '/phoenix-calendar', icon: CalendarDays, label: 'Content Calendar' },
         { path: '/phoenix-scheduler', icon: Clock, label: 'Smart Scheduler' },
@@ -12767,8 +12731,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Astra', icon: Orbit, agentFace: 'astra',
-      subtitle: 'Controller — media planning & buying',
+      title: 'Astra (Media)', icon: Orbit, agent: 'astra',
       items: [
         { path: '/astra-planner', icon: Tv, label: 'Media Planner' },
         { path: '/astra-grp', icon: Calculator, label: 'GRP Calculator' },
@@ -12776,8 +12739,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Fade', icon: Waypoints, agentFace: 'fade',
-      subtitle: 'Initiator — attribution & funnel analytics',
+      title: 'Fade (Analytics)', icon: Waypoints, agent: 'fade',
       items: [
         { path: '/fade-utm', icon: Link, label: 'UTM Builder' },
         { path: '/fade-attribution', icon: Waypoints, label: 'Attribution Model' },
@@ -12785,8 +12747,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Gekko', icon: Bot, agentFace: 'gekko',
-      subtitle: 'Initiator — community & WhatsApp marketing',
+      title: 'Gekko (Community)', icon: Bot, agent: 'gekko',
       items: [
         { path: '/gekko-broadcast', icon: SmartphoneNfc, label: 'WhatsApp Broadcast' },
         { path: '/gekko-chatbot', icon: Bot, label: 'Chatbot Builder' },
@@ -12794,8 +12755,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Breach', icon: Siren, agentFace: 'breach',
-      subtitle: 'Initiator — PR & crisis management',
+      title: 'Breach (PR)', icon: Siren, agent: 'breach',
       items: [
         { path: '/breach-press', icon: Newspaper, label: 'Press Releases' },
         { path: '/breach-medialist', icon: Users, label: 'Media List' },
@@ -12804,8 +12764,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Harbor', icon: Anchor, agentFace: 'harbor',
-      subtitle: 'Controller — distribution & supply chain',
+      title: 'Harbor (Distribution)', icon: Anchor, agent: 'harbor',
       items: [
         { path: '/harbor-distributors', icon: Building2, label: 'Distributor DB' },
         { path: '/harbor-onboarding', icon: ClipboardList, label: 'Onboarding' },
@@ -12818,8 +12777,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Deadlock', icon: Factory, agentFace: 'deadlock',
-      subtitle: 'Sentinel — production & raw materials',
+      title: 'Deadlock (Production)', icon: Factory, agent: 'deadlock',
       items: [
         { path: '/deadlock-production', icon: Factory, label: 'Production Planner' },
         { path: '/deadlock-inventory', icon: Boxes, label: 'Raw Materials' },
@@ -12832,8 +12790,7 @@ export default function App() {
       ]
     },
     {
-      title: 'KAY/O', icon: BadgeDollarSign, agentFace: 'kayo',
-      subtitle: 'Suppressor — finance & accounts',
+      title: 'KAY/O (Finance)', icon: BadgeDollarSign, agent: 'kayo',
       items: [
         { path: '/kayo-pnl', icon: FileBarChart, label: 'Profit & Loss' },
         { path: '/kayo-expenses', icon: Wallet, label: 'Expense Tracker' },
@@ -12845,8 +12802,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Omen', icon: Ghost, agentFace: 'omen',
-      subtitle: 'Controller — task & project management',
+      title: 'Omen (Tasks)', icon: Ghost, agent: 'omen',
       items: [
         { path: '/omen-tasks', icon: FolderKanban, label: 'Task Board' },
         { path: '/omen-projects', icon: Layers, label: 'Project Tracker' },
@@ -12858,8 +12814,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Skye', icon: Bird, agentFace: 'skye',
-      subtitle: 'Initiator — influencer management',
+      title: 'Skye (Influencers)', icon: Bird, agent: 'skye',
       items: [
         { path: '/skye-influencers', icon: Users, label: 'Influencer DB' },
         { path: '/skye-campaigns', icon: Megaphone, label: 'Campaigns' },
@@ -12871,8 +12826,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Lobby', icon: Settings, agentFace: 'lobby',
-      subtitle: 'Home base — settings, sync & admin',
+      title: 'Lobby (Settings)', icon: Settings, agent: 'lobby',
       items: [
         ...(isAdmin ? [
           { path: '/admin-panel', icon: Shield, label: 'Admin Panel' },
@@ -12883,8 +12837,7 @@ export default function App() {
       ]
     },
     {
-      title: 'Iso', icon: Bot, agentFace: 'iso',
-      subtitle: 'Combat dev agent — AI chat, code & deploy',
+      title: 'Iso (Dev Agent)', icon: Terminal, agent: 'iso',
       items: [
         { path: '/iso-chat', icon: MessageCircle, label: 'Iso Chat' },
         { path: '/iso-code-review', icon: Eye, label: 'Code Review' },
@@ -12950,9 +12903,7 @@ export default function App() {
                   )}
                   <SidebarSection title={sectionLabels[section.title] || section.title} icon={section.icon}
                     items={section.items} currentPath={location.pathname}
-                    agentFaceEl={section.agentFace ? <AgentFace agent={section.agentFace} size={16} /> : null}
-                    subtitle={section.subtitle}
-                    onToggle={section.agentFace ? () => playAgentSound(section.agentFace) : null} />
+                    onToggle={section.agent ? () => playAgentSound(section.agent) : null} />
                 </div>
               ));
             })()}
