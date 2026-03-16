@@ -13997,6 +13997,42 @@ export default function App() {
           eth.connect(ethG); ethG.connect(ctx.destination);
           eth.start(now + 0.05); eth.stop(now + 0.22);
         },
+
+        tejo: () => {
+          // INITIATOR: Government schemes — official stamp impact → scroll unfurl → authority chime
+          // Stamp impact — heavy thud like an official seal hitting paper
+          const stamp = ctx.createOscillator(); const stampG = ctx.createGain();
+          stamp.type = 'sine'; stamp.frequency.setValueAtTime(120, now);
+          stamp.frequency.exponentialRampToValueAtTime(50, now + 0.15);
+          stampG.gain.setValueAtTime(0.2, now);
+          stampG.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          stamp.connect(stampG); stampG.connect(ctx.destination);
+          stamp.start(now); stamp.stop(now + 0.2);
+          // Scroll unfurl — rising sweep like a document being unrolled
+          const scroll = ctx.createOscillator(); const scrollG = ctx.createGain();
+          const scrollF = ctx.createBiquadFilter();
+          scroll.type = 'sawtooth'; scroll.frequency.setValueAtTime(200, now + 0.05);
+          scroll.frequency.exponentialRampToValueAtTime(800, now + 0.2);
+          scrollF.type = 'bandpass'; scrollF.frequency.setValueAtTime(500, now + 0.05);
+          scrollF.Q.setValueAtTime(3, now + 0.05);
+          scrollG.gain.setValueAtTime(0.06, now + 0.05);
+          scrollG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          scroll.connect(scrollF); scrollF.connect(scrollG); scrollG.connect(ctx.destination);
+          scroll.start(now + 0.05); scroll.stop(now + 0.25);
+          // Authority chime — dual tone like a government notification bell
+          const chime1 = ctx.createOscillator(); const chime1G = ctx.createGain();
+          chime1.type = 'sine'; chime1.frequency.setValueAtTime(523, now + 0.12);
+          chime1G.gain.setValueAtTime(0.1, now + 0.12);
+          chime1G.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          chime1.connect(chime1G); chime1G.connect(ctx.destination);
+          chime1.start(now + 0.12); chime1.stop(now + 0.4);
+          const chime2 = ctx.createOscillator(); const chime2G = ctx.createGain();
+          chime2.type = 'sine'; chime2.frequency.setValueAtTime(659, now + 0.18);
+          chime2G.gain.setValueAtTime(0.08, now + 0.18);
+          chime2G.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          chime2.connect(chime2G); chime2G.connect(ctx.destination);
+          chime2.start(now + 0.18); chime2.stop(now + 0.45);
+        },
       };
 
       if (sounds[agent]) sounds[agent]();
