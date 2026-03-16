@@ -1857,6 +1857,12 @@ table tbody tr:hover {
   caret-color: #ff4655;
   padding: 0 !important;
   clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  -webkit-text-security: disc;
+}
+
+.pin-login-card.locked-in {
+  border-color: #ff4655;
+  box-shadow: 0 0 40px rgba(255, 70, 85, 0.3);
 }
 
 .pin-input:focus {

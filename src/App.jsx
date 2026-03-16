@@ -7986,30 +7986,31 @@ function PinLogin({ onSuccess }) {
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
   useEffect(() => {
-    inputRefs[0].current?.focus();
-    // Play "Choose your agent" voice line on load
-    try {
-      const audio = new Audio('./sounds/choose-agent.mp3');
-      audio.volume = 0.4;
-      audio.play().catch(() => {});
-    } catch (e) {}
+    setTimeout(() => inputRefs[0].current?.focus(), 100);
   }, []);
 
   const tryAuth = (fullPin) => {
-    const result = authenticatePin(fullPin);
-    if (result.success) {
-      setCurrentUser(result.username);
-      sessionStorage.setItem('kj_auth', 'true');
-      setWelcomeUser(result.username);
-      setLockedIn(true);
-      // Play spike plant sound on successful login (like locking in)
-      try {
-        const audio = new Audio('./sounds/spike-plant.mp3');
-        audio.volume = 0.3;
-        audio.play().catch(() => {});
-      } catch (e) {}
-      setTimeout(() => onSuccess(result.username, result.role), 800);
-    } else {
+    try {
+      const result = authenticatePin(fullPin);
+      if (result.success) {
+        setCurrentUser(result.username);
+        sessionStorage.setItem('kj_auth', 'true');
+        setWelcomeUser(result.username);
+        setLockedIn(true);
+        // Play spike plant sound on successful login
+        try {
+          const audio = new Audio('./sounds/spike-plant.mp3');
+          audio.volume = 0.3;
+          audio.play().catch(() => {});
+        } catch (e) {}
+        setTimeout(() => onSuccess(result.username, result.role), 400);
+      } else {
+        setError(true);
+        setShake(true);
+        setTimeout(() => { setShake(false); setPin(['', '', '', '']); inputRefs[0].current?.focus(); }, 600);
+      }
+    } catch (err) {
+      console.error('[PinLogin] Auth error:', err);
       setError(true);
       setShake(true);
       setTimeout(() => { setShake(false); setPin(['', '', '', '']); inputRefs[0].current?.focus(); }, 600);
@@ -8017,30 +8018,21 @@ function PinLogin({ onSuccess }) {
   };
 
   const handleChange = (index, value) => {
-    if (!/^\d*$/.test(value)) return;
+    // Strip non-digits
+    const digit = value.replace(/\D/g, '').slice(-1);
     const newPin = [...pin];
-    newPin[index] = value.slice(-1);
+    newPin[index] = digit;
     setPin(newPin);
     setError(false);
 
-    // Play subtle click on each digit
-    if (value) {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator(); const gain = ctx.createGain();
-        osc.type = 'sine'; osc.frequency.setValueAtTime(1200 + index * 200, ctx.currentTime);
-        gain.gain.setValueAtTime(0.06, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.06);
-        setTimeout(() => ctx.close(), 200);
-      } catch (e) {}
+    if (digit && index < 3) {
+      setTimeout(() => inputRefs[index + 1].current?.focus(), 10);
     }
 
-    if (value && index < 3) inputRefs[index + 1].current?.focus();
-
     const fullPin = newPin.join('');
-    if (fullPin.length === 4) tryAuth(fullPin);
+    if (fullPin.length === 4 && newPin.every(d => d !== '')) {
+      setTimeout(() => tryAuth(fullPin), 50);
+    }
   };
 
   const handleKeyDown = (index, e) => {
@@ -8084,7 +8076,7 @@ function PinLogin({ onSuccess }) {
 
         <div className="pin-input-row">
           {pin.map((digit, i) => (
-            <input key={i} ref={inputRefs[i]} type="password" inputMode="numeric" maxLength={1}
+            <input key={i} ref={inputRefs[i]} type="tel" inputMode="numeric" pattern="[0-9]*" maxLength={1}
               value={digit} onChange={e => handleChange(i, e.target.value)}
               onKeyDown={e => handleKeyDown(i, e)} onPaste={i === 0 ? handlePaste : undefined}
               className={`pin-input ${digit ? 'filled' : ''} ${error ? 'error' : ''}`} autoComplete="off" />
@@ -8395,6 +8387,19 @@ export default function App() {
 
   // Sound mute state
   const [soundsMuted, setSoundsMuted] = useState(() => localStorage.getItem('protocol_sounds_muted') === 'true');
+
+  // Play "Choose your agent" on dashboard load (after login)
+  const hasPlayedChooseAgent = useRef(false);
+  useEffect(() => {
+    if (authenticated && !hasPlayedChooseAgent.current && !soundsMuted) {
+      hasPlayedChooseAgent.current = true;
+      try {
+        const audio = new Audio('./sounds/choose-agent.mp3');
+        audio.volume = 0.4;
+        audio.play().catch(() => {});
+      } catch (e) {}
+    }
+  }, [authenticated]);
 
   // Agent select sound effects — tries real audio files first, falls back to synthesized
   const playAgentSound = (agent) => {
