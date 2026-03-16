@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { PieChart as RechartsPieChart, Pie, Cell, BarChart as RechartsBarChart, Bar, LineChart as RechartsLineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 import { initSync, isSyncEnabled, pushToCloud, pullFromCloud, parseFirebaseConfig, getSyncStatus } from './utils/sync.js';
@@ -11319,12 +11320,14 @@ function PinLogin({ onSuccess }) {
     try {
       const result = authenticatePin(fullPin);
       if (result.success) {
+        // Set storage immediately so App can read on re-render
         setCurrentUser(result.username);
         sessionStorage.setItem('kj_auth', 'true');
         setWelcomeUser(result.username);
         setLockedIn(true);
         try { playLoginSuccess(); } catch (e) {}
         try { const a = new Audio('./sounds/spike-plant.mp3'); a.volume = 0.25; a.play().catch(() => {}); } catch (e) {}
+        // Short delay for the "locked in" animation, then trigger login
         setTimeout(() => {
           onSuccess(result.username, result.role);
         }, 300);
@@ -11766,9 +11769,18 @@ export default function App() {
   const handleLogout = () => { clearCurrentUser(); setAuthenticated(false); };
 
   const handleLoginSuccess = (username, role) => {
-    setCurrentUserState(username);
-    setCurrentRole(role);
-    setAuthenticated(true);
+    // Ensure sessionStorage is set BEFORE React state triggers re-render
+    setCurrentUser(username);
+    sessionStorage.setItem('kj_auth', 'true');
+    // flushSync forces React to synchronously flush all state updates
+    // and commit the resulting DOM changes before returning.
+    // This prevents the blank-frame issue where React batches the updates
+    // and the old PinLogin is unmounted before the new content paints.
+    flushSync(() => {
+      setCurrentUserState(username);
+      setCurrentRole(role || 'Viewer');
+      setAuthenticated(true);
+    });
   };
 
   if (!authenticated) return <PinLogin onSuccess={handleLoginSuccess} />;
