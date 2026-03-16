@@ -61,6 +61,7 @@ import {
   authenticatePin, getUsers, saveUsers, getAllUsernames,
   getUserDataAs, getAggregatedData, migrateOldData, removeUserData
 } from './utils/userStorage';
+import ReactMarkdown from 'react-markdown';
 
 // ---- ERROR BOUNDARY — catches render errors in dashboard after login ----
 class AppErrorBoundary extends React.Component {
@@ -11917,6 +11918,11 @@ function WaylayGBPManager() {
   const [toast, setToast] = useState(null);
   const bottomRef = useRef(null);
 
+  // Get stats from localStorage
+  const gbpScore = localStorage.getItem('protocol_waylay_gbp_score') || '78%';
+  const reviewCount = localStorage.getItem('protocol_waylay_reviews') || '12/50';
+  const postCount = localStorage.getItem('protocol_waylay_posts') || '0/4';
+
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   const saveMessages = (msgs) => {
@@ -11924,16 +11930,23 @@ function WaylayGBPManager() {
     localStorage.setItem('protocol_waylay_messages', JSON.stringify(msgs.slice(-50)));
   };
 
-  const send = async () => {
-    if (!input.trim()) return;
-    const newMsg = { role: 'user', content: input };
+  const send = async (text = null) => {
+    const msg = text || input;
+    if (!msg.trim()) return;
+    const newMsg = { role: 'user', content: msg };
     const updated = [...messages, newMsg];
     saveMessages(updated);
     setInput('');
     setLoading(true);
     try {
-      const resp = await callClaude(input, WAYLAY_SYSTEM, updated.slice(-8));
-      saveMessages([...updated, { role: 'assistant', content: resp }]);
+      const result = await callClaude({
+        messages: updated.slice(-8),
+        system: WAYLAY_SYSTEM,
+        maxTokens: 4096,
+        temperature: 0.7
+      });
+      const assistantMsg = { role: 'assistant', content: result.content };
+      saveMessages([...updated, assistantMsg]);
     } catch (e) {
       setToast({ message: 'Claude call failed: ' + e.message, type: 'error' });
     } finally {
@@ -11941,37 +11954,117 @@ function WaylayGBPManager() {
     }
   };
 
-  const examples = ['Optimize my GBP for "healthy ready to eat food near me"', 'Create a GBP posting calendar for Kiro Foods', 'What\'s my GBP profile completeness score?', 'How to get 50 reviews in 60 days?'];
+  const examples = [
+    'Optimize my GBP for "healthy ready to eat food near me"',
+    'Create a GBP posting calendar for Kiro Foods',
+    'What\'s my GBP profile completeness score?',
+    'How to get 50 reviews in 60 days?'
+  ];
+
+  const clearChat = () => {
+    saveMessages([]);
+    setToast({ message: 'Chat cleared', type: 'success' });
+  };
 
   return (
-    <div style={{ padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
-      <h1 className="card-title" style={{ marginBottom: 20 }}>Waylay — GBP Manager</h1>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 12, marginBottom: 20 }}>
-        <div className="card"><div className="card-header"><h3 className="card-title">Profile Completeness</h3></div><div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)', padding: '12px 0' }}>78%</div></div>
-        <div className="card"><div className="card-header"><h3 className="card-title">Review Target</h3></div><div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)', padding: '12px 0' }}>12/50</div></div>
-        <div className="card"><div className="card-header"><h3 className="card-title">Posts This Month</h3></div><div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)', padding: '12px 0' }}>0/4</div></div>
+    <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
+      <div className="page-header" style={{ marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <Globe size={32} color="var(--accent)" />
+          <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>GBP Manager</h1>
+        </div>
+        <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6 }}>
+          Optimize your Google Business Profile with AI-powered guidance. Get insights on categories, photos, posts, reviews, and local SEO strategies.
+        </p>
       </div>
-      <div className="card" style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', height: 500 }}>
-        <div className="card-header"><h3 className="card-title">GBP AI Chat</h3></div>
-        <div style={{ flex: 1, overflow: 'auto', padding: 16, borderTop: '1px solid var(--border)' }}>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
+        <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 8 }}>PROFILE SCORE</div>
+          <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--accent)' }}>{gbpScore}</div>
+        </div>
+        <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 8 }}>REVIEW TARGET</div>
+          <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--accent)' }}>{reviewCount}</div>
+        </div>
+        <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 8 }}>POSTS THIS MONTH</div>
+          <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--accent)' }}>{postCount}</div>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: 24, display: 'flex', flexDirection: 'column', height: 500 }}>
+        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 className="card-title">Conversation History</h3>
+          {messages.length > 0 && (
+            <button onClick={clearChat} style={{ padding: '4px 12px', fontSize: 12, background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer', color: 'var(--text-tertiary)' }}>
+              Clear Chat
+            </button>
+          )}
+        </div>
+        <div style={{ flex: 1, overflow: 'auto', padding: 16, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column' }}>
+          {messages.length === 0 && !loading && (
+            <div style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '40px 20px', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>No conversation yet</div>
+                <div style={{ fontSize: 12 }}>Click an example below or start typing</div>
+              </div>
+            </div>
+          )}
           {messages.map((m, i) => (
             <div key={i} style={{ marginBottom: 12, display: 'flex', flexDirection: m.role === 'user' ? 'row-reverse' : 'row', gap: 8 }}>
-              <div style={{ maxWidth: '70%', padding: 12, borderRadius: 8, background: m.role === 'user' ? 'var(--accent)' : 'var(--bg-tertiary)', color: m.role === 'user' ? '#fff' : 'var(--text-primary)', fontSize: 13, lineHeight: 1.6 }}>
+              <div style={{ maxWidth: '75%', padding: 12, borderRadius: 8, background: m.role === 'user' ? 'var(--accent)' : 'var(--bg-tertiary)', color: m.role === 'user' ? '#fff' : 'var(--text-primary)', fontSize: 13, lineHeight: 1.6 }}>
                 <ReactMarkdown>{m.content}</ReactMarkdown>
               </div>
             </div>
           ))}
-          {loading && <LoadingDots />}
+          {loading && <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><LoadingDots /></div>}
           <div ref={bottomRef} />
         </div>
         <div style={{ padding: 12, borderTop: '1px solid var(--border)', display: 'flex', gap: 8 }}>
-          <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()} placeholder="Ask about GBP optimization..." style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
-          <button onClick={send} disabled={loading} className="btn btn-primary">Send</button>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && send()}
+            placeholder="Ask about GBP optimization..."
+            style={{ flex: 1, padding: 10, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 13 }}
+          />
+          <button onClick={() => send()} disabled={loading} className="btn btn-primary">
+            <Send size={16} />
+          </button>
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 12 }}>
-        {examples.map((ex, i) => <button key={i} onClick={() => { setInput(ex); }} style={{ padding: 12, background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 12, textAlign: 'left' }}>{ex}</button>)}
+
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 10 }}>SUGGESTED QUESTIONS</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
+          {examples.map((ex, i) => (
+            <button
+              key={i}
+              onClick={() => send(ex)}
+              disabled={loading}
+              style={{
+                padding: 12,
+                background: 'var(--bg-tertiary)',
+                border: '1px solid var(--border)',
+                borderRadius: 6,
+                cursor: 'pointer',
+                color: 'var(--text-secondary)',
+                fontSize: 12,
+                textAlign: 'left',
+                transition: 'all 0.2s',
+                opacity: loading ? 0.5 : 1
+              }}
+              onMouseEnter={(e) => e.target.style.background = 'var(--bg-elevated)'}
+              onMouseLeave={(e) => e.target.style.background = 'var(--bg-tertiary)'}
+            >
+              {ex}
+            </button>
+          ))}
+        </div>
       </div>
+
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     </div>
   );
@@ -11980,6 +12073,7 @@ function WaylayGBPManager() {
 function WaylayKeywordPlanner() {
   const [seed, setSeed] = useState('healthy ready to eat food');
   const [location, setLocation] = useState('India');
+  const [intent, setIntent] = useState('all');
   const [keywords, setKeywords] = useState(() => safeJSON(localStorage.getItem('protocol_waylay_keywords'), []));
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
@@ -11997,13 +12091,31 @@ function WaylayKeywordPlanner() {
 
 For each, include: keyword, intent (informational/transactional/navigational), estimatedVolume (1-1000), difficulty (Easy/Medium/Hard), priority (P0/P1/P2).
 
-Return as valid JSON only.`;
-      const resp = await callClaude(prompt, WAYLAY_SYSTEM);
-      const parsed = JSON.parse(resp);
-      const flat = Object.values(parsed).flat();
+Return as valid JSON only with structure: {primary: [...], secondary: [...], longTail: [...], local: [...], questions: [...]}`;
+
+      const result = await callClaude({
+        messages: [{ role: 'user', content: prompt }],
+        system: WAYLAY_SYSTEM,
+        maxTokens: 4096,
+        temperature: 0.7
+      });
+
+      let text = result.content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+      let parsed = null;
+
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        const match = text.match(/\{[\s\S]*\}/);
+        if (match) parsed = JSON.parse(match[0]);
+      }
+
+      if (!parsed) throw new Error('Could not parse response as JSON');
+
+      const flat = Object.values(parsed).flat().filter(k => k && k.keyword);
       setKeywords(flat);
       localStorage.setItem('protocol_waylay_keywords', JSON.stringify(flat));
-      setToast({ message: `Generated ${flat.length} keywords`, type: 'success' });
+      setToast({ message: `Generated ${flat.length} keywords across all intents`, type: 'success' });
     } catch (e) {
       setToast({ message: 'Generation failed: ' + e.message, type: 'error' });
     } finally {
@@ -12011,49 +12123,149 @@ Return as valid JSON only.`;
     }
   };
 
+  const exportCSV = () => {
+    const headers = 'Keyword,Intent,Volume,Difficulty,Priority\n';
+    const rows = keywords.map(k => `"${k.keyword}","${k.intent}","${k.estimatedVolume}","${k.difficulty}","${k.priority}"`).join('\n');
+    const csv = headers + rows;
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = `keywords-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    setToast({ message: 'Keywords exported to CSV', type: 'success' });
+  };
+
+  const clearKeywords = () => {
+    setKeywords([]);
+    localStorage.removeItem('protocol_waylay_keywords');
+    setToast({ message: 'Keywords cleared', type: 'success' });
+  };
+
+  const p0Count = keywords.filter(k => k.priority === 'P0').length;
+  const avgDifficulty = keywords.length ? Math.round(keywords.filter(k => k.difficulty === 'Hard').length / keywords.length * 100) : 0;
+
   return (
-    <div style={{ padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
-      <h1 className="card-title" style={{ marginBottom: 20 }}>Waylay — Keyword Planner</h1>
-      <div className="card" style={{ marginBottom: 20 }}>
-        <div className="card-header"><h3 className="card-title">Generate Keywords</h3></div>
-        <div style={{ padding: 16, display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, alignItems: 'end' }}>
-          <div><label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Seed Keyword</label><input type="text" value={seed} onChange={(e) => setSeed(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
-          <div><label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Location</label><input type="text" value={location} onChange={(e) => setLocation(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
-          <button onClick={generate} disabled={loading} className="btn btn-primary">{loading ? 'Generating...' : 'Generate'}</button>
+    <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
+      <div className="page-header" style={{ marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <Search size={32} color="var(--accent)" />
+          <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Keyword Planner</h1>
+        </div>
+        <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6 }}>
+          Discover and cluster high-intent keywords for your SEO strategy. Analyze search volume, difficulty, and priority across all keyword categories.
+        </p>
+      </div>
+
+      <div className="card" style={{ marginBottom: 24, padding: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 12, alignItems: 'end' }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--text-tertiary)' }}>Seed Keyword</label>
+            <input
+              type="text"
+              value={seed}
+              onChange={(e) => setSeed(e.target.value)}
+              placeholder="healthy ready to eat food"
+              style={{ width: '100%', padding: 10, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 13 }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--text-tertiary)' }}>Location</label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="India"
+              style={{ width: '100%', padding: 10, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 13 }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--text-tertiary)' }}>Intent</label>
+            <select
+              value={intent}
+              onChange={(e) => setIntent(e.target.value)}
+              style={{ width: '100%', padding: 10, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 13 }}
+            >
+              <option value="all">All Intents</option>
+              <option value="informational">Informational</option>
+              <option value="transactional">Transactional</option>
+              <option value="navigational">Navigational</option>
+            </select>
+          </div>
+          <button onClick={generate} disabled={loading} className="btn btn-primary">
+            {loading ? 'Generating...' : 'Generate'}
+          </button>
         </div>
       </div>
+
       {keywords.length > 0 && (
-        <div className="card">
-          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 className="card-title">Keywords ({keywords.length})</h3>
-            <button onClick={() => { const csv = keywords.map(k => `"${k.keyword}",${k.intent},${k.estimatedVolume},${k.difficulty},${k.priority}`).join('\n'); const a = document.createElement('a'); a.href = 'data:text/csv,' + encodeURIComponent(csv); a.download = 'keywords.csv'; a.click(); }} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: 12 }}>Export CSV</button>
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
+            <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 8 }}>TOTAL KEYWORDS</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>{keywords.length}</div>
+            </div>
+            <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 8 }}>P0 PRIORITY</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>{p0Count}</div>
+            </div>
+            <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 8 }}>AVG DIFFICULTY</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: avgDifficulty > 50 ? '#f59e0b' : '#059669' }}>{avgDifficulty}%</div>
+            </div>
           </div>
-          <div style={{ padding: 16, overflow: 'auto', maxHeight: 400 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <thead style={{ borderBottom: '1px solid var(--border)' }}>
-                <tr style={{ color: 'var(--text-tertiary)' }}>
-                  <th style={{ textAlign: 'left', padding: '8px 0' }}>Keyword</th>
-                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Intent</th>
-                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Volume</th>
-                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Difficulty</th>
-                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Priority</th>
-                </tr>
-              </thead>
-              <tbody>
-                {keywords.map((k, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid var(--border)', opacity: k.priority === 'P0' ? 1 : 0.7 }}>
-                    <td style={{ padding: '8px 0' }}>{k.keyword}</td>
-                    <td style={{ textAlign: 'center', padding: '8px 0', fontSize: 11 }}>{k.intent}</td>
-                    <td style={{ textAlign: 'center', padding: '8px 0' }}>{k.estimatedVolume}</td>
-                    <td style={{ textAlign: 'center', padding: '8px 0', fontSize: 11, color: k.difficulty === 'Easy' ? '#059669' : k.difficulty === 'Medium' ? '#f59e0b' : '#dc2626' }}>{k.difficulty}</td>
-                    <td style={{ textAlign: 'center', padding: '8px 0', fontWeight: 600, color: k.priority === 'P0' ? 'var(--accent)' : 'var(--text-tertiary)' }}>{k.priority}</td>
+
+          <div className="card">
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className="card-title">Keywords ({keywords.length})</h3>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={exportCSV} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Download size={14} /> Export CSV
+                </button>
+                <button onClick={clearKeywords} style={{ padding: '6px 12px', fontSize: 12, background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer', color: 'var(--text-tertiary)' }}>
+                  Clear
+                </button>
+              </div>
+            </div>
+            <div style={{ padding: 16, overflow: 'auto', maxHeight: 500 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead style={{ borderBottom: '2px solid var(--border)', position: 'sticky', top: 0, background: 'var(--bg-primary)' }}>
+                  <tr style={{ color: 'var(--text-tertiary)' }}>
+                    <th style={{ textAlign: 'left', padding: '10px 0', fontWeight: 600 }}>Keyword</th>
+                    <th style={{ textAlign: 'center', padding: '10px 0', fontWeight: 600 }}>Intent</th>
+                    <th style={{ textAlign: 'center', padding: '10px 0', fontWeight: 600 }}>Volume</th>
+                    <th style={{ textAlign: 'center', padding: '10px 0', fontWeight: 600 }}>Difficulty</th>
+                    <th style={{ textAlign: 'center', padding: '10px 0', fontWeight: 600 }}>Priority</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {keywords.map((k, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid var(--border)', opacity: k.priority === 'P0' ? 1 : 0.75 }}>
+                      <td style={{ padding: '10px 0', fontWeight: 500 }}>{k.keyword}</td>
+                      <td style={{ textAlign: 'center', padding: '10px 0', fontSize: 12 }}>{k.intent?.substring(0, 4).toUpperCase()}</td>
+                      <td style={{ textAlign: 'center', padding: '10px 0' }}>{k.estimatedVolume}</td>
+                      <td style={{ textAlign: 'center', padding: '10px 0', fontSize: 12, fontWeight: 600, color: k.difficulty === 'Easy' ? '#059669' : k.difficulty === 'Medium' ? '#f59e0b' : '#dc2626' }}>
+                        {k.difficulty}
+                      </td>
+                      <td style={{ textAlign: 'center', padding: '10px 0', fontWeight: 600, color: k.priority === 'P0' ? 'var(--accent)' : 'var(--text-tertiary)' }}>
+                        {k.priority}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
+      {keywords.length === 0 && !loading && (
+        <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: 14 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>No keywords generated yet</div>
+            <div>Fill in your seed keyword and location above, then click Generate to start clustering keywords.</div>
           </div>
         </div>
       )}
+
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     </div>
   );
@@ -12069,15 +12281,35 @@ function WaylayLocalSEO() {
   const audit = async () => {
     setLoading(true);
     try {
-      const prompt = `For "${business}" in ${location}, perform a local SEO audit. Return JSON with:
-- nap: {name, address, phone, status} (consistency score)
-- citations: [{directory, status, importance}] (top 15 for Indian food businesses)
-- reviews: {target, strategy, timeline}
-- backlinks: {topSources, gaps}
-- localPackFocus: [{keyword, competition, opportunity}]
-- score: 0-100`;
-      const resp = await callClaude(prompt, WAYLAY_SYSTEM);
-      const parsed = JSON.parse(resp);
+      const prompt = `For "${business}" in ${location}, perform a comprehensive local SEO audit. Return JSON with:
+{
+  score: (0-100),
+  nap: {name, address, phone, status},
+  citations: [{directory, status, importance}] (top 10),
+  reviews: {target, strategy, timeline},
+  localPackFocus: [{keyword, competition, opportunity}] (top 5),
+  recommendations: ["action 1", "action 2", ...]
+}`;
+
+      const result = await callClaude({
+        messages: [{ role: 'user', content: prompt }],
+        system: WAYLAY_SYSTEM,
+        maxTokens: 4096,
+        temperature: 0.7
+      });
+
+      let text = result.content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+      let parsed = null;
+
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        const match = text.match(/\{[\s\S]*\}/);
+        if (match) parsed = JSON.parse(match[0]);
+      }
+
+      if (!parsed) throw new Error('Could not parse response as JSON');
+
       setResult(parsed);
       localStorage.setItem('protocol_waylay_local_seo', JSON.stringify(parsed));
       setToast({ message: 'Local SEO audit complete', type: 'success' });
@@ -12088,49 +12320,195 @@ function WaylayLocalSEO() {
     }
   };
 
+  const clearAudit = () => {
+    setResult(null);
+    localStorage.removeItem('protocol_waylay_local_seo');
+    setToast({ message: 'Audit cleared', type: 'success' });
+  };
+
+  const scoreColor = result && result.score > 70 ? '#059669' : result && result.score > 50 ? '#f59e0b' : '#dc2626';
+  const scoreLabel = result && result.score > 70 ? 'Strong' : result && result.score > 50 ? 'Good' : 'Needs Improvement';
+
   return (
-    <div style={{ padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
-      <h1 className="card-title" style={{ marginBottom: 20 }}>Waylay — Local SEO Audit</h1>
-      <div className="card" style={{ marginBottom: 20 }}>
-        <div className="card-header"><h3 className="card-title">Audit Configuration</h3></div>
-        <div style={{ padding: 16, display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, alignItems: 'end' }}>
-          <div><label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Business Name</label><input type="text" value={business} onChange={(e) => setBusiness(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
-          <div><label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Location</label><input type="text" value={location} onChange={(e) => setLocation(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
-          <button onClick={audit} disabled={loading} className="btn btn-primary">{loading ? 'Auditing...' : 'Run Audit'}</button>
+    <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
+      <div className="page-header" style={{ marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <Radar size={32} color="var(--accent)" />
+          <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Local SEO Audit</h1>
+        </div>
+        <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6 }}>
+          Analyze your local SEO performance. Review NAP consistency, citation directories, review strategy, and local pack opportunities.
+        </p>
+      </div>
+
+      <div className="card" style={{ marginBottom: 24, padding: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, alignItems: 'end' }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--text-tertiary)' }}>Business Name</label>
+            <input
+              type="text"
+              value={business}
+              onChange={(e) => setBusiness(e.target.value)}
+              placeholder="Kiro Foods"
+              style={{ width: '100%', padding: 10, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 13 }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--text-tertiary)' }}>Location</label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Delhi"
+              style={{ width: '100%', padding: 10, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 13 }}
+            />
+          </div>
+          <button onClick={audit} disabled={loading} className="btn btn-primary">
+            {loading ? 'Auditing...' : 'Run Audit'}
+          </button>
         </div>
       </div>
+
       {result && (
         <>
-          <div className="card" style={{ marginBottom: 20, background: `linear-gradient(135deg, rgba(255,70,85,${result.score > 70 ? 0.1 : result.score > 50 ? 0.08 : 0.06}), rgba(99,102,241,0.05))` }}>
-            <div style={{ padding: 24, textAlign: 'center' }}>
-              <div style={{ fontSize: 48, fontWeight: 900, color: result.score > 70 ? '#059669' : result.score > 50 ? '#f59e0b' : '#dc2626' }}>{result.score}</div>
-              <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 4 }}>Local SEO Score</div>
-            </div>
+          <div className="card" style={{ marginBottom: 24, padding: 28, background: `linear-gradient(135deg, rgba(${scoreColor === '#059669' ? '5,150,105' : scoreColor === '#f59e0b' ? '245,158,11' : '220,38,38'},0.08), rgba(99,102,241,0.05))`, textAlign: 'center' }}>
+            <div style={{ fontSize: 56, fontWeight: 900, color: scoreColor, marginBottom: 8 }}>{result.score}</div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>Local SEO Score</div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Status: <strong style={{ color: scoreColor }}>{scoreLabel}</strong></div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16, marginBottom: 24 }}>
             <div className="card">
-              <div className="card-header"><h3 className="card-title">NAP Consistency</h3></div>
-              <div style={{ padding: 12, fontSize: 13, lineHeight: 1.8 }}>
-                <div><strong>Name:</strong> {result.nap?.name}</div>
-                <div><strong>Address:</strong> {result.nap?.address}</div>
-                <div><strong>Phone:</strong> {result.nap?.phone}</div>
-                <div style={{ marginTop: 8, padding: 8, background: 'var(--bg-tertiary)', borderRadius: 4, fontSize: 12 }}><strong>Status:</strong> {result.nap?.status}</div>
+              <div className="card-header" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <MapPinned size={16} color="var(--accent)" />
+                <h3 className="card-title">NAP Consistency</h3>
+              </div>
+              <div style={{ padding: 16, fontSize: 13, lineHeight: 1.8 }}>
+                <div style={{ marginBottom: 8 }}>
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: 11, fontWeight: 600, marginBottom: 3 }}>BUSINESS NAME</div>
+                  <div style={{ fontWeight: 500 }}>{result.nap?.name || 'N/A'}</div>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: 11, fontWeight: 600, marginBottom: 3 }}>ADDRESS</div>
+                  <div style={{ fontWeight: 500 }}>{result.nap?.address || 'N/A'}</div>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: 11, fontWeight: 600, marginBottom: 3 }}>PHONE</div>
+                  <div style={{ fontWeight: 500 }}>{result.nap?.phone || 'N/A'}</div>
+                </div>
+                <div style={{ padding: 10, background: 'var(--bg-tertiary)', borderRadius: 4, marginTop: 12 }}>
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: 11, fontWeight: 600, marginBottom: 3 }}>STATUS</div>
+                  <div style={{ fontWeight: 500, color: 'var(--accent)' }}>{result.nap?.status || 'Consistent'}</div>
+                </div>
               </div>
             </div>
+
             <div className="card">
-              <div className="card-header"><h3 className="card-title">Top Citation Directories</h3></div>
-              <div style={{ padding: 12, fontSize: 13 }}>
-                {result.citations?.slice(0, 5).map((c, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: i < 4 ? '1px solid var(--border)' : 'none' }}>
-                    <span>{c.directory}</span>
-                    <span style={{ fontSize: 11, color: c.status === 'Listed' ? '#059669' : '#f59e0b' }}>{c.status}</span>
-                  </div>
-                ))}
+              <div className="card-header" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Database size={16} color="var(--accent)" />
+                <h3 className="card-title">Citation Directories</h3>
+              </div>
+              <div style={{ padding: 16, fontSize: 13 }}>
+                {result.citations && result.citations.length > 0 ? (
+                  <>
+                    {result.citations.slice(0, 6).map((c, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: i < result.citations.slice(0, 6).length - 1 ? '1px solid var(--border)' : 'none' }}>
+                        <span style={{ fontWeight: 500 }}>{c.directory}</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: c.status === 'Listed' ? '#059669' : '#f59e0b', background: c.status === 'Listed' ? 'rgba(5,150,105,0.1)' : 'rgba(245,158,11,0.1)', padding: '2px 8px', borderRadius: 3 }}>
+                          {c.status}
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>No citation data available</div>
+                )}
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-header" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Star size={16} color="var(--accent)" />
+                <h3 className="card-title">Review Strategy</h3>
+              </div>
+              <div style={{ padding: 16, fontSize: 13, lineHeight: 1.8 }}>
+                {result.reviews ? (
+                  <>
+                    <div style={{ marginBottom: 8 }}>
+                      <div style={{ color: 'var(--text-tertiary)', fontSize: 11, fontWeight: 600, marginBottom: 3 }}>TARGET</div>
+                      <div style={{ fontWeight: 500 }}>{result.reviews.target || 'Build review base'}</div>
+                    </div>
+                    <div style={{ marginBottom: 8 }}>
+                      <div style={{ color: 'var(--text-tertiary)', fontSize: 11, fontWeight: 600, marginBottom: 3 }}>STRATEGY</div>
+                      <div style={{ fontWeight: 500, fontSize: 12 }}>{result.reviews.strategy || 'Collect reviews systematically'}</div>
+                    </div>
+                    <div style={{ padding: 10, background: 'var(--bg-tertiary)', borderRadius: 4, marginTop: 8 }}>
+                      <div style={{ color: 'var(--text-tertiary)', fontSize: 11, fontWeight: 600, marginBottom: 3 }}>TIMELINE</div>
+                      <div style={{ fontSize: 12, fontWeight: 500 }}>{result.reviews.timeline || '90 days'}</div>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>No strategy data available</div>
+                )}
               </div>
             </div>
           </div>
+
+          {result.localPackFocus && result.localPackFocus.length > 0 && (
+            <div className="card" style={{ marginBottom: 24 }}>
+              <div className="card-header" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <TrendingUp size={16} color="var(--accent)" />
+                <h3 className="card-title">Local Pack Opportunities</h3>
+              </div>
+              <div style={{ padding: 16 }}>
+                <div style={{ display: 'grid', gap: 12 }}>
+                  {result.localPackFocus.slice(0, 5).map((kw, i) => (
+                    <div key={i} style={{ padding: 12, background: 'var(--bg-tertiary)', borderRadius: 6, borderLeft: '3px solid var(--accent)' }}>
+                      <div style={{ fontWeight: 600, marginBottom: 4, color: 'var(--text-primary)' }}>{kw.keyword}</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 12, color: 'var(--text-secondary)' }}>
+                        <div>Competition: <strong>{kw.competition || 'Medium'}</strong></div>
+                        <div>Opportunity: <strong>{kw.opportunity || 'High'}</strong></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {result.recommendations && result.recommendations.length > 0 && (
+            <div className="card" style={{ marginBottom: 24 }}>
+              <div className="card-header" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <CheckCircle2 size={16} color="var(--accent)" />
+                <h3 className="card-title">Top Recommendations</h3>
+              </div>
+              <div style={{ padding: 16 }}>
+                <ol style={{ paddingLeft: 20, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {result.recommendations.slice(0, 5).map((rec, i) => (
+                    <li key={i} style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+                      {rec}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          )}
+
+          <button onClick={clearAudit} style={{ padding: '8px 16px', fontSize: 12, background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer', color: 'var(--text-tertiary)' }}>
+            Clear Audit
+          </button>
         </>
       )}
+
+      {!result && !loading && (
+        <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: 14 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>No audit yet</div>
+            <div>Enter your business name and location above, then click Run Audit to analyze your local SEO performance.</div>
+          </div>
+        </div>
+      )}
+
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     </div>
   );
@@ -12144,14 +12522,33 @@ function WaylayContentPlanner() {
   const generate = async () => {
     setLoading(true);
     try {
-      const prompt = `Generate a 12-week SEO content calendar for Kiro Foods India. Return JSON array of 12 items with:
-{topic, targetKeyword, contentType (blog/landing/faq), wordCount, internalLinks, priority (P0/P1/P2), week}
-Focus on healthy food, local SEO, product launches, seasonal themes.`;
-      const resp = await callClaude(prompt, WAYLAY_SYSTEM);
-      const parsed = JSON.parse(resp);
+      const prompt = `Generate a 12-week SEO content calendar for Kiro Foods India (healthy ready-to-eat food). Return JSON array of 12 items with:
+[{week, topic, targetKeyword, contentType (blog/landing/faq), wordCount, priority (P0/P1/P2)}]
+Focus on: healthy food trends, local SEO, product launches, seasonal themes, nutrition benefits, lifestyle content. Make it tactical and specific to Indian market.`;
+
+      const result = await callClaude({
+        messages: [{ role: 'user', content: prompt }],
+        system: WAYLAY_SYSTEM,
+        maxTokens: 4096,
+        temperature: 0.7
+      });
+
+      let text = result.content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+      let parsed = null;
+
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        const match = text.match(/\[[\s\S]*\]/);
+        if (match) parsed = JSON.parse(match[0]);
+      }
+
+      if (!Array.isArray(parsed)) parsed = [parsed];
+      if (!parsed || parsed.length === 0) throw new Error('Could not parse response as JSON array');
+
       setPlan(parsed);
       localStorage.setItem('protocol_waylay_content_plan', JSON.stringify(parsed));
-      setToast({ message: 'Content plan generated', type: 'success' });
+      setToast({ message: `Content plan generated for ${parsed.length} weeks`, type: 'success' });
     } catch (e) {
       setToast({ message: 'Generation failed: ' + e.message, type: 'error' });
     } finally {
@@ -12159,41 +12556,119 @@ Focus on healthy food, local SEO, product launches, seasonal themes.`;
     }
   };
 
+  const exportCSV = () => {
+    const headers = 'Week,Topic,Target Keyword,Type,Word Count,Priority\n';
+    const rows = plan.map(p => `${p.week},"${p.topic}","${p.targetKeyword}",${p.contentType},${p.wordCount},${p.priority}`).join('\n');
+    const csv = headers + rows;
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = `content-plan-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    setToast({ message: 'Content plan exported to CSV', type: 'success' });
+  };
+
+  const clearPlan = () => {
+    setPlan([]);
+    localStorage.removeItem('protocol_waylay_content_plan');
+    setToast({ message: 'Content plan cleared', type: 'success' });
+  };
+
+  const totalWords = plan.reduce((sum, p) => sum + (p.wordCount || 0), 0);
+  const p0Count = plan.filter(p => p.priority === 'P0').length;
+
   return (
-    <div style={{ padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
-      <h1 className="card-title" style={{ marginBottom: 20 }}>Waylay — Content Planner</h1>
-      <button onClick={generate} disabled={loading} className="btn btn-primary" style={{ marginBottom: 20 }}>{loading ? 'Generating...' : 'Generate 12-Week Calendar'}</button>
+    <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
+      <div className="page-header" style={{ marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <CalendarDays size={32} color="var(--accent)" />
+          <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Content Planner</h1>
+        </div>
+        <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6 }}>
+          Generate a strategic 12-week content calendar aligned with your local SEO goals. Plan blog posts, landing pages, and FAQ content.
+        </p>
+      </div>
+
+      <div style={{ marginBottom: 24 }}>
+        <button onClick={generate} disabled={loading} className="btn btn-primary" style={{ padding: '10px 20px', fontSize: 14 }}>
+          {loading ? 'Generating Calendar...' : 'Generate 12-Week Calendar'}
+        </button>
+      </div>
+
       {plan.length > 0 && (
-        <div className="card">
-          <div className="card-header"><h3 className="card-title">Content Calendar</h3></div>
-          <div style={{ padding: 16, overflow: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-              <thead style={{ borderBottom: '1px solid var(--border)' }}>
-                <tr style={{ color: 'var(--text-tertiary)' }}>
-                  <th style={{ textAlign: 'left', padding: '8px 0' }}>Week</th>
-                  <th style={{ textAlign: 'left', padding: '8px 0' }}>Topic</th>
-                  <th style={{ textAlign: 'left', padding: '8px 0' }}>Target Keyword</th>
-                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Type</th>
-                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Words</th>
-                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Priority</th>
-                </tr>
-              </thead>
-              <tbody>
-                {plan.map((item, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ padding: '8px 0', fontWeight: 600 }}>W{item.week}</td>
-                    <td style={{ padding: '8px 0' }}>{item.topic}</td>
-                    <td style={{ padding: '8px 0', color: 'var(--accent)' }}>{item.targetKeyword}</td>
-                    <td style={{ textAlign: 'center', padding: '8px 0', fontSize: 11 }}>{item.contentType}</td>
-                    <td style={{ textAlign: 'center', padding: '8px 0' }}>{item.wordCount}</td>
-                    <td style={{ textAlign: 'center', padding: '8px 0', fontWeight: 600, color: item.priority === 'P0' ? 'var(--accent)' : 'var(--text-tertiary)' }}>{item.priority}</td>
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
+            <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 8 }}>TOTAL CONTENT</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>{plan.length}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4 }}>weeks planned</div>
+            </div>
+            <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 8 }}>TOTAL WORDS</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>{totalWords.toLocaleString()}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4 }}>target output</div>
+            </div>
+            <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 8 }}>P0 PRIORITY</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>{p0Count}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4 }}>high priority</div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className="card-title">Content Calendar</h3>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={exportCSV} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Download size={14} /> Export
+                </button>
+                <button onClick={clearPlan} style={{ padding: '6px 12px', fontSize: 12, background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer', color: 'var(--text-tertiary)' }}>
+                  Clear
+                </button>
+              </div>
+            </div>
+            <div style={{ padding: 16, overflow: 'auto', maxHeight: 600 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead style={{ borderBottom: '2px solid var(--border)', position: 'sticky', top: 0, background: 'var(--bg-primary)' }}>
+                  <tr style={{ color: 'var(--text-tertiary)' }}>
+                    <th style={{ textAlign: 'left', padding: '10px 0', fontWeight: 600 }}>Week</th>
+                    <th style={{ textAlign: 'left', padding: '10px 0', fontWeight: 600 }}>Topic</th>
+                    <th style={{ textAlign: 'left', padding: '10px 0', fontWeight: 600 }}>Target Keyword</th>
+                    <th style={{ textAlign: 'center', padding: '10px 0', fontWeight: 600 }}>Type</th>
+                    <th style={{ textAlign: 'center', padding: '10px 0', fontWeight: 600 }}>Words</th>
+                    <th style={{ textAlign: 'center', padding: '10px 0', fontWeight: 600 }}>Priority</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {plan.map((item, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid var(--border)', opacity: item.priority === 'P0' ? 1 : 0.75 }}>
+                      <td style={{ padding: '10px 0', fontWeight: 600, color: 'var(--accent)' }}>W{item.week}</td>
+                      <td style={{ padding: '10px 0', fontWeight: 500 }}>{item.topic}</td>
+                      <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>{item.targetKeyword}</td>
+                      <td style={{ textAlign: 'center', padding: '10px 0', fontSize: 12, background: item.contentType === 'blog' ? 'rgba(124,58,237,0.1)' : item.contentType === 'landing' ? 'rgba(5,150,105,0.1)' : 'rgba(245,158,11,0.1)', borderRadius: 3, margin: '2px' }}>
+                        {item.contentType}
+                      </td>
+                      <td style={{ textAlign: 'center', padding: '10px 0' }}>{item.wordCount}</td>
+                      <td style={{ textAlign: 'center', padding: '10px 0', fontWeight: 600, color: item.priority === 'P0' ? 'var(--accent)' : 'var(--text-tertiary)' }}>
+                        {item.priority}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
+      {plan.length === 0 && !loading && (
+        <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: 14 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>No content plan yet</div>
+            <div>Click "Generate 12-Week Calendar" above to create your SEO-focused content strategy.</div>
           </div>
         </div>
       )}
+
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     </div>
   );
@@ -12203,6 +12678,7 @@ function WaylayActionPlans() {
   const [planType, setPlanType] = useState('GBP Launch');
   const [loading, setLoading] = useState(false);
   const [plans, setPlans] = useState(() => safeJSON(localStorage.getItem('protocol_waylay_plans'), []));
+  const [checkedTasks, setCheckedTasks] = useState(() => safeJSON(localStorage.getItem('protocol_waylay_plan_progress'), {}));
   const [toast, setToast] = useState(null);
 
   const types = ['GBP Launch', 'Local SEO Sprint', 'Keyword Domination', 'Content Blitz', 'Review Acquisition'];
@@ -12210,14 +12686,33 @@ function WaylayActionPlans() {
   const generate = async () => {
     setLoading(true);
     try {
-      const prompt = `Generate a detailed weekly action plan for "${planType}" for Kiro Foods India. Return JSON with:
-{type, duration, weeks: [{week, tasks: [{task, owner, deadline, kpi}]}]}
-Make tasks specific, measurable, with clear owners and KPIs.`;
-      const resp = await callClaude(prompt, WAYLAY_SYSTEM);
-      const parsed = JSON.parse(resp);
-      setPlans([...plans, parsed]);
-      localStorage.setItem('protocol_waylay_plans', JSON.stringify([...plans, parsed]));
-      setToast({ message: 'Action plan created', type: 'success' });
+      const prompt = `Generate a detailed action plan for "${planType}" for Kiro Foods India. Return JSON:
+{type: "${planType}", duration, weeks: [{week, tasks: [{task, owner, deadline, kpi}]}]}
+Make tasks specific, measurable, with clear owners and specific KPIs.`;
+
+      const result = await callClaude({
+        messages: [{ role: 'user', content: prompt }],
+        system: WAYLAY_SYSTEM,
+        maxTokens: 4096,
+        temperature: 0.7
+      });
+
+      let text = result.content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+      let parsed = null;
+
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        const match = text.match(/\{[\s\S]*\}/);
+        if (match) parsed = JSON.parse(match[0]);
+      }
+
+      if (!parsed) throw new Error('Could not parse response as JSON');
+
+      const updatedPlans = [...plans, { ...parsed, id: Date.now().toString() }];
+      setPlans(updatedPlans);
+      localStorage.setItem('protocol_waylay_plans', JSON.stringify(updatedPlans));
+      setToast({ message: `${planType} action plan created`, type: 'success' });
     } catch (e) {
       setToast({ message: 'Generation failed: ' + e.message, type: 'error' });
     } finally {
@@ -12225,40 +12720,157 @@ Make tasks specific, measurable, with clear owners and KPIs.`;
     }
   };
 
+  const toggleTask = (planId, weekNum, taskNum) => {
+    const key = `${planId}-${weekNum}-${taskNum}`;
+    const updated = { ...checkedTasks, [key]: !checkedTasks[key] };
+    setCheckedTasks(updated);
+    localStorage.setItem('protocol_waylay_plan_progress', JSON.stringify(updated));
+  };
+
+  const clearPlans = () => {
+    setPlans([]);
+    setCheckedTasks({});
+    localStorage.removeItem('protocol_waylay_plans');
+    localStorage.removeItem('protocol_waylay_plan_progress');
+    setToast({ message: 'All action plans cleared', type: 'success' });
+  };
+
   return (
-    <div style={{ padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
-      <h1 className="card-title" style={{ marginBottom: 20 }}>Waylay — Action Plans</h1>
-      <div className="card" style={{ marginBottom: 20 }}>
-        <div className="card-header"><h3 className="card-title">Create Action Plan</h3></div>
-        <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 12, alignItems: 'center' }}>
-          <select value={planType} onChange={(e) => setPlanType(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
-            {types.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <button onClick={generate} disabled={loading} className="btn btn-primary">{loading ? 'Generating...' : 'Generate Plan'}</button>
+    <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
+      <div className="page-header" style={{ marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <ClipboardList size={32} color="var(--accent)" />
+          <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Action Plans</h1>
+        </div>
+        <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6 }}>
+          Create detailed sprint plans with weekly tasks. Track progress with checkboxes and monitor KPIs for each action item.
+        </p>
+      </div>
+
+      <div className="card" style={{ marginBottom: 24, padding: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 12, alignItems: 'end' }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 8, color: 'var(--text-tertiary)' }}>SELECT PLAN TYPE</label>
+            <select
+              value={planType}
+              onChange={(e) => setPlanType(e.target.value)}
+              style={{ padding: 10, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 13, minWidth: 250 }}
+            >
+              {types.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <button onClick={generate} disabled={loading} className="btn btn-primary">
+            {loading ? 'Generating...' : 'Generate Plan'}
+          </button>
         </div>
       </div>
+
       {plans.length > 0 && (
-        <div style={{ display: 'grid', gap: 16 }}>
-          {plans.map((p, i) => (
-            <div key={i} className="card">
-              <div className="card-header"><h3 className="card-title">{p.type} ({p.duration})</h3></div>
-              <div style={{ padding: 16 }}>
-                {p.weeks?.map((w, wi) => (
-                  <div key={wi} style={{ marginBottom: 16 }}>
-                    <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--accent)' }}>Week {w.week}</div>
-                    {w.tasks?.map((t, ti) => (
-                      <div key={ti} style={{ padding: 8, background: 'var(--bg-tertiary)', borderRadius: 4, marginBottom: 6, fontSize: 12, lineHeight: 1.6 }}>
-                        <div><strong>{t.task}</strong></div>
-                        <div style={{ color: 'var(--text-secondary)', fontSize: 11, marginTop: 4 }}>Owner: {t.owner} | KPI: {t.kpi}</div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+              {plans.length} Action Plan{plans.length !== 1 ? 's' : ''} Created
             </div>
-          ))}
+            <button onClick={clearPlans} style={{ padding: '6px 12px', fontSize: 12, background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer', color: 'var(--text-tertiary)' }}>
+              Clear All
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gap: 20 }}>
+            {plans.map((p, planIdx) => {
+              const totalTasks = p.weeks?.reduce((sum, w) => sum + (w.tasks?.length || 0), 0) || 0;
+              const completedTasks = Object.values(checkedTasks).filter(Boolean).length;
+              const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+              return (
+                <div key={p.id || planIdx} className="card">
+                  <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                    <div>
+                      <h3 className="card-title">{p.type}</h3>
+                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>Duration: {p.duration || 'TBD'}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)', marginBottom: 4 }}>Progress</div>
+                      <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>{progressPercent}%</div>
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '12px 16px', background: 'var(--bg-tertiary)', borderRadius: 4, marginBottom: 16 }}>
+                    <div style={{ height: 6, background: 'var(--bg-secondary)', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', background: 'var(--accent)', width: `${progressPercent}%`, transition: 'width 0.3s' }} />
+                    </div>
+                  </div>
+
+                  <div style={{ padding: 16 }}>
+                    {p.weeks?.map((w, weekIdx) => {
+                      const weekTasks = w.tasks || [];
+                      const weekCompleted = weekTasks.filter((_, ti) => checkedTasks[`${p.id || planIdx}-${w.week}-${ti}`]).length;
+                      return (
+                        <div key={weekIdx} style={{ marginBottom: 20 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--accent)' }}>
+                              Week {w.week}
+                            </div>
+                            <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                              {weekCompleted}/{weekTasks.length} tasks done
+                            </div>
+                          </div>
+                          <div style={{ display: 'grid', gap: 10 }}>
+                            {weekTasks.map((t, taskIdx) => {
+                              const isChecked = checkedTasks[`${p.id || planIdx}-${w.week}-${taskIdx}`];
+                              return (
+                                <div
+                                  key={taskIdx}
+                                  style={{
+                                    padding: 12,
+                                    background: 'var(--bg-tertiary)',
+                                    borderRadius: 6,
+                                    borderLeft: '3px solid var(--accent)',
+                                    opacity: isChecked ? 0.6 : 1,
+                                    textDecoration: isChecked ? 'line-through' : 'none'
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', gap: 10, alignItems: 'start' }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked || false}
+                                      onChange={() => toggleTask(p.id || planIdx, w.week, taskIdx)}
+                                      style={{ marginTop: 2, cursor: 'pointer' }}
+                                    />
+                                    <div style={{ flex: 1 }}>
+                                      <div style={{ fontWeight: 500, marginBottom: 4, color: 'var(--text-primary)' }}>
+                                        {t.task}
+                                      </div>
+                                      <div style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                        <div>Owner: <strong>{t.owner || 'TBD'}</strong></div>
+                                        <div>KPI: <strong>{t.kpi || 'N/A'}</strong></div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
+
+      {plans.length === 0 && !loading && (
+        <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: 14 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>No action plans yet</div>
+            <div>Select a plan type above and click "Generate Plan" to create your tactical sprint.</div>
+          </div>
+        </div>
+      )}
+
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     </div>
   );
@@ -12274,12 +12886,31 @@ function WaylayCompetitorMap() {
   const analyze = async () => {
     setLoading(true);
     try {
-      const prompt = `Analyze top 3 local competitors for "${category}" in ${location}. Return JSON with competitors: [{name, strength, weakness, gbpScore, reviewCount, keywordGaps, beatThem}]`;
-      const resp = await callClaude(prompt, WAYLAY_SYSTEM);
-      const parsed = JSON.parse(resp);
-      setCompetitors(parsed.competitors || []);
-      localStorage.setItem('protocol_waylay_competitors', JSON.stringify(parsed.competitors || []));
-      setToast({ message: 'Competitor map created', type: 'success' });
+      const prompt = `Analyze top 3 local competitors for "${category}" in ${location}. Return JSON:
+{competitors: [{name, gbpScore (0-100), reviewCount, strengths (array), weaknesses (array), keywordGaps (array), beatThem}]}`;
+
+      const result = await callClaude({
+        messages: [{ role: 'user', content: prompt }],
+        system: WAYLAY_SYSTEM,
+        maxTokens: 4096,
+        temperature: 0.7
+      });
+
+      let text = result.content.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+      let parsed = null;
+
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        const match = text.match(/\{[\s\S]*\}/);
+        if (match) parsed = JSON.parse(match[0]);
+      }
+
+      if (!parsed || !parsed.competitors) throw new Error('Could not parse response as JSON');
+
+      setCompetitors(parsed.competitors);
+      localStorage.setItem('protocol_waylay_competitors', JSON.stringify(parsed.competitors));
+      setToast({ message: `Analyzed ${parsed.competitors.length} competitors`, type: 'success' });
     } catch (e) {
       setToast({ message: 'Analysis failed: ' + e.message, type: 'error' });
     } finally {
@@ -12287,40 +12918,165 @@ function WaylayCompetitorMap() {
     }
   };
 
+  const clearAnalysis = () => {
+    setCompetitors([]);
+    localStorage.removeItem('protocol_waylay_competitors');
+    setToast({ message: 'Competitor map cleared', type: 'success' });
+  };
+
+  const avgScore = competitors.length ? Math.round(competitors.reduce((sum, c) => sum + (c.gbpScore || 0), 0) / competitors.length) : 0;
+  const totalReviews = competitors.reduce((sum, c) => sum + (c.reviewCount || 0), 0);
+
   return (
-    <div style={{ padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
-      <h1 className="card-title" style={{ marginBottom: 20 }}>Waylay — Competitor Map</h1>
-      <div className="card" style={{ marginBottom: 20 }}>
-        <div className="card-header"><h3 className="card-title">Analyze Competitors</h3></div>
-        <div style={{ padding: 16, display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, alignItems: 'end' }}>
-          <div><label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Location</label><input type="text" value={location} onChange={(e) => setLocation(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
-          <div><label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Category</label><input type="text" value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
-          <button onClick={analyze} disabled={loading} className="btn btn-primary">{loading ? 'Analyzing...' : 'Analyze'}</button>
+    <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
+      <div className="page-header" style={{ marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <Crosshair size={32} color="var(--accent)" />
+          <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>Competitor Map</h1>
+        </div>
+        <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6 }}>
+          Analyze local competitors. Identify their strengths, weaknesses, keyword gaps, and discover opportunities to outrank them.
+        </p>
+      </div>
+
+      <div className="card" style={{ marginBottom: 24, padding: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, alignItems: 'end' }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--text-tertiary)' }}>Location</label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Delhi"
+              style={{ width: '100%', padding: 10, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 13 }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--text-tertiary)' }}>Category</label>
+            <input
+              type="text"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="Healthy Food Delivery"
+              style={{ width: '100%', padding: 10, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 13 }}
+            />
+          </div>
+          <button onClick={analyze} disabled={loading} className="btn btn-primary">
+            {loading ? 'Analyzing...' : 'Analyze'}
+          </button>
         </div>
       </div>
+
       {competitors.length > 0 && (
-        <div style={{ display: 'grid', gap: 16 }}>
-          {competitors.map((comp, i) => (
-            <div key={i} className="card" style={{ borderLeft: '3px solid var(--accent)' }}>
-              <div className="card-header"><h3 className="card-title">{comp.name} (Score: {comp.gbpScore})</h3></div>
-              <div style={{ padding: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: '#059669' }}>Strengths</div>
-                  <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--text-secondary)' }}>{comp.strength}</div>
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
+            <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 8 }}>COMPETITORS ANALYZED</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>{competitors.length}</div>
+            </div>
+            <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 8 }}>AVG GBP SCORE</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>{avgScore}</div>
+            </div>
+            <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 8 }}>TOTAL REVIEWS</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)' }}>{totalReviews}</div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gap: 20, marginBottom: 24 }}>
+            {competitors.map((comp, i) => (
+              <div key={i} className="card" style={{ borderLeft: '4px solid var(--accent)' }}>
+                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                  <div>
+                    <h3 className="card-title">{comp.name}</h3>
+                    <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 13 }}>
+                      <div>
+                        <div style={{ color: 'var(--text-tertiary)', fontSize: 11, fontWeight: 600 }}>GBP SCORE</div>
+                        <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent)' }}>{comp.gbpScore || 0}</div>
+                      </div>
+                      <div>
+                        <div style={{ color: 'var(--text-tertiary)', fontSize: 11, fontWeight: 600 }}>REVIEWS</div>
+                        <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent)' }}>{comp.reviewCount || 0}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: '#dc2626' }}>Weaknesses</div>
-                  <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--text-secondary)' }}>{comp.weakness}</div>
-                </div>
-                <div style={{ gridColumn: '1/-1' }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: 'var(--accent)' }}>Beat Them Strategy</div>
-                  <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--text-secondary)', padding: 8, background: 'var(--bg-tertiary)', borderRadius: 4 }}>{comp.beatThem}</div>
+
+                <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: '#059669', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <CheckCircle2 size={16} /> Strengths
+                    </div>
+                    <ul style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {Array.isArray(comp.strengths) ? (
+                        comp.strengths.map((s, idx) => (
+                          <li key={idx} style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--text-secondary)' }}>{s}</li>
+                        ))
+                      ) : (
+                        <li style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{comp.strengths}</li>
+                      )}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: '#dc2626', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Activity size={16} /> Weaknesses
+                    </div>
+                    <ul style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {Array.isArray(comp.weaknesses) ? (
+                        comp.weaknesses.map((w, idx) => (
+                          <li key={idx} style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--text-secondary)' }}>{w}</li>
+                        ))
+                      ) : (
+                        <li style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{comp.weaknesses}</li>
+                      )}
+                    </ul>
+                  </div>
+
+                  {comp.keywordGaps && comp.keywordGaps.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Target size={16} /> Keyword Gaps
+                      </div>
+                      <ul style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {Array.isArray(comp.keywordGaps) ? (
+                          comp.keywordGaps.slice(0, 5).map((kg, idx) => (
+                            <li key={idx} style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--text-secondary)' }}>{kg}</li>
+                          ))
+                        ) : (
+                          <li style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{comp.keywordGaps}</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div style={{ gridColumn: '1/-1' }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--accent)' }}>Beat Them Strategy</div>
+                    <div style={{ padding: 12, background: 'var(--bg-tertiary)', borderRadius: 6, fontSize: 12, lineHeight: 1.7, color: 'var(--text-secondary)' }}>
+                      {comp.beatThem || 'Focus on their weaknesses and gaps in their content strategy.'}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          <button onClick={clearAnalysis} style={{ padding: '8px 16px', fontSize: 12, background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer', color: 'var(--text-tertiary)' }}>
+            Clear Analysis
+          </button>
+        </>
+      )}
+
+      {competitors.length === 0 && !loading && (
+        <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
+          <div style={{ color: 'var(--text-tertiary)', fontSize: 14 }}>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>No competitors analyzed yet</div>
+            <div>Enter a location and category above, then click "Analyze" to map your competition.</div>
+          </div>
         </div>
       )}
+
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
     </div>
   );
