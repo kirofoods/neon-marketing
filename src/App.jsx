@@ -1728,6 +1728,7 @@ function MyLeads() {
   const [filterEmail, setFilterEmail] = useState('all');
   const [selected, setSelected] = useState(new Set());
   const [toast, setToast] = useState(null);
+  const [viewLead, setViewLead] = useState(null); // Lead profile card
 
   const types = ['all', ...new Set(leads.map(l => l.type).filter(Boolean))];
 
@@ -1847,7 +1848,7 @@ function MyLeads() {
                 {filtered.map((lead, i) => {
                   const key = lead.id + lead.scrapedAt;
                   return (
-                    <tr key={key} style={{ borderBottom: '1px solid var(--border)', background: selected.has(key) ? 'var(--accent-light)' : 'transparent' }}>
+                    <tr key={key} style={{ borderBottom: '1px solid var(--border)', background: selected.has(key) ? 'var(--accent-light)' : 'transparent', cursor: 'pointer' }} onClick={(e) => { if (e.target.type !== 'checkbox' && e.target.tagName !== 'A') setViewLead(lead); }}>
                       <td style={{ padding: 10, textAlign: 'center' }}>
                         <input type="checkbox" checked={selected.has(key)} onChange={() => toggleSelect(key)} style={{ accentColor: 'var(--accent)' }} />
                       </td>
@@ -1880,6 +1881,97 @@ function MyLeads() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Lead Profile Card Modal */}
+        {viewLead && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setViewLead(null)}>
+            <div onClick={e => e.stopPropagation()} style={{ background: '#1a2634', borderRadius: 12, width: '100%', maxWidth: 480, border: '1px solid #2a3a4a', overflow: 'hidden' }}>
+              {/* Header with name and close */}
+              <div style={{ background: '#0f1923', padding: '20px 24px', borderBottom: '2px solid #ff4655', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontSize: 11, color: '#ff4655', letterSpacing: 2, fontWeight: 600, marginBottom: 4 }}>LEAD PROFILE</div>
+                  <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: '#ece8e1' }}>{viewLead.name}</h3>
+                  {viewLead.type && <span style={{ fontSize: 11, color: '#8b9eb7', marginTop: 4, display: 'inline-block', background: '#0f1923', border: '1px solid #2a3a4a', padding: '2px 8px', borderRadius: 4 }}>{viewLead.type?.replace(/_/g, ' ')}</span>}
+                </div>
+                <button onClick={() => setViewLead(null)} style={{ background: 'none', border: 'none', color: '#8b9eb7', cursor: 'pointer', fontSize: 18 }}>✕</button>
+              </div>
+
+              {/* Body */}
+              <div style={{ padding: '20px 24px' }}>
+                {/* Call + Actions row */}
+                <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+                  {viewLead.phone ? (
+                    <a href={`tel:${viewLead.phone}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', background: '#16a34a', color: '#fff', borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>
+                      <Phone size={18} /> Call {viewLead.phone}
+                    </a>
+                  ) : (
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', background: '#1e293b', color: '#8b9eb7', borderRadius: 8, fontSize: 14 }}>
+                      <Phone size={18} /> No phone number
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick actions */}
+                <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+                  {viewLead.email && (
+                    <a href={`mailto:${viewLead.email.split(',')[0]}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 12px', background: '#1e293b', color: '#06b6d4', borderRadius: 8, textDecoration: 'none', fontSize: 12, border: '1px solid #2a3a4a' }}>
+                      <Mail size={14} /> Email
+                    </a>
+                  )}
+                  {viewLead.website && (
+                    <a href={viewLead.website} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 12px', background: '#1e293b', color: '#a78bfa', borderRadius: 8, textDecoration: 'none', fontSize: 12, border: '1px solid #2a3a4a' }}>
+                      <Globe size={14} /> Website
+                    </a>
+                  )}
+                  {viewLead.mapsUrl && (
+                    <a href={viewLead.mapsUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 12px', background: '#1e293b', color: '#4ade80', borderRadius: 8, textDecoration: 'none', fontSize: 12, border: '1px solid #2a3a4a' }}>
+                      <MapPin size={14} /> Maps
+                    </a>
+                  )}
+                </div>
+
+                {/* Details grid */}
+                <div style={{ display: 'grid', gap: 12 }}>
+                  {viewLead.address && (
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                      <MapPin size={16} style={{ color: '#8b9eb7', marginTop: 2, flexShrink: 0 }} />
+                      <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Address</div><div style={{ fontSize: 13, color: '#ece8e1' }}>{viewLead.address}</div></div>
+                    </div>
+                  )}
+                  {viewLead.email && (
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                      <Mail size={16} style={{ color: '#8b9eb7', marginTop: 2, flexShrink: 0 }} />
+                      <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Email</div><div style={{ fontSize: 13, color: '#06b6d4' }}>{viewLead.email}</div></div>
+                    </div>
+                  )}
+                  {viewLead.rating && (
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                      <Star size={16} style={{ color: '#f59e0b', marginTop: 2, flexShrink: 0 }} />
+                      <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Rating</div><div style={{ fontSize: 13, color: '#ece8e1' }}>{viewLead.rating} / 5 ({viewLead.reviewCount || 0} reviews)</div></div>
+                    </div>
+                  )}
+                  {viewLead.status && (
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                      <Building2 size={16} style={{ color: '#8b9eb7', marginTop: 2, flexShrink: 0 }} />
+                      <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Status</div><div style={{ fontSize: 13, color: viewLead.status === 'OPERATIONAL' ? '#4ade80' : '#f59e0b' }}>{viewLead.status}</div></div>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                    <Clock size={16} style={{ color: '#8b9eb7', marginTop: 2, flexShrink: 0 }} />
+                    <div><div style={{ fontSize: 11, color: '#8b9eb7' }}>Scraped</div><div style={{ fontSize: 13, color: '#ece8e1' }}>{new Date(viewLead.scrapedAt).toLocaleDateString()}</div></div>
+                  </div>
+                </div>
+
+                {/* WhatsApp quick action */}
+                {viewLead.phone && (
+                  <a href={`https://wa.me/${viewLead.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20, padding: '12px 16px', background: '#25d36622', color: '#25d366', borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 13, border: '1px solid #25d36644' }}>
+                    <MessageSquare size={16} /> WhatsApp this lead
+                  </a>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
