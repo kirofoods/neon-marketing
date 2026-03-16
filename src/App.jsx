@@ -19,7 +19,10 @@ import {
   UserPlus, Gift, Handshake, CalendarDays, CircleDollarSign,
   Radio, Tv, MapPinned, Calculator, Megaphone as MegaphoneIcon2,
   Ratio, Waypoints, Binary, Fingerprint, FolderSearch, PlugZap,
-  MessageCircle, SmartphoneNfc, QrCode, UsersRound, ThumbsUp
+  MessageCircle, SmartphoneNfc, QrCode, UsersRound, ThumbsUp,
+  Anchor, Ship, ClipboardList, Route as RouteIcon, FileCheck, Scale, Boxes,
+  Factory, Wrench, Beaker, FlaskConical, Barcode, PackageCheck, Leaf,
+  BadgeDollarSign, PiggyBank, ArrowUpDown, FileBarChart, Banknote, TrendingDown, Percent
 } from 'lucide-react';
 import { callClaude, isApiKeySet, AI_PROVIDERS, getActiveProvider, setActiveProvider, SYSTEM_PROMPTS, KIRO_CONTEXT, MARKETING_SKILLS, getMarketingPrompt, getSkillsByCategory, detectSkill, getSkillListForAI } from './utils/api';
 import {
@@ -8145,6 +8148,1059 @@ function BreachSentimentMonitor() {
   </>);
 }
 
+// ========= HARBOR — Distribution & Trade Management =========
+function HarborDistributorDB() {
+  const [partners, setPartners] = useState(() => JSON.parse(localStorage.getItem('protocol_harbor_partners') || '[]'));
+  const [showAdd, setShowAdd] = useState(false);
+  const [viewPartner, setViewPartner] = useState(null);
+  const [filterType, setFilterType] = useState('all');
+  const [search, setSearch] = useState('');
+  const [form, setForm] = useState({ name: '', type: 'distributor', territory: '', city: '', state: '', phone: '', email: '', contactPerson: '', gstNo: '', panNo: '', creditLimit: '', creditDays: '30', godownSize: '', vehicleCount: '', retailerCount: '', grade: 'B', status: 'prospect', bankName: '', accountNo: '', ifsc: '', notes: '' });
+  const save = (p) => { setPartners(p); localStorage.setItem('protocol_harbor_partners', JSON.stringify(p)); };
+
+  const filtered = partners.filter(p => {
+    if (filterType !== 'all' && p.type !== filterType) return false;
+    if (search) { const s = search.toLowerCase(); return (p.name || '').toLowerCase().includes(s) || (p.city || '').toLowerCase().includes(s) || (p.territory || '').toLowerCase().includes(s) || (p.contactPerson || '').toLowerCase().includes(s); }
+    return true;
+  });
+
+  const stats = { total: partners.length, cnf: partners.filter(p => p.type === 'cnf').length, ss: partners.filter(p => p.type === 'superstockist').length, dist: partners.filter(p => p.type === 'distributor').length, active: partners.filter(p => p.status === 'active').length };
+
+  return (<><div className="tool-header"><Truck size={20} style={{ color: '#ff4655' }} /><h2>Distribution Network</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Manage your C&F agents, super stockists, and distributors.</p>
+
+    {/* Stats row */}
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 16 }}>
+      {[{ label: 'Total Partners', value: stats.total, color: '#ece8e1' }, { label: 'C&F Agents', value: stats.cnf, color: '#a78bfa' }, { label: 'Super Stockists', value: stats.ss, color: '#06b6d4' }, { label: 'Distributors', value: stats.dist, color: '#f5a623' }, { label: 'Active', value: stats.active, color: '#4ade80' }].map((m, i) => (
+        <div key={i} className="card" style={{ textAlign: 'center', padding: '12px 8px' }}><div style={{ fontSize: 10, color: m.color, fontWeight: 600, letterSpacing: 1 }}>{m.label.toUpperCase()}</div><div style={{ fontSize: 22, fontWeight: 700 }}>{m.value}</div></div>
+      ))}
+    </div>
+
+    {/* Filters + Add */}
+    <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      <input className="input" placeholder="Search by name, city, territory..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: 200 }} />
+      <select className="input" value={filterType} onChange={e => setFilterType(e.target.value)} style={{ width: 'auto' }}>
+        <option value="all">All Types</option><option value="cnf">C&F Agent</option><option value="superstockist">Super Stockist</option><option value="distributor">Distributor</option><option value="retailer">Key Retailer</option>
+      </select>
+      <button className="btn" onClick={() => setShowAdd(!showAdd)}>+ Add Partner</button>
+    </div>
+
+    {/* Add form */}
+    {showAdd && (<div className="card" style={{ marginBottom: 16, padding: 16 }}>
+      <div style={{ fontSize: 14, fontWeight: 600, color: '#ff4655', marginBottom: 12, letterSpacing: 1 }}>NEW CHANNEL PARTNER</div>
+      <div style={{ display: 'grid', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8 }}>
+          <input className="input" placeholder="Company / Firm name *" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+          <select className="input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
+            <option value="cnf">C&F Agent</option><option value="superstockist">Super Stockist</option><option value="distributor">Distributor</option><option value="retailer">Key Retailer</option>
+          </select>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+          <input className="input" placeholder="Territory / Area" value={form.territory} onChange={e => setForm({...form, territory: e.target.value})} />
+          <input className="input" placeholder="City" value={form.city} onChange={e => setForm({...form, city: e.target.value})} />
+          <input className="input" placeholder="State" value={form.state} onChange={e => setForm({...form, state: e.target.value})} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+          <input className="input" placeholder="Contact person name" value={form.contactPerson} onChange={e => setForm({...form, contactPerson: e.target.value})} />
+          <input className="input" placeholder="Phone" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+          <input className="input" placeholder="Email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
+          <input className="input" placeholder="GST No." value={form.gstNo} onChange={e => setForm({...form, gstNo: e.target.value})} />
+          <input className="input" placeholder="PAN No." value={form.panNo} onChange={e => setForm({...form, panNo: e.target.value})} />
+          <input className="input" placeholder="Credit limit (₹)" type="number" value={form.creditLimit} onChange={e => setForm({...form, creditLimit: e.target.value})} />
+          <select className="input" value={form.creditDays} onChange={e => setForm({...form, creditDays: e.target.value})}>
+            <option value="0">Cash & Carry</option><option value="7">7 Days</option><option value="15">15 Days</option><option value="21">21 Days</option><option value="30">30 Days</option><option value="45">45 Days</option><option value="60">60 Days</option>
+          </select>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
+          <input className="input" placeholder="Godown size (sq ft)" value={form.godownSize} onChange={e => setForm({...form, godownSize: e.target.value})} />
+          <input className="input" placeholder="Vehicles" type="number" value={form.vehicleCount} onChange={e => setForm({...form, vehicleCount: e.target.value})} />
+          <input className="input" placeholder="Retailer reach" type="number" value={form.retailerCount} onChange={e => setForm({...form, retailerCount: e.target.value})} />
+          <select className="input" value={form.grade} onChange={e => setForm({...form, grade: e.target.value})}>
+            <option value="A">Grade A (Premium)</option><option value="B">Grade B (Standard)</option><option value="C">Grade C (Development)</option>
+          </select>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+          <input className="input" placeholder="Bank name" value={form.bankName} onChange={e => setForm({...form, bankName: e.target.value})} />
+          <input className="input" placeholder="Account number" value={form.accountNo} onChange={e => setForm({...form, accountNo: e.target.value})} />
+          <input className="input" placeholder="IFSC code" value={form.ifsc} onChange={e => setForm({...form, ifsc: e.target.value})} />
+        </div>
+        <textarea className="input" placeholder="Notes (existing brands, infrastructure, references...)" rows={2} value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} style={{ width: '100%' }} />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn" onClick={() => { if (!form.name) return; save([...partners, { ...form, id: Date.now(), createdAt: Date.now(), status: 'prospect', monthlyTarget: 0, monthlySales: 0, outstanding: 0, lastOrder: null }]); setForm({ name: '', type: 'distributor', territory: '', city: '', state: '', phone: '', email: '', contactPerson: '', gstNo: '', panNo: '', creditLimit: '', creditDays: '30', godownSize: '', vehicleCount: '', retailerCount: '', grade: 'B', status: 'prospect', bankName: '', accountNo: '', ifsc: '', notes: '' }); setShowAdd(false); }}>Save Partner</button>
+          <button className="btn" onClick={() => setShowAdd(false)} style={{ background: 'transparent', border: '1px solid #2a3a4a' }}>Cancel</button>
+        </div>
+      </div>
+    </div>)}
+
+    {/* Partner list */}
+    {filtered.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 40 }}>No channel partners yet. Add your first distributor, super stockist, or C&F agent above.</div> :
+    <div style={{ display: 'grid', gap: 10 }}>{filtered.map(p => (
+      <div key={p.id} className="card" style={{ cursor: 'pointer', borderLeft: `3px solid ${p.type === 'cnf' ? '#a78bfa' : p.type === 'superstockist' ? '#06b6d4' : p.type === 'distributor' ? '#f5a623' : '#4ade80'}` }} onClick={() => setViewPartner(p)}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <strong>{p.name}</strong>
+            <span style={{ marginLeft: 8, fontSize: 11, padding: '2px 8px', borderRadius: 4, background: p.type === 'cnf' ? '#a78bfa22' : p.type === 'superstockist' ? '#06b6d422' : '#f5a62322', color: p.type === 'cnf' ? '#a78bfa' : p.type === 'superstockist' ? '#06b6d4' : '#f5a623' }}>{p.type === 'cnf' ? 'C&F' : p.type === 'superstockist' ? 'SS' : p.type === 'distributor' ? 'DIST' : 'RETAIL'}</span>
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, background: p.status === 'active' ? '#16a34a22' : p.status === 'onboarding' ? '#06b6d422' : '#ff465522', color: p.status === 'active' ? '#4ade80' : p.status === 'onboarding' ? '#06b6d4' : '#ff4655' }}>{p.status.toUpperCase()}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: p.grade === 'A' ? '#4ade80' : p.grade === 'B' ? '#f5a623' : '#ff4655' }}>Grade {p.grade}</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 12, color: '#8b9eb7' }}>
+          <span>{p.territory || p.city}{p.state ? `, ${p.state}` : ''}</span>
+          <span>{p.contactPerson}</span>
+          {p.phone && <span>{p.phone}</span>}
+          {p.retailerCount && <span>{p.retailerCount} retailers</span>}
+        </div>
+      </div>
+    ))}</div>}
+
+    {/* Partner Profile Modal */}
+    {viewPartner && (
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, overflow: 'auto' }} onClick={() => setViewPartner(null)}>
+        <div onClick={e => e.stopPropagation()} style={{ background: '#1a2634', borderRadius: 12, width: '100%', maxWidth: 560, border: '1px solid #2a3a4a', overflow: 'hidden', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: '#0f1923', padding: '20px 24px', borderBottom: `2px solid ${viewPartner.type === 'cnf' ? '#a78bfa' : viewPartner.type === 'superstockist' ? '#06b6d4' : '#f5a623'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontSize: 11, color: '#ff4655', letterSpacing: 2, fontWeight: 600, marginBottom: 4 }}>CHANNEL PARTNER</div>
+              <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: '#ece8e1' }}>{viewPartner.name}</h3>
+              <span style={{ fontSize: 12, color: '#8b9eb7' }}>{viewPartner.type === 'cnf' ? 'C&F Agent' : viewPartner.type === 'superstockist' ? 'Super Stockist' : viewPartner.type === 'distributor' ? 'Distributor' : 'Key Retailer'} · Grade {viewPartner.grade}</span>
+            </div>
+            <button onClick={() => setViewPartner(null)} style={{ background: 'none', border: 'none', color: '#8b9eb7', cursor: 'pointer', fontSize: 18 }}>✕</button>
+          </div>
+          <div style={{ padding: '20px 24px' }}>
+            {/* Quick actions */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+              {viewPartner.phone && <a href={`tel:${viewPartner.phone}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', background: '#16a34a', color: '#fff', borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 13 }}><Phone size={16} /> Call</a>}
+              {viewPartner.phone && <a href={`https://wa.me/${viewPartner.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', background: '#25d36622', color: '#25d366', borderRadius: 8, textDecoration: 'none', fontWeight: 600, fontSize: 13, border: '1px solid #25d36644' }}><MessageSquare size={16} /> WhatsApp</a>}
+              {viewPartner.email && <a href={`mailto:${viewPartner.email}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', background: '#1e293b', color: '#06b6d4', borderRadius: 8, textDecoration: 'none', fontSize: 13, border: '1px solid #2a3a4a' }}><Mail size={14} /> Email</a>}
+            </div>
+            {/* Status toggle */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+              {['prospect', 'onboarding', 'active', 'inactive'].map(s => (
+                <button key={s} className="btn" style={{ fontSize: 11, padding: '4px 10px', background: viewPartner.status === s ? '#ff465533' : 'transparent', color: viewPartner.status === s ? '#ff4655' : '#8b9eb7', border: '1px solid #2a3a4a' }} onClick={() => { const updated = partners.map(p => p.id === viewPartner.id ? { ...p, status: s } : p); save(updated); setViewPartner({ ...viewPartner, status: s }); }}>{s.toUpperCase()}</button>
+              ))}
+            </div>
+            {/* Details */}
+            <div style={{ display: 'grid', gap: 10 }}>
+              {[['Territory', viewPartner.territory], ['Location', `${viewPartner.city}${viewPartner.state ? ', ' + viewPartner.state : ''}`], ['Contact', viewPartner.contactPerson], ['GST', viewPartner.gstNo], ['PAN', viewPartner.panNo], ['Credit Limit', viewPartner.creditLimit ? `₹${Number(viewPartner.creditLimit).toLocaleString()}` : '—'], ['Credit Days', `${viewPartner.creditDays} days`], ['Godown', viewPartner.godownSize ? `${viewPartner.godownSize} sq ft` : '—'], ['Vehicles', viewPartner.vehicleCount || '—'], ['Retailer Reach', viewPartner.retailerCount || '—'], ['Bank', viewPartner.bankName], ['Account', viewPartner.accountNo], ['IFSC', viewPartner.ifsc]].filter(([, v]) => v && v !== '—' && v !== ', ').map(([label, value], i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #1e293b', padding: '6px 0' }}>
+                  <span style={{ fontSize: 12, color: '#8b9eb7' }}>{label}</span>
+                  <span style={{ fontSize: 13, color: '#ece8e1' }}>{value}</span>
+                </div>
+              ))}
+            </div>
+            {viewPartner.notes && <div style={{ marginTop: 12, padding: 10, background: '#0f1923', borderRadius: 6, fontSize: 12, color: '#8b9eb7' }}>{viewPartner.notes}</div>}
+          </div>
+        </div>
+      </div>
+    )}
+  </>);
+}
+
+function HarborOnboarding() {
+  const [partners] = useState(() => JSON.parse(localStorage.getItem('protocol_harbor_partners') || '[]'));
+  const [checklists, setChecklists] = useState(() => JSON.parse(localStorage.getItem('protocol_harbor_onboarding') || '{}'));
+  const prospects = partners.filter(p => p.status === 'prospect' || p.status === 'onboarding');
+  const steps = [
+    { id: 'kyc', label: 'KYC Documents (GST, PAN, Address Proof, ID)', icon: '📋' },
+    { id: 'agreement', label: 'Distribution Agreement Signed', icon: '📝' },
+    { id: 'bank', label: 'Bank Details Verified', icon: '🏦' },
+    { id: 'godown', label: 'Godown/Warehouse Inspection', icon: '🏭' },
+    { id: 'vehicle', label: 'Vehicle & Logistics Verified', icon: '🚛' },
+    { id: 'credit', label: 'Credit Limit Approved', icon: '💳' },
+    { id: 'erp', label: 'Added to ERP/Billing System', icon: '💻' },
+    { id: 'training', label: 'Product Training Completed', icon: '📚' },
+    { id: 'scheme', label: 'Trade Scheme Communication', icon: '📊' },
+    { id: 'launch', label: 'Launch Stock Dispatched', icon: '📦' },
+  ];
+  const toggleStep = (partnerId, stepId) => {
+    const key = String(partnerId);
+    const current = checklists[key] || {};
+    const updated = { ...checklists, [key]: { ...current, [stepId]: !current[stepId] } };
+    setChecklists(updated); localStorage.setItem('protocol_harbor_onboarding', JSON.stringify(updated));
+  };
+  return (<><div className="tool-header"><CheckCircle2 size={20} style={{ color: '#ff4655' }} /><h2>Partner Onboarding</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Step-by-step onboarding checklist for new channel partners.</p>
+    {prospects.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No prospects or onboarding partners. Add partners in Distribution Network first.</div> :
+    <div style={{ display: 'grid', gap: 16 }}>{prospects.map(p => {
+      const checks = checklists[String(p.id)] || {};
+      const completed = steps.filter(s => checks[s.id]).length;
+      const pct = Math.round((completed / steps.length) * 100);
+      return (
+        <div key={p.id} className="card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div><strong>{p.name}</strong><span style={{ marginLeft: 8, fontSize: 12, color: '#8b9eb7' }}>{p.type === 'cnf' ? 'C&F' : p.type === 'superstockist' ? 'SS' : 'Distributor'} · {p.city}</span></div>
+            <span style={{ fontSize: 13, fontWeight: 700, color: pct === 100 ? '#4ade80' : pct > 50 ? '#f5a623' : '#ff4655' }}>{pct}%</span>
+          </div>
+          <div style={{ background: '#0f1923', borderRadius: 4, height: 6, marginBottom: 12 }}><div style={{ background: pct === 100 ? '#4ade80' : '#ff4655', height: '100%', borderRadius: 4, width: `${pct}%`, transition: 'width 0.3s' }} /></div>
+          <div style={{ display: 'grid', gap: 4 }}>{steps.map(s => (
+            <div key={s.id} onClick={() => toggleStep(p.id, s.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px', borderRadius: 4, cursor: 'pointer', background: checks[s.id] ? '#16a34a11' : 'transparent' }}>
+              <div style={{ width: 20, height: 20, borderRadius: 4, border: checks[s.id] ? '2px solid #4ade80' : '2px solid #2a3a4a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#4ade80' }}>{checks[s.id] ? '✓' : ''}</div>
+              <span style={{ fontSize: 13, color: checks[s.id] ? '#4ade80' : '#ece8e1', textDecoration: checks[s.id] ? 'line-through' : 'none', opacity: checks[s.id] ? 0.7 : 1 }}>{s.icon} {s.label}</span>
+            </div>
+          ))}</div>
+        </div>
+      );
+    })}</div>}
+  </>);
+}
+
+function HarborTradeSchemes() {
+  const [schemes, setSchemes] = useState(() => JSON.parse(localStorage.getItem('protocol_harbor_schemes') || '[]'));
+  const [aiResult, setAiResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ name: '', type: 'quantity', target: '', reward: '', validFrom: '', validTo: '', applicableTo: 'all' });
+  const save = (s) => { setSchemes(s); localStorage.setItem('protocol_harbor_schemes', JSON.stringify(s)); };
+  const generateScheme = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As an FMCG trade marketing expert for Kiro Foods India (clean-label RTE/RTC brand), create trade schemes:\n\nContext: Pre-launch/early-launch phase. Distribution via C&F → Super Stockist → Distributor → Retailer. Products: Ready-to-eat meals, price range ₹79-249 per unit.\n\nGenerate 8-10 trade schemes covering:\n1. Launch loading schemes (initial stock push)\n2. Quantity discount slabs for distributors\n3. Display/visibility incentives for retailers\n4. Seasonal push schemes (Diwali, summer)\n5. Counter display/POSM placement rewards\n6. Bill-cutting incentives (monthly billing targets)\n7. Window display schemes for modern trade\n8. Super stockist bulk purchase incentives\n9. Rate difference / margin structure for each channel level\n\nFor each scheme provide: name, type, mechanism, targets, rewards, validity, applicable channel, estimated ROI, and terms & conditions. Use Indian FMCG industry standard practices.`, SYSTEM_PROMPTS.strategy); setAiResult(r.content); }
+    catch (e) { setAiResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><Receipt size={20} style={{ color: '#ff4655' }} /><h2>Trade Schemes</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Create and manage trade schemes for distributors, stockists, and retailers.</p>
+
+    <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 8 }}>
+        <input className="input" placeholder="Scheme name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+        <select className="input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
+          <option value="quantity">Quantity Slab</option><option value="display">Display Incentive</option><option value="billing">Billing Target</option><option value="launch">Launch Loading</option><option value="seasonal">Seasonal Push</option><option value="loyalty">Loyalty Bonus</option>
+        </select>
+        <select className="input" value={form.applicableTo} onChange={e => setForm({...form, applicableTo: e.target.value})}>
+          <option value="all">All Partners</option><option value="cnf">C&F Only</option><option value="superstockist">SS Only</option><option value="distributor">Distributors</option><option value="retailer">Retailers</option>
+        </select>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
+        <input className="input" placeholder="Target (e.g. 100 cases)" value={form.target} onChange={e => setForm({...form, target: e.target.value})} />
+        <input className="input" placeholder="Reward (e.g. ₹50/case)" value={form.reward} onChange={e => setForm({...form, reward: e.target.value})} />
+        <input className="input" type="date" value={form.validFrom} onChange={e => setForm({...form, validFrom: e.target.value})} />
+        <input className="input" type="date" value={form.validTo} onChange={e => setForm({...form, validTo: e.target.value})} />
+      </div>
+      <button className="btn" onClick={() => { if (!form.name) return; save([...schemes, { ...form, id: Date.now(), status: 'active' }]); setForm({ name: '', type: 'quantity', target: '', reward: '', validFrom: '', validTo: '', applicableTo: 'all' }); }}>Add Scheme</button>
+    </div>
+
+    <button className="btn" onClick={generateScheme} disabled={loading} style={{ marginBottom: 16, background: '#0f1923', border: '1px solid #ff4655', color: '#ff4655' }}>{loading ? 'Generating...' : '🤖 AI: Generate Complete Trade Scheme Package'}</button>
+
+    {schemes.length > 0 && <div style={{ display: 'grid', gap: 8, marginBottom: 16 }}>{schemes.map(s => (
+      <div key={s.id} className="card"><div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{s.name}</strong><span style={{ fontSize: 11, color: '#8b9eb7' }}>{s.type.toUpperCase()} · {s.applicableTo}</span></div><div style={{ fontSize: 12, color: '#8b9eb7', marginTop: 4 }}>Target: {s.target} → Reward: {s.reward} | {s.validFrom} to {s.validTo}</div></div>
+    ))}</div>}
+
+    {aiResult && <div className="card" style={{ whiteSpace: 'pre-wrap' }}>{aiResult}</div>}
+  </>);
+}
+
+function HarborOrderTracker() {
+  const [orders, setOrders] = useState(() => JSON.parse(localStorage.getItem('protocol_harbor_orders') || '[]'));
+  const partners = JSON.parse(localStorage.getItem('protocol_harbor_partners') || '[]');
+  const [form, setForm] = useState({ partnerId: '', type: 'primary', items: '', amount: '', status: 'pending' });
+  const save = (o) => { setOrders(o); localStorage.setItem('protocol_harbor_orders', JSON.stringify(o)); };
+
+  const totalPrimary = orders.filter(o => o.type === 'primary').reduce((s, o) => s + (Number(o.amount) || 0), 0);
+  const totalPending = orders.filter(o => o.status === 'pending' || o.status === 'dispatched').reduce((s, o) => s + (Number(o.amount) || 0), 0);
+
+  return (<><div className="tool-header"><Package size={20} style={{ color: '#ff4655' }} /><h2>Order Tracker</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Track primary and secondary sales, dispatch status, and outstanding payments.</p>
+
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
+      {[{ label: 'Total Orders', value: orders.length, color: '#ece8e1' }, { label: 'Primary Sales', value: `₹${(totalPrimary / 100000).toFixed(1)}L`, color: '#4ade80' }, { label: 'Outstanding', value: `₹${(totalPending / 100000).toFixed(1)}L`, color: '#f5a623' }, { label: 'This Month', value: orders.filter(o => new Date(o.date).getMonth() === new Date().getMonth()).length, color: '#06b6d4' }].map((m, i) => (
+        <div key={i} className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 10, color: m.color, fontWeight: 600 }}>{m.label.toUpperCase()}</div><div style={{ fontSize: 22, fontWeight: 700 }}>{m.value}</div></div>
+      ))}
+    </div>
+
+    <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 8 }}>
+        <select className="input" value={form.partnerId} onChange={e => setForm({...form, partnerId: e.target.value})}>
+          <option value="">Select partner</option>
+          {partners.map(p => <option key={p.id} value={p.id}>{p.name} ({p.type === 'cnf' ? 'C&F' : p.type === 'superstockist' ? 'SS' : 'Dist'})</option>)}
+        </select>
+        <select className="input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
+          <option value="primary">Primary (Company→C&F/SS)</option><option value="secondary">Secondary (Dist→Retailer)</option>
+        </select>
+        <input className="input" placeholder="Order amount (₹)" type="number" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8 }}>
+        <input className="input" placeholder="Items (e.g. 50 cases Dal Makhani + 30 cases Paneer)" value={form.items} onChange={e => setForm({...form, items: e.target.value})} />
+        <select className="input" value={form.status} onChange={e => setForm({...form, status: e.target.value})}>
+          <option value="pending">Pending</option><option value="dispatched">Dispatched</option><option value="delivered">Delivered</option><option value="paid">Paid</option>
+        </select>
+      </div>
+      <button className="btn" onClick={() => { if (!form.partnerId || !form.amount) return; const partner = partners.find(p => String(p.id) === form.partnerId); save([...orders, { ...form, id: Date.now(), date: new Date().toISOString(), partnerName: partner?.name || 'Unknown' }]); setForm({ partnerId: '', type: 'primary', items: '', amount: '', status: 'pending' }); }}>Log Order</button>
+    </div>
+
+    {orders.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No orders logged yet.</div> :
+    <div style={{ display: 'grid', gap: 8 }}>{orders.sort((a, b) => b.date?.localeCompare(a.date)).map(o => (
+      <div key={o.id} className="card" style={{ borderLeft: `3px solid ${o.status === 'paid' ? '#4ade80' : o.status === 'delivered' ? '#06b6d4' : o.status === 'dispatched' ? '#f5a623' : '#ff4655'}` }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{o.partnerName}</strong><span style={{ fontWeight: 600, color: '#ece8e1' }}>₹{Number(o.amount).toLocaleString()}</span></div>
+        <div style={{ fontSize: 12, color: '#8b9eb7', marginTop: 4 }}>{o.type.toUpperCase()} · {o.items} · <span style={{ color: o.status === 'paid' ? '#4ade80' : '#f5a623' }}>{o.status.toUpperCase()}</span> · {new Date(o.date).toLocaleDateString()}</div>
+      </div>
+    ))}</div>}
+  </>);
+}
+
+function HarborTerritory() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const partners = JSON.parse(localStorage.getItem('protocol_harbor_partners') || '[]');
+  const run = async () => {
+    setLoading(true);
+    const partnerSummary = partners.length > 0 ? `\nExisting partners:\n${partners.map(p => `- ${p.name} (${p.type}) — ${p.territory || p.city}, ${p.state} — Grade ${p.grade} — ${p.retailerCount || '?'} retailers`).join('\n')}` : '';
+    try { const r = await callClaude(`As an FMCG distribution strategy expert for Kiro Foods India, create a territory and coverage plan:\n\n${input || 'Create a distribution territory plan for clean-label RTE brand launching in urban India'}${partnerSummary}\n\nProvide:\n1. Territory mapping: state → zone → city → area divisions\n2. Channel hierarchy: Company → C&F → Super Stockist → Distributor → Retailer coverage norms\n3. Numeric distribution targets: how many outlets per territory per phase\n4. Weighted distribution: focus SKUs per region based on food preferences\n5. Beat planning norms: retailers per beat, visit frequency, order booking cycle\n6. Coverage expansion roadmap: Phase 1 (metros) → Phase 2 (Tier 1) → Phase 3 (Tier 2)\n7. ROI per territory: investment vs expected monthly billing\n8. Margin structure: Company → C&F (3-5%) → SS (2-3%) → Distributor (8-12%) → Retailer (15-20%)\n\nUse real Indian market data and geography.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><MapPinned size={20} style={{ color: '#ff4655' }} /><h2>Territory Planner</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Plan territory coverage, distribution hierarchy, and expansion roadmap.</p>
+    <div className="card" style={{ marginBottom: 12, padding: 12, fontSize: 12, color: '#8b9eb7' }}>Currently tracking {partners.length} channel partners across {new Set(partners.map(p => p.state).filter(Boolean)).size} states and {new Set(partners.map(p => p.city).filter(Boolean)).size} cities.</div>
+    <textarea className="input" rows={4} placeholder="Describe your distribution goals, target markets, budget, or specific territory questions..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Planning...' : 'Generate Territory Plan'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function HarborScorecard() {
+  const partners = JSON.parse(localStorage.getItem('protocol_harbor_partners') || '[]');
+  const orders = JSON.parse(localStorage.getItem('protocol_harbor_orders') || '[]');
+  const active = partners.filter(p => p.status === 'active');
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const partnerPerformance = active.map(p => {
+    const partnerOrders = orders.filter(o => String(o.partnerId) === String(p.id));
+    const totalBilling = partnerOrders.reduce((s, o) => s + (Number(o.amount) || 0), 0);
+    const paidOrders = partnerOrders.filter(o => o.status === 'paid');
+    const collectionRate = partnerOrders.length > 0 ? Math.round((paidOrders.length / partnerOrders.length) * 100) : 0;
+    return { ...p, totalBilling, orderCount: partnerOrders.length, collectionRate };
+  }).sort((a, b) => b.totalBilling - a.totalBilling);
+
+  const analyzePerformance = async () => {
+    setLoading(true);
+    const data = partnerPerformance.map(p => `${p.name} (${p.type}): ₹${p.totalBilling.toLocaleString()} billing, ${p.orderCount} orders, ${p.collectionRate}% collection, Grade ${p.grade}, ${p.retailerCount || '?'} retailers, ${p.territory || p.city}`).join('\n');
+    try { const r = await callClaude(`As an FMCG distribution analyst for Kiro Foods India, analyse this distributor performance data and provide actionable recommendations:\n\n${data || 'No partner data yet — provide a template scorecard for a new FMCG distribution network'}\n\n${input ? `Additional context: ${input}` : ''}\n\nProvide: performance ranking, grade recommendations (upgrade/downgrade), territory optimization suggestions, collection improvement strategies, underperforming partner action plan, and ROI analysis per partner.`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+
+  return (<><div className="tool-header"><Award size={20} style={{ color: '#ff4655' }} /><h2>Performance Scorecard</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Grade and analyse distributor performance with AI-powered insights.</p>
+
+    {partnerPerformance.length === 0 ? <div className="card" style={{ textAlign: 'center', color: '#8b9eb7', padding: 30 }}>No active partners with order data yet.</div> :
+    <div style={{ display: 'grid', gap: 8, marginBottom: 16 }}>{partnerPerformance.map((p, i) => (
+      <div key={p.id} className="card">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div><span style={{ color: '#8b9eb7', fontSize: 12, marginRight: 8 }}>#{i + 1}</span><strong>{p.name}</strong><span style={{ marginLeft: 8, fontSize: 11, color: '#8b9eb7' }}>{p.type === 'cnf' ? 'C&F' : p.type === 'superstockist' ? 'SS' : 'Dist'}</span></div>
+          <span style={{ fontWeight: 700, color: p.grade === 'A' ? '#4ade80' : p.grade === 'B' ? '#f5a623' : '#ff4655' }}>Grade {p.grade}</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginTop: 8 }}>
+          <div><div style={{ fontSize: 10, color: '#8b9eb7' }}>BILLING</div><div style={{ fontWeight: 600 }}>₹{(p.totalBilling / 1000).toFixed(0)}K</div></div>
+          <div><div style={{ fontSize: 10, color: '#8b9eb7' }}>ORDERS</div><div style={{ fontWeight: 600 }}>{p.orderCount}</div></div>
+          <div><div style={{ fontSize: 10, color: '#8b9eb7' }}>COLLECTION</div><div style={{ fontWeight: 600, color: p.collectionRate >= 80 ? '#4ade80' : '#f5a623' }}>{p.collectionRate}%</div></div>
+          <div><div style={{ fontSize: 10, color: '#8b9eb7' }}>RETAILERS</div><div style={{ fontWeight: 600 }}>{p.retailerCount || '—'}</div></div>
+        </div>
+      </div>
+    ))}</div>}
+
+    <textarea className="input" rows={3} placeholder="Additional context for AI analysis (e.g. specific concerns, target adjustments)..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={analyzePerformance} disabled={loading}>{loading ? 'Analyzing...' : '🤖 AI: Analyze Performance & Recommend'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function HarborAgreementGen() {
+  const [input, setInput] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    setLoading(true);
+    try { const r = await callClaude(`As a legal and trade agreements expert for FMCG distribution in India, generate a distribution agreement:\n\n${input || 'Generate a standard distribution agreement template for Kiro Foods India appointing a distributor'}\n\nProvide a complete agreement including:\n1. Parties (Company and Distributor details placeholders)\n2. Territory definition and exclusivity terms\n3. Products covered and minimum order quantity\n4. Pricing, margins, and payment terms\n5. Credit limit and security deposit\n6. Performance targets (monthly/quarterly billing, outlet coverage)\n7. Responsibilities of both parties\n8. Stock management and return policy\n9. Scheme and promotional support\n10. Termination clause (performance-based, 30/60/90 day notice)\n11. Confidentiality and non-compete\n12. Dispute resolution (arbitration in India)\n13. Force majeure\n14. Signatures block\n\nUse Indian legal standards and FMCG industry norms. Include specific clauses for food products (FSSAI compliance, expiry management, cold chain if applicable).`, SYSTEM_PROMPTS.strategy); setResult(r.content); }
+    catch (e) { setResult('Error: ' + e.message); } setLoading(false);
+  };
+  return (<><div className="tool-header"><FileText size={20} style={{ color: '#ff4655' }} /><h2>Agreement Generator</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 12 }}>Generate distribution agreements, appointment letters, and trade contracts.</p>
+    <textarea className="input" rows={4} placeholder="Describe the agreement type, partner details, territory, terms, or special conditions..." value={input} onChange={e => setInput(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+    <button className="btn" onClick={run} disabled={loading}>{loading ? 'Generating...' : 'Generate Agreement'}</button>
+    {result && <div className="card" style={{ marginTop: 16, whiteSpace: 'pre-wrap' }}>{result}</div>}
+  </>);
+}
+
+function HarborClaimsTracker() {
+  const [claims, setClaims] = useState(() => JSON.parse(localStorage.getItem('protocol_harbor_claims') || '[]'));
+  const partners = JSON.parse(localStorage.getItem('protocol_harbor_partners') || '[]');
+  const [form, setForm] = useState({ partnerId: '', type: 'scheme', description: '', amount: '', status: 'pending' });
+  const save = (c) => { setClaims(c); localStorage.setItem('protocol_harbor_claims', JSON.stringify(c)); };
+  const totalPending = claims.filter(c => c.status === 'pending').reduce((s, c) => s + (Number(c.amount) || 0), 0);
+  return (<><div className="tool-header"><CircleDollarSign size={20} style={{ color: '#ff4655' }} /><h2>Claims & Settlements</h2></div>
+    <p style={{ color: '#8b9eb7', marginBottom: 16 }}>Track scheme claims, damage claims, returns, and credit notes.</p>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
+      {[{ label: 'Total Claims', value: claims.length, color: '#ece8e1' }, { label: 'Pending Amount', value: `₹${(totalPending / 1000).toFixed(0)}K`, color: '#f5a623' }, { label: 'Settled', value: claims.filter(c => c.status === 'settled').length, color: '#4ade80' }].map((m, i) => (
+        <div key={i} className="card" style={{ textAlign: 'center' }}><div style={{ fontSize: 10, color: m.color, fontWeight: 600 }}>{m.label.toUpperCase()}</div><div style={{ fontSize: 22, fontWeight: 700 }}>{m.value}</div></div>
+      ))}
+    </div>
+    <div className="card" style={{ marginBottom: 16, display: 'grid', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 8 }}>
+        <select className="input" value={form.partnerId} onChange={e => setForm({...form, partnerId: e.target.value})}>
+          <option value="">Select partner</option>
+          {partners.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <select className="input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
+          <option value="scheme">Scheme Claim</option><option value="damage">Damage/Breakage</option><option value="expiry">Expiry Return</option><option value="rate-diff">Rate Difference</option><option value="credit-note">Credit Note</option>
+        </select>
+        <input className="input" placeholder="Amount (₹)" type="number" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
+      </div>
+      <input className="input" placeholder="Description (e.g. Q1 billing target scheme claim for 150 cases)" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+      <button className="btn" onClick={() => { if (!form.partnerId || !form.amount) return; const partner = partners.find(p => String(p.id) === form.partnerId); save([...claims, { ...form, id: Date.now(), date: new Date().toISOString(), partnerName: partner?.name || 'Unknown' }]); setForm({ partnerId: '', type: 'scheme', description: '', amount: '', status: 'pending' }); }}>Log Claim</button>
+    </div>
+    {claims.map(c => (
+      <div key={c.id} className="card" style={{ marginBottom: 8, borderLeft: `3px solid ${c.status === 'settled' ? '#4ade80' : c.status === 'approved' ? '#06b6d4' : '#f5a623'}` }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}><strong>{c.partnerName}</strong><span style={{ fontWeight: 600 }}>₹{Number(c.amount).toLocaleString()}</span></div>
+        <div style={{ fontSize: 12, color: '#8b9eb7', marginTop: 4 }}>{c.type.toUpperCase()} · {c.description} · <span style={{ color: c.status === 'settled' ? '#4ade80' : '#f5a623' }}>{c.status.toUpperCase()}</span></div>
+      </div>
+    ))}
+  </>);
+}
+
+// =============================================
+// DEADLOCK — Production & Raw Material Management
+// =============================================
+
+function DeadlockProductionPlanner() {
+  const [plans, setPlans] = useState(() => JSON.parse(localStorage.getItem('protocol_deadlock_plans') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ product: '', batchSize: '', unit: 'kg', startDate: '', endDate: '', priority: 'Normal', status: 'Planned', line: '', shift: '', notes: '' });
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const save = (d) => { setPlans(d); localStorage.setItem('protocol_deadlock_plans', JSON.stringify(d)); };
+  const addPlan = () => { if (!form.product || !form.batchSize) return; save([...plans, { ...form, id: Date.now(), createdAt: new Date().toISOString() }]); setForm({ product: '', batchSize: '', unit: 'kg', startDate: '', endDate: '', priority: 'Normal', status: 'Planned', line: '', shift: '', notes: '' }); setShowForm(false); };
+  const updateStatus = (id, status) => save(plans.map(p => p.id === id ? { ...p, status } : p));
+  const deletePlan = (id) => save(plans.filter(p => p.id !== id));
+  const generatePlan = async () => {
+    setAiLoading(true);
+    try {
+      const inventory = JSON.parse(localStorage.getItem('protocol_deadlock_inventory') || '[]');
+      const res = await callClaude(`You are a production planning expert for an FMCG food brand. Current raw material inventory: ${JSON.stringify(inventory.slice(0, 20))}. Current production plans: ${JSON.stringify(plans.slice(0, 10))}. Generate an optimized weekly production schedule considering: batch sequencing, line utilization, raw material availability, shelf life priorities, shift planning, cleaning/changeover time. Format as actionable production calendar.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  const stats = { total: plans.length, planned: plans.filter(p => p.status === 'Planned').length, inProgress: plans.filter(p => p.status === 'In Progress').length, completed: plans.filter(p => p.status === 'Completed').length };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Factory size={22} /> Production Planner</h2>
+      <div className="stats-row">{[['Total Plans', stats.total, '#a855f7'], ['Planned', stats.planned, '#3b82f6'], ['In Progress', stats.inProgress, '#f59e0b'], ['Completed', stats.completed, '#10b981']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>+ New Production Run</button>
+        <button className="btn-secondary" onClick={generatePlan} disabled={aiLoading}>{aiLoading ? 'Generating...' : '✦ AI Schedule'}</button>
+      </div>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Product name *" value={form.product} onChange={e => setForm({...form, product: e.target.value})} />
+          <input className="input" placeholder="Batch size *" type="number" value={form.batchSize} onChange={e => setForm({...form, batchSize: e.target.value})} />
+          <select className="input" value={form.unit} onChange={e => setForm({...form, unit: e.target.value})}><option>kg</option><option>litres</option><option>units</option><option>packs</option></select>
+          <input className="input" type="date" value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} />
+          <input className="input" type="date" value={form.endDate} onChange={e => setForm({...form, endDate: e.target.value})} />
+          <select className="input" value={form.priority} onChange={e => setForm({...form, priority: e.target.value})}><option>Low</option><option>Normal</option><option>High</option><option>Urgent</option></select>
+          <input className="input" placeholder="Production line" value={form.line} onChange={e => setForm({...form, line: e.target.value})} />
+          <input className="input" placeholder="Shift (Morning/Evening/Night)" value={form.shift} onChange={e => setForm({...form, shift: e.target.value})} />
+          <input className="input" placeholder="Notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addPlan}>Save Plan</button>
+      </div>}
+      {aiResult && <div className="card" style={{ padding: 16, marginBottom: 16, maxHeight: 400, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+      <div className="table-wrapper"><table className="data-table"><thead><tr><th>Product</th><th>Batch</th><th>Dates</th><th>Line</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        {plans.map(p => <tr key={p.id}><td style={{fontWeight:600}}>{p.product}</td><td>{p.batchSize} {p.unit}</td><td>{p.startDate} → {p.endDate}</td><td>{p.line || '—'}</td>
+          <td><span style={{padding:'2px 8px',borderRadius:4,fontSize:11,background: p.priority==='Urgent'?'#ef4444':p.priority==='High'?'#f59e0b':'#333',color:'#fff'}}>{p.priority}</span></td>
+          <td><select className="input" style={{fontSize:11,padding:'2px 6px'}} value={p.status} onChange={e => updateStatus(p.id, e.target.value)}><option>Planned</option><option>In Progress</option><option>Completed</option><option>On Hold</option><option>Cancelled</option></select></td>
+          <td><button onClick={() => deletePlan(p.id)} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button></td></tr>)}
+      </tbody></table></div>
+    </div>
+  );
+}
+
+function DeadlockInventory() {
+  const [items, setItems] = useState(() => JSON.parse(localStorage.getItem('protocol_deadlock_inventory') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filterCat, setFilterCat] = useState('All');
+  const [form, setForm] = useState({ name: '', category: 'Grain', quantity: '', unit: 'kg', reorderLevel: '', costPerUnit: '', supplier: '', location: '', expiryDate: '', batchNo: '', fssaiCompliant: true, notes: '' });
+  const save = (d) => { setItems(d); localStorage.setItem('protocol_deadlock_inventory', JSON.stringify(d)); };
+  const addItem = () => { if (!form.name || !form.quantity) return; save([...items, { ...form, id: Date.now(), quantity: Number(form.quantity), reorderLevel: Number(form.reorderLevel) || 0, costPerUnit: Number(form.costPerUnit) || 0, lastUpdated: new Date().toISOString() }]); setForm({ name: '', category: 'Grain', quantity: '', unit: 'kg', reorderLevel: '', costPerUnit: '', supplier: '', location: '', expiryDate: '', batchNo: '', fssaiCompliant: true, notes: '' }); setShowForm(false); };
+  const deleteItem = (id) => save(items.filter(i => i.id !== id));
+  const categories = ['All', ...new Set(items.map(i => i.category))];
+  const filtered = items.filter(i => (filterCat === 'All' || i.category === filterCat) && (!search || i.name.toLowerCase().includes(search.toLowerCase())));
+  const lowStock = items.filter(i => i.quantity <= i.reorderLevel);
+  const totalValue = items.reduce((s, i) => s + (i.quantity * i.costPerUnit), 0);
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Boxes size={22} /> Raw Material Inventory</h2>
+      <div className="stats-row">{[['Total Items', items.length, '#a855f7'], ['Low Stock', lowStock.length, '#ef4444'], ['Inventory Value', '₹' + totalValue.toLocaleString(), '#10b981'], ['Categories', new Set(items.map(i=>i.category)).size, '#3b82f6']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      {lowStock.length > 0 && <div className="card" style={{ padding: 12, marginBottom: 16, borderLeft: '3px solid #ef4444' }}>
+        <div style={{ fontWeight: 600, color: '#ef4444', marginBottom: 4 }}>⚠ Low Stock Alert</div>
+        {lowStock.map(i => <div key={i.id} style={{ fontSize: 12, opacity: 0.8 }}>{i.name}: {i.quantity} {i.unit} (reorder at {i.reorderLevel})</div>)}
+      </div>}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <input className="input" placeholder="Search materials..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1 }} />
+        <select className="input" value={filterCat} onChange={e => setFilterCat(e.target.value)} style={{ width: 140 }}>{categories.map(c => <option key={c}>{c}</option>)}</select>
+        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>+ Add Material</button>
+      </div>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Material name *" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+          <select className="input" value={form.category} onChange={e => setForm({...form, category: e.target.value})}><option>Grain</option><option>Spice</option><option>Oil</option><option>Vegetable</option><option>Dairy</option><option>Packaging</option><option>Additive</option><option>Other</option></select>
+          <input className="input" placeholder="Quantity *" type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} />
+          <select className="input" value={form.unit} onChange={e => setForm({...form, unit: e.target.value})}><option>kg</option><option>litres</option><option>units</option><option>packs</option><option>tonnes</option></select>
+          <input className="input" placeholder="Reorder level" type="number" value={form.reorderLevel} onChange={e => setForm({...form, reorderLevel: e.target.value})} />
+          <input className="input" placeholder="Cost/unit (₹)" type="number" value={form.costPerUnit} onChange={e => setForm({...form, costPerUnit: e.target.value})} />
+          <input className="input" placeholder="Supplier" value={form.supplier} onChange={e => setForm({...form, supplier: e.target.value})} />
+          <input className="input" placeholder="Storage location" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
+          <input className="input" type="date" placeholder="Expiry date" value={form.expiryDate} onChange={e => setForm({...form, expiryDate: e.target.value})} />
+          <input className="input" placeholder="Batch no." value={form.batchNo} onChange={e => setForm({...form, batchNo: e.target.value})} />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}><input type="checkbox" checked={form.fssaiCompliant} onChange={e => setForm({...form, fssaiCompliant: e.target.checked})} /> FSSAI Compliant</label>
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addItem}>Save Material</button>
+      </div>}
+      <div className="table-wrapper"><table className="data-table"><thead><tr><th>Material</th><th>Category</th><th>Stock</th><th>Reorder</th><th>Cost/Unit</th><th>Supplier</th><th>Expiry</th><th>FSSAI</th><th>Actions</th></tr></thead><tbody>
+        {filtered.map(i => <tr key={i.id} style={{ background: i.quantity <= i.reorderLevel ? 'rgba(239,68,68,0.1)' : 'transparent' }}>
+          <td style={{fontWeight:600}}>{i.name}</td><td>{i.category}</td><td>{i.quantity} {i.unit}</td><td>{i.reorderLevel} {i.unit}</td>
+          <td>₹{i.costPerUnit}</td><td>{i.supplier || '—'}</td><td>{i.expiryDate || '—'}</td>
+          <td>{i.fssaiCompliant ? <CheckCircle2 size={14} color="#10b981"/> : <XCircle size={14} color="#ef4444"/>}</td>
+          <td><button onClick={() => deleteItem(i.id)} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button></td></tr>)}
+      </tbody></table></div>
+    </div>
+  );
+}
+
+function DeadlockVendorManager() {
+  const [vendors, setVendors] = useState(() => JSON.parse(localStorage.getItem('protocol_deadlock_vendors') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState('');
+  const [viewVendor, setViewVendor] = useState(null);
+  const [form, setForm] = useState({ name: '', type: 'Raw Material', contactPerson: '', phone: '', email: '', gst: '', pan: '', address: '', city: '', state: '', materials: '', paymentTerms: '30 days', rating: 'A', bankName: '', accountNo: '', ifsc: '', notes: '' });
+  const save = (d) => { setVendors(d); localStorage.setItem('protocol_deadlock_vendors', JSON.stringify(d)); };
+  const addVendor = () => { if (!form.name || !form.phone) return; save([...vendors, { ...form, id: Date.now(), status: 'Active', createdAt: new Date().toISOString() }]); setForm({ name: '', type: 'Raw Material', contactPerson: '', phone: '', email: '', gst: '', pan: '', address: '', city: '', state: '', materials: '', paymentTerms: '30 days', rating: 'A', bankName: '', accountNo: '', ifsc: '', notes: '' }); setShowForm(false); };
+  const toggleStatus = (id) => save(vendors.map(v => v.id === id ? { ...v, status: v.status === 'Active' ? 'Inactive' : 'Active' } : v));
+  const deleteVendor = (id) => save(vendors.filter(v => v.id !== id));
+  const filtered = vendors.filter(v => !search || v.name.toLowerCase().includes(search.toLowerCase()));
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Truck size={22} /> Vendor Management</h2>
+      <div className="stats-row">{[['Total Vendors', vendors.length, '#a855f7'], ['Active', vendors.filter(v=>v.status==='Active').length, '#10b981'], ['Inactive', vendors.filter(v=>v.status==='Inactive').length, '#ef4444']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <input className="input" placeholder="Search vendors..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1 }} />
+        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>+ Add Vendor</button>
+      </div>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Vendor name *" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+          <select className="input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}><option>Raw Material</option><option>Packaging</option><option>Equipment</option><option>Logistics</option><option>Lab/Testing</option><option>Other</option></select>
+          <input className="input" placeholder="Contact person" value={form.contactPerson} onChange={e => setForm({...form, contactPerson: e.target.value})} />
+          <input className="input" placeholder="Phone *" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+          <input className="input" placeholder="Email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+          <input className="input" placeholder="GST No." value={form.gst} onChange={e => setForm({...form, gst: e.target.value})} />
+          <input className="input" placeholder="PAN" value={form.pan} onChange={e => setForm({...form, pan: e.target.value})} />
+          <input className="input" placeholder="City" value={form.city} onChange={e => setForm({...form, city: e.target.value})} />
+          <input className="input" placeholder="State" value={form.state} onChange={e => setForm({...form, state: e.target.value})} />
+          <input className="input" placeholder="Materials supplied" value={form.materials} onChange={e => setForm({...form, materials: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <select className="input" value={form.rating} onChange={e => setForm({...form, rating: e.target.value})}><option>A</option><option>B</option><option>C</option></select>
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addVendor}>Save Vendor</button>
+      </div>}
+      {viewVendor && <div className="modal-overlay" onClick={() => setViewVendor(null)}><div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: 500 }}>
+        <h3 style={{ marginBottom: 8 }}>{viewVendor.name}</h3>
+        <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 12 }}>{viewVendor.type} • {viewVendor.city}, {viewVendor.state}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 13, marginBottom: 16 }}>
+          <div><span style={{opacity:0.5}}>Contact:</span> {viewVendor.contactPerson}</div>
+          <div><span style={{opacity:0.5}}>Phone:</span> {viewVendor.phone}</div>
+          <div><span style={{opacity:0.5}}>Email:</span> {viewVendor.email || '—'}</div>
+          <div><span style={{opacity:0.5}}>GST:</span> {viewVendor.gst || '—'}</div>
+          <div><span style={{opacity:0.5}}>Materials:</span> {viewVendor.materials || '—'}</div>
+          <div><span style={{opacity:0.5}}>Rating:</span> {viewVendor.rating}</div>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <a href={`tel:${viewVendor.phone}`} className="btn-primary" style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}><Phone size={14}/> Call</a>
+          <a href={`https://wa.me/91${viewVendor.phone.replace(/\D/g,'')}`} target="_blank" className="btn-secondary" style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}>WhatsApp</a>
+          {viewVendor.email && <a href={`mailto:${viewVendor.email}`} className="btn-secondary" style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}><Mail size={14}/> Email</a>}
+        </div>
+      </div></div>}
+      <div className="table-wrapper"><table className="data-table"><thead><tr><th>Vendor</th><th>Type</th><th>Contact</th><th>City</th><th>Materials</th><th>Rating</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        {filtered.map(v => <tr key={v.id} onClick={() => setViewVendor(v)} style={{ cursor: 'pointer' }}>
+          <td style={{fontWeight:600}}>{v.name}</td><td>{v.type}</td><td>{v.contactPerson}</td><td>{v.city}</td><td style={{maxWidth:150,overflow:'hidden',textOverflow:'ellipsis'}}>{v.materials || '—'}</td>
+          <td><span style={{padding:'2px 8px',borderRadius:4,fontSize:11,background:v.rating==='A'?'#10b981':v.rating==='B'?'#f59e0b':'#ef4444',color:'#fff'}}>{v.rating}</span></td>
+          <td><span style={{color:v.status==='Active'?'#10b981':'#ef4444',fontSize:12}}>{v.status}</span></td>
+          <td><button onClick={e => { e.stopPropagation(); deleteVendor(v.id); }} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button></td></tr>)}
+      </tbody></table></div>
+    </div>
+  );
+}
+
+function DeadlockQualityControl() {
+  const [checks, setChecks] = useState(() => JSON.parse(localStorage.getItem('protocol_deadlock_qc') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ product: '', batchNo: '', type: 'Incoming', parameter: '', result: '', standard: '', status: 'Pass', inspector: '', notes: '' });
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const save = (d) => { setChecks(d); localStorage.setItem('protocol_deadlock_qc', JSON.stringify(d)); };
+  const addCheck = () => { if (!form.product || !form.batchNo) return; save([...checks, { ...form, id: Date.now(), date: new Date().toISOString() }]); setForm({ product: '', batchNo: '', type: 'Incoming', parameter: '', result: '', standard: '', status: 'Pass', inspector: '', notes: '' }); setShowForm(false); };
+  const generateSOPs = async () => {
+    setAiLoading(true);
+    try {
+      const res = await callClaude(`You are a food safety & quality expert for an FMCG RTE/RTC brand. Generate comprehensive QC SOPs covering: incoming raw material inspection, in-process checks, finished product testing, microbiological standards, FSSAI compliance parameters, shelf-life testing, packaging integrity, sensory evaluation panels. Include specific test parameters, acceptable ranges, sampling plans, and corrective actions. Format with clear sections.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  const stats = { total: checks.length, pass: checks.filter(c => c.status === 'Pass').length, fail: checks.filter(c => c.status === 'Fail').length, hold: checks.filter(c => c.status === 'On Hold').length };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><FlaskConical size={22} /> Quality Control</h2>
+      <div className="stats-row">{[['Total Checks', stats.total, '#a855f7'], ['Passed', stats.pass, '#10b981'], ['Failed', stats.fail, '#ef4444'], ['On Hold', stats.hold, '#f59e0b']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>+ Log QC Check</button>
+        <button className="btn-secondary" onClick={generateSOPs} disabled={aiLoading}>{aiLoading ? 'Generating...' : '✦ AI Generate SOPs'}</button>
+      </div>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Product *" value={form.product} onChange={e => setForm({...form, product: e.target.value})} />
+          <input className="input" placeholder="Batch No. *" value={form.batchNo} onChange={e => setForm({...form, batchNo: e.target.value})} />
+          <select className="input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}><option>Incoming</option><option>In-Process</option><option>Finished Product</option><option>Packaging</option><option>Microbiological</option></select>
+          <input className="input" placeholder="Parameter tested" value={form.parameter} onChange={e => setForm({...form, parameter: e.target.value})} />
+          <input className="input" placeholder="Result" value={form.result} onChange={e => setForm({...form, result: e.target.value})} />
+          <input className="input" placeholder="Standard/acceptable range" value={form.standard} onChange={e => setForm({...form, standard: e.target.value})} />
+          <select className="input" value={form.status} onChange={e => setForm({...form, status: e.target.value})}><option>Pass</option><option>Fail</option><option>On Hold</option></select>
+          <input className="input" placeholder="Inspector" value={form.inspector} onChange={e => setForm({...form, inspector: e.target.value})} />
+          <input className="input" placeholder="Notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addCheck}>Save Check</button>
+      </div>}
+      {aiResult && <div className="card" style={{ padding: 16, marginBottom: 16, maxHeight: 400, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+      <div className="table-wrapper"><table className="data-table"><thead><tr><th>Product</th><th>Batch</th><th>Type</th><th>Parameter</th><th>Result</th><th>Standard</th><th>Status</th><th>Inspector</th></tr></thead><tbody>
+        {checks.map(c => <tr key={c.id}><td style={{fontWeight:600}}>{c.product}</td><td>{c.batchNo}</td><td>{c.type}</td><td>{c.parameter}</td><td>{c.result}</td><td>{c.standard}</td>
+          <td><span style={{padding:'2px 8px',borderRadius:4,fontSize:11,background:c.status==='Pass'?'#10b981':c.status==='Fail'?'#ef4444':'#f59e0b',color:'#fff'}}>{c.status}</span></td>
+          <td>{c.inspector}</td></tr>)}
+      </tbody></table></div>
+    </div>
+  );
+}
+
+function DeadlockBatchTracker() {
+  const [batches, setBatches] = useState(() => JSON.parse(localStorage.getItem('protocol_deadlock_batches') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ batchNo: '', product: '', rawMaterials: '', startDate: '', endDate: '', quantity: '', unit: 'kg', mfgDate: '', expiryDate: '', status: 'In Production', line: '' });
+  const save = (d) => { setBatches(d); localStorage.setItem('protocol_deadlock_batches', JSON.stringify(d)); };
+  const addBatch = () => { if (!form.batchNo || !form.product) return; save([...batches, { ...form, id: Date.now() }]); setForm({ batchNo: '', product: '', rawMaterials: '', startDate: '', endDate: '', quantity: '', unit: 'kg', mfgDate: '', expiryDate: '', status: 'In Production', line: '' }); setShowForm(false); };
+  const updateStatus = (id, status) => save(batches.map(b => b.id === id ? { ...b, status } : b));
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Barcode size={22} /> Batch Tracker</h2>
+      <div className="stats-row">{[['Total Batches', batches.length, '#a855f7'], ['In Production', batches.filter(b=>b.status==='In Production').length, '#f59e0b'], ['Completed', batches.filter(b=>b.status==='Completed').length, '#10b981'], ['Released', batches.filter(b=>b.status==='Released').length, '#3b82f6']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <button className="btn-primary" onClick={() => setShowForm(!showForm)} style={{ marginBottom: 16 }}>+ New Batch</button>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Batch No. *" value={form.batchNo} onChange={e => setForm({...form, batchNo: e.target.value})} />
+          <input className="input" placeholder="Product *" value={form.product} onChange={e => setForm({...form, product: e.target.value})} />
+          <input className="input" placeholder="Production line" value={form.line} onChange={e => setForm({...form, line: e.target.value})} />
+          <input className="input" placeholder="Raw materials used" value={form.rawMaterials} onChange={e => setForm({...form, rawMaterials: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <input className="input" type="number" placeholder="Quantity" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} />
+          <input className="input" type="date" value={form.mfgDate} onChange={e => setForm({...form, mfgDate: e.target.value})} title="Mfg date" />
+          <input className="input" type="date" value={form.expiryDate} onChange={e => setForm({...form, expiryDate: e.target.value})} title="Expiry date" />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addBatch}>Save Batch</button>
+      </div>}
+      <div className="table-wrapper"><table className="data-table"><thead><tr><th>Batch No</th><th>Product</th><th>Line</th><th>Quantity</th><th>Mfg Date</th><th>Expiry</th><th>Status</th></tr></thead><tbody>
+        {batches.map(b => <tr key={b.id}><td style={{fontWeight:600,fontFamily:'monospace'}}>{b.batchNo}</td><td>{b.product}</td><td>{b.line || '—'}</td><td>{b.quantity} {b.unit}</td><td>{b.mfgDate || '—'}</td><td>{b.expiryDate || '—'}</td>
+          <td><select className="input" style={{fontSize:11,padding:'2px 6px'}} value={b.status} onChange={e => updateStatus(b.id, e.target.value)}><option>In Production</option><option>QC Pending</option><option>QC Passed</option><option>Completed</option><option>Released</option><option>Rejected</option></select></td></tr>)}
+      </tbody></table></div>
+    </div>
+  );
+}
+
+function DeadlockCOGS() {
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [product, setProduct] = useState('');
+  const [batchSize, setBatchSize] = useState('');
+  const generateCOGS = async () => {
+    setAiLoading(true);
+    try {
+      const inventory = JSON.parse(localStorage.getItem('protocol_deadlock_inventory') || '[]');
+      const vendors = JSON.parse(localStorage.getItem('protocol_deadlock_vendors') || '[]');
+      const res = await callClaude(`You are a cost accountant for an FMCG food company. Product: "${product}". Batch size: ${batchSize || '1000'} units. Raw material inventory with costs: ${JSON.stringify(inventory.slice(0, 20))}. Vendors: ${JSON.stringify(vendors.map(v => ({ name: v.name, materials: v.materials })).slice(0, 10))}. Calculate detailed COGS breakdown including: raw material cost per unit, packaging cost, direct labor, manufacturing overhead, quality testing, utilities, depreciation. Show per-unit cost, per-batch cost, suggested MRP with margins (retailer 20%, distributor 10%, company 30%). Format as clear cost sheet with totals.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Calculator size={22} /> COGS Calculator</h2>
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <p style={{ fontSize: 13, opacity: 0.7, marginBottom: 12 }}>AI-powered Cost of Goods Sold calculator. Uses your raw material inventory data to compute per-unit production costs and recommend pricing.</p>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+          <input className="input" placeholder="Product name" value={product} onChange={e => setProduct(e.target.value)} style={{ flex: 1 }} />
+          <input className="input" placeholder="Batch size (units)" type="number" value={batchSize} onChange={e => setBatchSize(e.target.value)} style={{ width: 180 }} />
+          <button className="btn-primary" onClick={generateCOGS} disabled={aiLoading || !product}>{aiLoading ? 'Calculating...' : '✦ Calculate COGS'}</button>
+        </div>
+      </div>
+      {aiResult && <div className="card" style={{ padding: 20, maxHeight: 500, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+function DeadlockFSSAI() {
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [query, setQuery] = useState('');
+  const [checklist, setChecklist] = useState(() => JSON.parse(localStorage.getItem('protocol_deadlock_fssai') || '[]'));
+  const defaultChecklist = [
+    { item: 'FSSAI License (Central/State)', done: false },
+    { item: 'Product Standards compliance (FSS Regulations)', done: false },
+    { item: 'Labelling requirements (FSSR 2011)', done: false },
+    { item: 'Nutritional information panel', done: false },
+    { item: 'Allergen declarations', done: false },
+    { item: 'Best before / Use by dates', done: false },
+    { item: 'Batch coding system', done: false },
+    { item: 'HACCP plan documentation', done: false },
+    { item: 'Water testing reports', done: false },
+    { item: 'Pest control records', done: false },
+    { item: 'Employee health records', done: false },
+    { item: 'Traceability system (1-up, 1-back)', done: false },
+    { item: 'Recall plan documentation', done: false },
+    { item: 'GMP certification', done: false },
+    { item: 'Lab testing reports (microbiology, heavy metals)', done: false },
+  ];
+  useEffect(() => { if (checklist.length === 0) { setChecklist(defaultChecklist); localStorage.setItem('protocol_deadlock_fssai', JSON.stringify(defaultChecklist)); } }, []);
+  const toggleItem = (idx) => { const updated = [...checklist]; updated[idx] = { ...updated[idx], done: !updated[idx].done }; setChecklist(updated); localStorage.setItem('protocol_deadlock_fssai', JSON.stringify(updated)); };
+  const askCompliance = async () => {
+    setAiLoading(true);
+    try {
+      const res = await callClaude(`You are an FSSAI compliance expert and food safety consultant in India. Query: "${query}". Provide detailed, actionable guidance covering relevant FSSAI regulations, required documentation, testing parameters, labelling requirements, and penalties for non-compliance. Reference specific FSSAI regulation numbers where applicable.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  const completed = checklist.filter(c => c.done).length;
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Leaf size={22} /> FSSAI Compliance</h2>
+      <div className="stats-row">{[['Total Items', checklist.length, '#a855f7'], ['Completed', completed, '#10b981'], ['Pending', checklist.length - completed, '#f59e0b'], ['Progress', Math.round(completed/checklist.length*100) + '%', '#3b82f6']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <h3 style={{ marginBottom: 12, fontSize: 14 }}>Compliance Checklist</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {checklist.map((c, i) => <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', opacity: c.done ? 0.5 : 1, textDecoration: c.done ? 'line-through' : 'none' }}>
+            <input type="checkbox" checked={c.done} onChange={() => toggleItem(i)} /> {c.item}
+          </label>)}
+        </div>
+      </div>
+      <div className="card" style={{ padding: 16 }}>
+        <h3 style={{ marginBottom: 8, fontSize: 14 }}>✦ AI Compliance Assistant</h3>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input className="input" placeholder="Ask about FSSAI regulations, labelling, testing..." value={query} onChange={e => setQuery(e.target.value)} style={{ flex: 1 }} />
+          <button className="btn-primary" onClick={askCompliance} disabled={aiLoading || !query}>{aiLoading ? 'Thinking...' : 'Ask'}</button>
+        </div>
+        {aiResult && <div style={{ marginTop: 12, maxHeight: 400, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+      </div>
+    </div>
+  );
+}
+
+function DeadlockRecipeManager() {
+  const [recipes, setRecipes] = useState(() => JSON.parse(localStorage.getItem('protocol_deadlock_recipes') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name: '', category: 'RTE', ingredients: '', process: '', batchYield: '', shelfLife: '', storageTemp: '', allergens: '', notes: '' });
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const save = (d) => { setRecipes(d); localStorage.setItem('protocol_deadlock_recipes', JSON.stringify(d)); };
+  const addRecipe = () => { if (!form.name) return; save([...recipes, { ...form, id: Date.now(), version: 1, createdAt: new Date().toISOString() }]); setForm({ name: '', category: 'RTE', ingredients: '', process: '', batchYield: '', shelfLife: '', storageTemp: '', allergens: '', notes: '' }); setShowForm(false); };
+  const deleteRecipe = (id) => save(recipes.filter(r => r.id !== id));
+  const optimizeRecipe = async (recipe) => {
+    setAiLoading(true);
+    try {
+      const inventory = JSON.parse(localStorage.getItem('protocol_deadlock_inventory') || '[]');
+      const res = await callClaude(`You are a food technologist for a clean-label RTE/RTC brand. Recipe: ${JSON.stringify(recipe)}. Available raw materials: ${JSON.stringify(inventory.map(i => ({ name: i.name, stock: i.quantity, unit: i.unit, cost: i.costPerUnit })).slice(0, 20))}. Optimize this recipe for: cost efficiency, clean-label ingredients, shelf life extension, nutritional improvement, scalability. Suggest alternatives for expensive ingredients, calculate approximate cost per unit, and flag any FSSAI concerns.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><PackageCheck size={22} /> Recipe Manager</h2>
+      <button className="btn-primary" onClick={() => setShowForm(!showForm)} style={{ marginBottom: 16 }}>+ New Recipe</button>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Recipe name *" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+          <select className="input" value={form.category} onChange={e => setForm({...form, category: e.target.value})}><option>RTE</option><option>RTC</option><option>Snack</option><option>Beverage</option><option>Sauce/Paste</option></select>
+          <textarea className="input" placeholder="Ingredients (one per line)" rows={3} value={form.ingredients} onChange={e => setForm({...form, ingredients: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <textarea className="input" placeholder="Process steps" rows={3} value={form.process} onChange={e => setForm({...form, process: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <input className="input" placeholder="Batch yield" value={form.batchYield} onChange={e => setForm({...form, batchYield: e.target.value})} />
+          <input className="input" placeholder="Shelf life" value={form.shelfLife} onChange={e => setForm({...form, shelfLife: e.target.value})} />
+          <input className="input" placeholder="Storage temp" value={form.storageTemp} onChange={e => setForm({...form, storageTemp: e.target.value})} />
+          <input className="input" placeholder="Allergens" value={form.allergens} onChange={e => setForm({...form, allergens: e.target.value})} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addRecipe}>Save Recipe</button>
+      </div>}
+      {aiResult && <div className="card" style={{ padding: 16, marginBottom: 16, maxHeight: 400, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+        {recipes.map(r => <div key={r.id} className="card" style={{ padding: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+            <div><div style={{ fontWeight: 700 }}>{r.name}</div><div style={{ fontSize: 12, opacity: 0.6 }}>{r.category} • v{r.version}</div></div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button onClick={() => optimizeRecipe(r)} disabled={aiLoading} style={{ background: 'none', border: '1px solid #a855f7', color: '#a855f7', borderRadius: 4, padding: '2px 8px', fontSize: 11, cursor: 'pointer' }}>✦ Optimize</button>
+              <button onClick={() => deleteRecipe(r.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={14}/></button>
+            </div>
+          </div>
+          {r.shelfLife && <div style={{ fontSize: 12, marginTop: 8, opacity: 0.7 }}>Shelf life: {r.shelfLife}</div>}
+          {r.allergens && <div style={{ fontSize: 12, opacity: 0.7 }}>Allergens: {r.allergens}</div>}
+        </div>)}
+      </div>
+    </div>
+  );
+}
+
+// =============================================
+// KAY/O — Finance & Accounts Management
+// =============================================
+
+function KayoPnL() {
+  const [entries, setEntries] = useState(() => JSON.parse(localStorage.getItem('protocol_kayo_pnl') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ description: '', type: 'Revenue', category: 'Product Sales', amount: '', month: new Date().toISOString().slice(0,7), notes: '' });
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const save = (d) => { setEntries(d); localStorage.setItem('protocol_kayo_pnl', JSON.stringify(d)); };
+  const addEntry = () => { if (!form.description || !form.amount) return; save([...entries, { ...form, id: Date.now(), amount: Number(form.amount), createdAt: new Date().toISOString() }]); setForm({ description: '', type: 'Revenue', category: 'Product Sales', amount: '', month: new Date().toISOString().slice(0,7), notes: '' }); setShowForm(false); };
+  const deleteEntry = (id) => save(entries.filter(e => e.id !== id));
+  const revenue = entries.filter(e => e.type === 'Revenue').reduce((s, e) => s + e.amount, 0);
+  const expenses = entries.filter(e => e.type === 'Expense').reduce((s, e) => s + e.amount, 0);
+  const profit = revenue - expenses;
+  const analyzePnL = async () => {
+    setAiLoading(true);
+    try {
+      const res = await callClaude(`You are a financial analyst for a pre-launch FMCG food brand. P&L data: Revenue entries: ${JSON.stringify(entries.filter(e=>e.type==='Revenue'))}. Expense entries: ${JSON.stringify(entries.filter(e=>e.type==='Expense'))}. Total revenue: ₹${revenue}, Total expenses: ₹${expenses}, Net: ₹${profit}. Analyze: profitability trends, expense optimization opportunities, category-wise breakdown, margin analysis, cash burn rate, runway estimation, suggestions to improve unit economics. Format as executive P&L summary.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><FileBarChart size={22} /> Profit & Loss</h2>
+      <div className="stats-row">{[['Revenue', '₹' + revenue.toLocaleString(), '#10b981'], ['Expenses', '₹' + expenses.toLocaleString(), '#ef4444'], ['Net P&L', '₹' + profit.toLocaleString(), profit >= 0 ? '#10b981' : '#ef4444'], ['Entries', entries.length, '#a855f7']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>+ Add Entry</button>
+        <button className="btn-secondary" onClick={analyzePnL} disabled={aiLoading}>{aiLoading ? 'Analyzing...' : '✦ AI Analysis'}</button>
+      </div>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Description *" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+          <select className="input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}><option>Revenue</option><option>Expense</option></select>
+          <select className="input" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
+            {form.type === 'Revenue' ? <><option>Product Sales</option><option>Online Sales</option><option>Export</option><option>Other Revenue</option></> : <><option>Raw Materials</option><option>Production</option><option>Packaging</option><option>Logistics</option><option>Marketing</option><option>Salaries</option><option>Rent</option><option>Utilities</option><option>Equipment</option><option>Legal/Compliance</option><option>Other Expense</option></>}
+          </select>
+          <input className="input" type="number" placeholder="Amount (₹) *" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
+          <input className="input" type="month" value={form.month} onChange={e => setForm({...form, month: e.target.value})} />
+          <input className="input" placeholder="Notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addEntry}>Save Entry</button>
+      </div>}
+      {aiResult && <div className="card" style={{ padding: 16, marginBottom: 16, maxHeight: 400, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+      <div className="table-wrapper"><table className="data-table"><thead><tr><th>Description</th><th>Type</th><th>Category</th><th>Amount</th><th>Month</th><th>Actions</th></tr></thead><tbody>
+        {entries.map(e => <tr key={e.id}><td style={{fontWeight:600}}>{e.description}</td>
+          <td><span style={{color:e.type==='Revenue'?'#10b981':'#ef4444'}}>{e.type}</span></td><td>{e.category}</td>
+          <td style={{fontWeight:600,color:e.type==='Revenue'?'#10b981':'#ef4444'}}>{e.type==='Expense'?'-':''}₹{e.amount.toLocaleString()}</td><td>{e.month}</td>
+          <td><button onClick={() => deleteEntry(e.id)} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button></td></tr>)}
+      </tbody></table></div>
+    </div>
+  );
+}
+
+function KayoExpenseTracker() {
+  const [expenses, setExpenses] = useState(() => JSON.parse(localStorage.getItem('protocol_kayo_expenses') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ description: '', category: 'Operations', amount: '', date: new Date().toISOString().slice(0,10), paidTo: '', paymentMode: 'Bank Transfer', invoiceNo: '', approved: false, notes: '' });
+  const save = (d) => { setExpenses(d); localStorage.setItem('protocol_kayo_expenses', JSON.stringify(d)); };
+  const addExpense = () => { if (!form.description || !form.amount) return; save([...expenses, { ...form, id: Date.now(), amount: Number(form.amount) }]); setForm({ description: '', category: 'Operations', amount: '', date: new Date().toISOString().slice(0,10), paidTo: '', paymentMode: 'Bank Transfer', invoiceNo: '', approved: false, notes: '' }); setShowForm(false); };
+  const deleteExpense = (id) => save(expenses.filter(e => e.id !== id));
+  const total = expenses.reduce((s, e) => s + e.amount, 0);
+  const byCategory = {};
+  expenses.forEach(e => { byCategory[e.category] = (byCategory[e.category] || 0) + e.amount; });
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Wallet size={22} /> Expense Tracker</h2>
+      <div className="stats-row">{[['Total Expenses', '₹' + total.toLocaleString(), '#ef4444'], ['This Month', '₹' + expenses.filter(e => e.date?.startsWith(new Date().toISOString().slice(0,7))).reduce((s,e)=>s+e.amount,0).toLocaleString(), '#f59e0b'], ['Entries', expenses.length, '#a855f7']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <button className="btn-primary" onClick={() => setShowForm(!showForm)} style={{ marginBottom: 16 }}>+ Log Expense</button>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Description *" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+          <select className="input" value={form.category} onChange={e => setForm({...form, category: e.target.value})}><option>Operations</option><option>Raw Materials</option><option>Production</option><option>Marketing</option><option>Logistics</option><option>Salaries</option><option>Rent</option><option>Equipment</option><option>Travel</option><option>Legal</option><option>Miscellaneous</option></select>
+          <input className="input" type="number" placeholder="Amount (₹) *" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
+          <input className="input" type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
+          <input className="input" placeholder="Paid to" value={form.paidTo} onChange={e => setForm({...form, paidTo: e.target.value})} />
+          <select className="input" value={form.paymentMode} onChange={e => setForm({...form, paymentMode: e.target.value})}><option>Bank Transfer</option><option>UPI</option><option>Cash</option><option>Cheque</option><option>Credit Card</option></select>
+          <input className="input" placeholder="Invoice no." value={form.invoiceNo} onChange={e => setForm({...form, invoiceNo: e.target.value})} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addExpense}>Save Expense</button>
+      </div>}
+      {Object.keys(byCategory).length > 0 && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <h4 style={{ marginBottom: 8, fontSize: 13 }}>Category Breakdown</h4>
+        {Object.entries(byCategory).sort((a,b) => b[1]-a[1]).map(([cat, amt]) => <div key={cat} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}><span>{cat}</span><span style={{ fontWeight: 600 }}>₹{amt.toLocaleString()} ({Math.round(amt/total*100)}%)</span></div>)}
+      </div>}
+      <div className="table-wrapper"><table className="data-table"><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Paid To</th><th>Mode</th><th>Actions</th></tr></thead><tbody>
+        {expenses.sort((a,b) => b.date?.localeCompare(a.date)).map(e => <tr key={e.id}><td>{e.date}</td><td style={{fontWeight:600}}>{e.description}</td><td>{e.category}</td>
+          <td style={{fontWeight:600,color:'#ef4444'}}>₹{e.amount.toLocaleString()}</td><td>{e.paidTo || '—'}</td><td>{e.paymentMode}</td>
+          <td><button onClick={() => deleteExpense(e.id)} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button></td></tr>)}
+      </tbody></table></div>
+    </div>
+  );
+}
+
+function KayoInvoiceGen() {
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [form, setForm] = useState({ clientName: '', clientGST: '', clientAddress: '', items: '', invoiceNo: '', date: new Date().toISOString().slice(0,10), dueDate: '', gstRate: '18' });
+  const generateInvoice = async () => {
+    setAiLoading(true);
+    try {
+      const res = await callClaude(`You are an accountant for Kiro Foods India. Generate a professional GST-compliant invoice in markdown table format. Details: Invoice No: ${form.invoiceNo || 'KF-' + Date.now().toString().slice(-6)}, Date: ${form.date}, Due: ${form.dueDate || '30 days'}, Client: ${form.clientName}, Client GST: ${form.clientGST}, Client Address: ${form.clientAddress}, Items: ${form.items}, GST Rate: ${form.gstRate}%. Include: company header (Kiro Foods India), itemized table with HSN codes, quantity, rate, amount, CGST, SGST/IGST, total, bank details section, terms & conditions, authorized signatory. Make it print-ready.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Receipt size={22} /> Invoice Generator</h2>
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Client name *" value={form.clientName} onChange={e => setForm({...form, clientName: e.target.value})} />
+          <input className="input" placeholder="Client GST" value={form.clientGST} onChange={e => setForm({...form, clientGST: e.target.value})} />
+          <input className="input" placeholder="Client address" value={form.clientAddress} onChange={e => setForm({...form, clientAddress: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <input className="input" placeholder="Invoice no." value={form.invoiceNo} onChange={e => setForm({...form, invoiceNo: e.target.value})} />
+          <input className="input" type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
+          <input className="input" type="date" placeholder="Due date" value={form.dueDate} onChange={e => setForm({...form, dueDate: e.target.value})} />
+          <select className="input" value={form.gstRate} onChange={e => setForm({...form, gstRate: e.target.value})}><option value="5">GST 5%</option><option value="12">GST 12%</option><option value="18">GST 18%</option><option value="28">GST 28%</option></select>
+          <textarea className="input" placeholder="Items (product, qty, rate — one per line)" rows={4} value={form.items} onChange={e => setForm({...form, items: e.target.value})} style={{ gridColumn: 'span 2' }} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 12 }} onClick={generateInvoice} disabled={aiLoading || !form.clientName}>{aiLoading ? 'Generating...' : '✦ Generate Invoice'}</button>
+      </div>
+      {aiResult && <div className="card" style={{ padding: 20, maxHeight: 500, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+function KayoPaymentTracker() {
+  const [payments, setPayments] = useState(() => JSON.parse(localStorage.getItem('protocol_kayo_payments') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ party: '', type: 'Receivable', amount: '', dueDate: '', status: 'Pending', invoiceNo: '', notes: '' });
+  const save = (d) => { setPayments(d); localStorage.setItem('protocol_kayo_payments', JSON.stringify(d)); };
+  const addPayment = () => { if (!form.party || !form.amount) return; save([...payments, { ...form, id: Date.now(), amount: Number(form.amount), createdAt: new Date().toISOString() }]); setForm({ party: '', type: 'Receivable', amount: '', dueDate: '', status: 'Pending', invoiceNo: '', notes: '' }); setShowForm(false); };
+  const updateStatus = (id, status) => save(payments.map(p => p.id === id ? { ...p, status } : p));
+  const deletePayment = (id) => save(payments.filter(p => p.id !== id));
+  const receivable = payments.filter(p => p.type === 'Receivable' && p.status !== 'Paid').reduce((s,p) => s + p.amount, 0);
+  const payable = payments.filter(p => p.type === 'Payable' && p.status !== 'Paid').reduce((s,p) => s + p.amount, 0);
+  const overdue = payments.filter(p => p.status !== 'Paid' && p.dueDate && new Date(p.dueDate) < new Date());
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><ArrowUpDown size={22} /> Payment Tracker</h2>
+      <div className="stats-row">{[['Receivable', '₹' + receivable.toLocaleString(), '#10b981'], ['Payable', '₹' + payable.toLocaleString(), '#ef4444'], ['Overdue', overdue.length, '#f59e0b'], ['Total Entries', payments.length, '#a855f7']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <button className="btn-primary" onClick={() => setShowForm(!showForm)} style={{ marginBottom: 16 }}>+ Add Payment</button>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Party name *" value={form.party} onChange={e => setForm({...form, party: e.target.value})} />
+          <select className="input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}><option>Receivable</option><option>Payable</option></select>
+          <input className="input" type="number" placeholder="Amount (₹) *" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} />
+          <input className="input" type="date" value={form.dueDate} onChange={e => setForm({...form, dueDate: e.target.value})} title="Due date" />
+          <input className="input" placeholder="Invoice no." value={form.invoiceNo} onChange={e => setForm({...form, invoiceNo: e.target.value})} />
+          <input className="input" placeholder="Notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addPayment}>Save Payment</button>
+      </div>}
+      {overdue.length > 0 && <div className="card" style={{ padding: 12, marginBottom: 16, borderLeft: '3px solid #f59e0b' }}>
+        <div style={{ fontWeight: 600, color: '#f59e0b', marginBottom: 4 }}>⚠ Overdue Payments</div>
+        {overdue.map(p => <div key={p.id} style={{ fontSize: 12, opacity: 0.8 }}>{p.party}: ₹{p.amount.toLocaleString()} ({p.type}) — due {p.dueDate}</div>)}
+      </div>}
+      <div className="table-wrapper"><table className="data-table"><thead><tr><th>Party</th><th>Type</th><th>Amount</th><th>Due Date</th><th>Invoice</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+        {payments.map(p => <tr key={p.id} style={{ background: p.status !== 'Paid' && p.dueDate && new Date(p.dueDate) < new Date() ? 'rgba(245,158,11,0.1)' : 'transparent' }}>
+          <td style={{fontWeight:600}}>{p.party}</td><td><span style={{color:p.type==='Receivable'?'#10b981':'#ef4444'}}>{p.type}</span></td>
+          <td style={{fontWeight:600}}>₹{p.amount.toLocaleString()}</td><td>{p.dueDate || '—'}</td><td>{p.invoiceNo || '—'}</td>
+          <td><select className="input" style={{fontSize:11,padding:'2px 6px'}} value={p.status} onChange={e => updateStatus(p.id, e.target.value)}><option>Pending</option><option>Partial</option><option>Paid</option><option>Overdue</option></select></td>
+          <td><button onClick={() => deletePayment(p.id)} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button></td></tr>)}
+      </tbody></table></div>
+    </div>
+  );
+}
+
+function KayoCashFlow() {
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const generateCashFlow = async () => {
+    setAiLoading(true);
+    try {
+      const pnl = JSON.parse(localStorage.getItem('protocol_kayo_pnl') || '[]');
+      const expenses = JSON.parse(localStorage.getItem('protocol_kayo_expenses') || '[]');
+      const payments = JSON.parse(localStorage.getItem('protocol_kayo_payments') || '[]');
+      const orders = JSON.parse(localStorage.getItem('protocol_harbor_orders') || '[]');
+      const res = await callClaude(`You are a CFO/financial controller for a pre-launch FMCG food brand (Kiro Foods India). Generate a comprehensive cash flow analysis. Data: P&L entries: ${JSON.stringify(pnl.slice(0,30))}. Expenses: ${JSON.stringify(expenses.slice(0,30))}. Payments (receivable/payable): ${JSON.stringify(payments.slice(0,20))}. Distribution orders: ${JSON.stringify(orders.slice(0,20))}. Analyze: operating cash flow, investing cash flow, financing cash flow, net cash position, weekly/monthly projections, burn rate, runway, working capital cycle, DSO/DPO, cash conversion cycle. Flag risks and recommend actions. Format as executive cash flow statement.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><TrendingDown size={22} /> Cash Flow Analysis</h2>
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <p style={{ fontSize: 13, opacity: 0.7, marginBottom: 12 }}>AI-powered cash flow analysis using your P&L, expenses, payments, and distribution order data. Generates operating/investing/financing cash flows, projections, and runway estimates.</p>
+        <button className="btn-primary" onClick={generateCashFlow} disabled={aiLoading}>{aiLoading ? 'Analyzing...' : '✦ Generate Cash Flow Analysis'}</button>
+      </div>
+      {aiResult && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+function KayoBudgetTracker() {
+  const [budgets, setBudgets] = useState(() => JSON.parse(localStorage.getItem('protocol_kayo_budgets') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ department: 'Marketing', budgeted: '', actual: '', month: new Date().toISOString().slice(0,7), notes: '' });
+  const save = (d) => { setBudgets(d); localStorage.setItem('protocol_kayo_budgets', JSON.stringify(d)); };
+  const addBudget = () => { if (!form.budgeted) return; save([...budgets, { ...form, id: Date.now(), budgeted: Number(form.budgeted), actual: Number(form.actual) || 0 }]); setForm({ department: 'Marketing', budgeted: '', actual: '', month: new Date().toISOString().slice(0,7), notes: '' }); setShowForm(false); };
+  const deleteBudget = (id) => save(budgets.filter(b => b.id !== id));
+  const totalBudgeted = budgets.reduce((s, b) => s + b.budgeted, 0);
+  const totalActual = budgets.reduce((s, b) => s + b.actual, 0);
+  const variance = totalBudgeted - totalActual;
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><PiggyBank size={22} /> Budget vs Actuals</h2>
+      <div className="stats-row">{[['Total Budget', '₹' + totalBudgeted.toLocaleString(), '#3b82f6'], ['Actual Spend', '₹' + totalActual.toLocaleString(), '#f59e0b'], ['Variance', (variance>=0?'+':'') + '₹' + variance.toLocaleString(), variance >= 0 ? '#10b981' : '#ef4444'], ['Utilization', totalBudgeted ? Math.round(totalActual/totalBudgeted*100) + '%' : '0%', '#a855f7']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <button className="btn-primary" onClick={() => setShowForm(!showForm)} style={{ marginBottom: 16 }}>+ Add Budget Line</button>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <select className="input" value={form.department} onChange={e => setForm({...form, department: e.target.value})}><option>Marketing</option><option>Production</option><option>Sales</option><option>Distribution</option><option>R&D</option><option>Admin</option><option>HR</option><option>IT</option><option>Legal</option></select>
+          <input className="input" type="number" placeholder="Budgeted (₹) *" value={form.budgeted} onChange={e => setForm({...form, budgeted: e.target.value})} />
+          <input className="input" type="number" placeholder="Actual (₹)" value={form.actual} onChange={e => setForm({...form, actual: e.target.value})} />
+          <input className="input" type="month" value={form.month} onChange={e => setForm({...form, month: e.target.value})} />
+          <input className="input" placeholder="Notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} style={{ gridColumn: 'span 2' }} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addBudget}>Save</button>
+      </div>}
+      <div className="table-wrapper"><table className="data-table"><thead><tr><th>Department</th><th>Month</th><th>Budgeted</th><th>Actual</th><th>Variance</th><th>%</th><th>Actions</th></tr></thead><tbody>
+        {budgets.map(b => { const v = b.budgeted - b.actual; return <tr key={b.id}><td style={{fontWeight:600}}>{b.department}</td><td>{b.month}</td>
+          <td>₹{b.budgeted.toLocaleString()}</td><td>₹{b.actual.toLocaleString()}</td>
+          <td style={{color:v>=0?'#10b981':'#ef4444',fontWeight:600}}>{v>=0?'+':''}₹{v.toLocaleString()}</td>
+          <td>{b.budgeted ? Math.round(b.actual/b.budgeted*100) + '%' : '—'}</td>
+          <td><button onClick={() => deleteBudget(b.id)} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button></td></tr>; })}
+      </tbody></table></div>
+    </div>
+  );
+}
+
+function KayoMarginAnalysis() {
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const analyze = async () => {
+    setAiLoading(true);
+    try {
+      const pnl = JSON.parse(localStorage.getItem('protocol_kayo_pnl') || '[]');
+      const expenses = JSON.parse(localStorage.getItem('protocol_kayo_expenses') || '[]');
+      const partners = JSON.parse(localStorage.getItem('protocol_harbor_partners') || '[]');
+      const orders = JSON.parse(localStorage.getItem('protocol_harbor_orders') || '[]');
+      const inventory = JSON.parse(localStorage.getItem('protocol_deadlock_inventory') || '[]');
+      const res = await callClaude(`You are a financial strategist for Kiro Foods India (pre-launch FMCG). Analyze margins across the entire value chain. Data: P&L: ${JSON.stringify(pnl.slice(0,20))}. Expenses: ${JSON.stringify(expenses.slice(0,20))}. Distribution partners: ${JSON.stringify(partners.slice(0,10))}. Orders: ${JSON.stringify(orders.slice(0,15))}. Raw material costs: ${JSON.stringify(inventory.map(i=>({name:i.name,cost:i.costPerUnit,unit:i.unit})).slice(0,15))}. Calculate and analyze: gross margin, EBITDA margin, contribution margin per product, channel-wise margins (retail vs D2C vs marketplace), distributor margin structure (C&F 3-5%, SS 2-3%, distributor 8-10%, retailer 15-20%), break-even analysis, margin improvement recommendations. Format as detailed margin analysis report.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Percent size={22} /> Margin Analysis</h2>
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <p style={{ fontSize: 13, opacity: 0.7, marginBottom: 12 }}>AI-powered margin analysis across the entire value chain — from raw materials to retailer shelves. Cross-references data from Production (Deadlock), Distribution (Harbor), and Finance (KAY/O) agents.</p>
+        <button className="btn-primary" onClick={analyze} disabled={aiLoading}>{aiLoading ? 'Analyzing...' : '✦ Run Margin Analysis'}</button>
+      </div>
+      {aiResult && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
 // =============================================
 // USER MANAGEMENT / ADMIN PANEL
 // =============================================
@@ -8228,6 +9284,29 @@ const ALL_TOOLS = [
   { id: 'breach-medialist', label: 'Media List', section: 'Breach' },
   { id: 'breach-crisis', label: 'Crisis Playbook', section: 'Breach' },
   { id: 'breach-sentiment', label: 'Sentiment Monitor', section: 'Breach' },
+  { id: 'harbor-distributors', label: 'Distributor DB', section: 'Harbor' },
+  { id: 'harbor-onboarding', label: 'Onboarding', section: 'Harbor' },
+  { id: 'harbor-schemes', label: 'Trade Schemes', section: 'Harbor' },
+  { id: 'harbor-orders', label: 'Order Tracker', section: 'Harbor' },
+  { id: 'harbor-territory', label: 'Territory Plan', section: 'Harbor' },
+  { id: 'harbor-scorecard', label: 'Scorecard', section: 'Harbor' },
+  { id: 'harbor-agreements', label: 'Agreements', section: 'Harbor' },
+  { id: 'harbor-claims', label: 'Claims Tracker', section: 'Harbor' },
+  { id: 'deadlock-production', label: 'Production Planner', section: 'Deadlock' },
+  { id: 'deadlock-inventory', label: 'Raw Materials', section: 'Deadlock' },
+  { id: 'deadlock-vendors', label: 'Vendor Manager', section: 'Deadlock' },
+  { id: 'deadlock-qc', label: 'Quality Control', section: 'Deadlock' },
+  { id: 'deadlock-batches', label: 'Batch Tracker', section: 'Deadlock' },
+  { id: 'deadlock-cogs', label: 'COGS Calculator', section: 'Deadlock' },
+  { id: 'deadlock-fssai', label: 'FSSAI Compliance', section: 'Deadlock' },
+  { id: 'deadlock-recipes', label: 'Recipe Manager', section: 'Deadlock' },
+  { id: 'kayo-pnl', label: 'Profit & Loss', section: 'KAY/O' },
+  { id: 'kayo-expenses', label: 'Expense Tracker', section: 'KAY/O' },
+  { id: 'kayo-invoices', label: 'Invoice Generator', section: 'KAY/O' },
+  { id: 'kayo-payments', label: 'Payment Tracker', section: 'KAY/O' },
+  { id: 'kayo-cashflow', label: 'Cash Flow', section: 'KAY/O' },
+  { id: 'kayo-budgets', label: 'Budget Tracker', section: 'KAY/O' },
+  { id: 'kayo-margins', label: 'Margin Analysis', section: 'KAY/O' },
   { id: 'settings', label: 'Settings', section: 'Lobby' },
 ];
 
@@ -9665,6 +10744,8 @@ export default function App() {
         gekko: "Go get them, buddy!",
         breach: "Let's go!",
         harbor: "I control the tide.",
+        deadlock: "No one escapes my grasp.",
+        kayo: "No more tricks.",
         lobby: "Choose your agent."
       };
       const line = lines[agent];
@@ -10073,6 +11154,68 @@ export default function App() {
           quake.start(now + 0.05); quake.stop(now + 0.35);
         },
 
+        deadlock: () => {
+          // SENTINEL: Heavy mechanical lock → industrial grind → trap deploy clank
+          // Mechanical lock engaging
+          const lock = ctx.createOscillator(); const lG = ctx.createGain();
+          const lF = ctx.createBiquadFilter();
+          lock.type = 'sawtooth'; lock.frequency.setValueAtTime(300, now);
+          lock.frequency.exponentialRampToValueAtTime(80, now + 0.1);
+          lF.type = 'lowpass'; lF.frequency.setValueAtTime(400, now);
+          lG.gain.setValueAtTime(0.12, now);
+          lG.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          lock.connect(lF); lF.connect(lG); lG.connect(ctx.destination);
+          lock.start(now); lock.stop(now + 0.12);
+          // Industrial grind — gritty texture
+          const grind = ctx.createOscillator(); const gG = ctx.createGain();
+          const gF = ctx.createBiquadFilter();
+          grind.type = 'sawtooth'; grind.frequency.setValueAtTime(100, now + 0.08);
+          grind.frequency.linearRampToValueAtTime(200, now + 0.2);
+          gF.type = 'bandpass'; gF.frequency.setValueAtTime(180, now); gF.Q.setValueAtTime(5, now);
+          gG.gain.setValueAtTime(0.08, now + 0.08);
+          gG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          grind.connect(gF); gF.connect(gG); gG.connect(ctx.destination);
+          grind.start(now + 0.08); grind.stop(now + 0.25);
+          // Trap deploy — heavy metallic clank
+          const clank = ctx.createOscillator(); const clG = ctx.createGain();
+          clank.type = 'square'; clank.frequency.setValueAtTime(600, now + 0.15);
+          clank.frequency.exponentialRampToValueAtTime(120, now + 0.22);
+          clG.gain.setValueAtTime(0.1, now + 0.15);
+          clG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          clank.connect(clG); clG.connect(ctx.destination);
+          clank.start(now + 0.15); clank.stop(now + 0.3);
+        },
+
+        kayo: () => {
+          // SUPPRESSOR: EMP charge up → flash/suppress pulse → system neutralized confirmation
+          // EMP charge up — rising whine
+          const charge = ctx.createOscillator(); const chG = ctx.createGain();
+          charge.type = 'sine'; charge.frequency.setValueAtTime(200, now);
+          charge.frequency.exponentialRampToValueAtTime(2000, now + 0.15);
+          chG.gain.setValueAtTime(0.06, now);
+          chG.gain.linearRampToValueAtTime(0.12, now + 0.12);
+          chG.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          charge.connect(chG); chG.connect(ctx.destination);
+          charge.start(now); charge.stop(now + 0.18);
+          // Suppress pulse — short burst
+          const pulse = ctx.createOscillator(); const pG = ctx.createGain();
+          const pF = ctx.createBiquadFilter();
+          pulse.type = 'square'; pulse.frequency.setValueAtTime(800, now + 0.15);
+          pulse.frequency.exponentialRampToValueAtTime(200, now + 0.22);
+          pF.type = 'lowpass'; pF.frequency.setValueAtTime(1200, now);
+          pG.gain.setValueAtTime(0.14, now + 0.15);
+          pG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          pulse.connect(pF); pF.connect(pG); pG.connect(ctx.destination);
+          pulse.start(now + 0.15); pulse.stop(now + 0.25);
+          // Neutralized tone — low confirmation beep
+          const tone = ctx.createOscillator(); const tG = ctx.createGain();
+          tone.type = 'sine'; tone.frequency.setValueAtTime(440, now + 0.22);
+          tG.gain.setValueAtTime(0.08, now + 0.22);
+          tG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          tone.connect(tG); tG.connect(ctx.destination);
+          tone.start(now + 0.22); tone.stop(now + 0.35);
+        },
+
         lobby: () => {
           // HOME BASE: Clean menu open → ambient system hum → ready indicator
           // Menu open — two-note chime (like Valorant main menu)
@@ -10295,6 +11438,47 @@ export default function App() {
       ]
     },
     {
+      title: 'Harbor', icon: Anchor, agentFace: 'harbor',
+      subtitle: 'Controller — distribution & supply chain',
+      items: [
+        { path: '/harbor-distributors', icon: Building2, label: 'Distributor DB' },
+        { path: '/harbor-onboarding', icon: ClipboardList, label: 'Onboarding' },
+        { path: '/harbor-schemes', icon: Gift, label: 'Trade Schemes' },
+        { path: '/harbor-orders', icon: Package, label: 'Order Tracker' },
+        { path: '/harbor-territory', icon: MapPinned, label: 'Territory Plan' },
+        { path: '/harbor-scorecard', icon: Gauge, label: 'Scorecard' },
+        { path: '/harbor-agreements', icon: FileCheck, label: 'Agreements' },
+        { path: '/harbor-claims', icon: Scale, label: 'Claims Tracker' },
+      ]
+    },
+    {
+      title: 'Deadlock', icon: Factory, agentFace: 'deadlock',
+      subtitle: 'Sentinel — production & raw materials',
+      items: [
+        { path: '/deadlock-production', icon: Factory, label: 'Production Planner' },
+        { path: '/deadlock-inventory', icon: Boxes, label: 'Raw Materials' },
+        { path: '/deadlock-vendors', icon: Truck, label: 'Vendor Manager' },
+        { path: '/deadlock-qc', icon: FlaskConical, label: 'Quality Control' },
+        { path: '/deadlock-batches', icon: Barcode, label: 'Batch Tracker' },
+        { path: '/deadlock-cogs', icon: Calculator, label: 'COGS Calculator' },
+        { path: '/deadlock-fssai', icon: Leaf, label: 'FSSAI Compliance' },
+        { path: '/deadlock-recipes', icon: PackageCheck, label: 'Recipe Manager' },
+      ]
+    },
+    {
+      title: 'KAY/O', icon: BadgeDollarSign, agentFace: 'kayo',
+      subtitle: 'Suppressor — finance & accounts',
+      items: [
+        { path: '/kayo-pnl', icon: FileBarChart, label: 'Profit & Loss' },
+        { path: '/kayo-expenses', icon: Wallet, label: 'Expense Tracker' },
+        { path: '/kayo-invoices', icon: Receipt, label: 'Invoice Generator' },
+        { path: '/kayo-payments', icon: ArrowUpDown, label: 'Payment Tracker' },
+        { path: '/kayo-cashflow', icon: TrendingDown, label: 'Cash Flow' },
+        { path: '/kayo-budgets', icon: PiggyBank, label: 'Budget Tracker' },
+        { path: '/kayo-margins', icon: Percent, label: 'Margin Analysis' },
+      ]
+    },
+    {
       title: 'Lobby', icon: Settings, agentFace: 'lobby',
       subtitle: 'Home base — settings, sync & admin',
       items: [
@@ -10489,6 +11673,29 @@ export default function App() {
             <Route path="/breach-medialist" element={<BreachMediaList />} />
             <Route path="/breach-crisis" element={<BreachCrisisPlaybook />} />
             <Route path="/breach-sentiment" element={<BreachSentimentMonitor />} />
+            <Route path="/harbor-distributors" element={<HarborDistributorDB />} />
+            <Route path="/harbor-onboarding" element={<HarborOnboarding />} />
+            <Route path="/harbor-schemes" element={<HarborTradeSchemes />} />
+            <Route path="/harbor-orders" element={<HarborOrderTracker />} />
+            <Route path="/harbor-territory" element={<HarborTerritory />} />
+            <Route path="/harbor-scorecard" element={<HarborScorecard />} />
+            <Route path="/harbor-agreements" element={<HarborAgreementGen />} />
+            <Route path="/harbor-claims" element={<HarborClaimsTracker />} />
+            <Route path="/deadlock-production" element={<DeadlockProductionPlanner />} />
+            <Route path="/deadlock-inventory" element={<DeadlockInventory />} />
+            <Route path="/deadlock-vendors" element={<DeadlockVendorManager />} />
+            <Route path="/deadlock-qc" element={<DeadlockQualityControl />} />
+            <Route path="/deadlock-batches" element={<DeadlockBatchTracker />} />
+            <Route path="/deadlock-cogs" element={<DeadlockCOGS />} />
+            <Route path="/deadlock-fssai" element={<DeadlockFSSAI />} />
+            <Route path="/deadlock-recipes" element={<DeadlockRecipeManager />} />
+            <Route path="/kayo-pnl" element={<KayoPnL />} />
+            <Route path="/kayo-expenses" element={<KayoExpenseTracker />} />
+            <Route path="/kayo-invoices" element={<KayoInvoiceGen />} />
+            <Route path="/kayo-payments" element={<KayoPaymentTracker />} />
+            <Route path="/kayo-cashflow" element={<KayoCashFlow />} />
+            <Route path="/kayo-budgets" element={<KayoBudgetTracker />} />
+            <Route path="/kayo-margins" element={<KayoMarginAnalysis />} />
             {isAdmin && <Route path="/admin-panel" element={<AdminPanel />} />}
             {isAdmin && <Route path="/user-management" element={<UserManagement />} />}
             <Route path="/settings" element={<SettingsPage />} />
