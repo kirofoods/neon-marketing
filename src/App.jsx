@@ -8597,9 +8597,14 @@ export default function App() {
     if (authenticated && !hasPlayedChooseAgent.current && !soundsMuted) {
       hasPlayedChooseAgent.current = true;
       try {
-        const audio = new Audio('./sounds/choose-agent.mp3');
-        audio.volume = 0.4;
-        audio.play().catch(() => {});
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance("Choose your agent.");
+        u.rate = 0.82; u.pitch = 0.5; u.volume = 0.95;
+        const voices = window.speechSynthesis.getVoices();
+        const pick = voices.find(v => /male|daniel|james|google uk english male/i.test(v.name))
+          || voices.find(v => /english/i.test(v.lang || v.name));
+        if (pick) u.voice = pick;
+        window.speechSynthesis.speak(u);
       } catch (e) {}
     }
   }, [authenticated]);
@@ -8873,11 +8878,40 @@ export default function App() {
     } catch (e) {}
   };
 
-  // Agent select sound effects — tries real audio files first, falls back to synthesized
+  // Agent ult voicelines via speech synthesis
+  const playUltVoiceline = (agent) => {
+    try {
+      const lines = {
+        brimstone: "Open up the sky!",
+        chamber: "They are so dead.",
+        cypher: "I know exactly where you are.",
+        sova: "I am the hunter!",
+        killjoy: "You should run.",
+        neon: "Let's go!",
+        harbor: "I control the tide.",
+        lobby: "Choose your agent."
+      };
+      const line = lines[agent];
+      if (!line) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(line);
+      u.rate = 0.88;
+      u.pitch = 0.6;
+      u.volume = 0.9;
+      // Prefer a deeper / male voice if available
+      const voices = window.speechSynthesis.getVoices();
+      const pick = voices.find(v => /male|daniel|james|google uk english male/i.test(v.name))
+        || voices.find(v => /english/i.test(v.lang || v.name));
+      if (pick) u.voice = pick;
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  };
+
+  // Agent select sound effects — synth + ult voiceline
   const playAgentSound = (agent) => {
     if (soundsMuted) return;
-    // Use designed synth sounds (context-matched to each agent)
     playSynthSound(agent);
+    playUltVoiceline(agent);
   };
 
   const playSynthSound = (agent) => {
