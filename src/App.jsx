@@ -11270,11 +11270,11 @@ const ALL_TOOLS = [
   { id: 'serp-scraper', label: 'SERP Scraper', section: 'Sova' },
   { id: 'content-hub', label: 'Content Hub', section: 'Neon' },
   { id: 'blog', label: 'Blog Writer', section: 'Neon' },
-  { id: 'email', label: 'Company Email', section: 'Neon' },
+  // Company Email moved to Lobby (Settings)
   { id: 'marketing-hub', label: 'Skills Hub', section: 'Neon' },
   { id: 'copywriter', label: 'Copywriter', section: 'Neon' },
   { id: 'ad-creative', label: 'Ad Creative', section: 'Neon' },
-  { id: 'email-sequence', label: 'Email Sequences', section: 'Neon' },
+  // Email Sequences removed — use Viper Drip Campaigns instead
   { id: 'launch-planner', label: 'Launch Planner', section: 'Neon' },
   { id: 'pricing-lab', label: 'Pricing Lab', section: 'Neon' },
   { id: 'cro-analyzer', label: 'CRO Analyzer', section: 'Neon' },
@@ -11292,11 +11292,7 @@ const ALL_TOOLS = [
   { id: 'viper-drip', label: 'Drip Campaigns', section: 'Viper' },
   { id: 'viper-newsletter', label: 'Newsletter Editor', section: 'Viper' },
   { id: 'viper-segments', label: 'Segmentation', section: 'Viper' },
-  // Reyna — Influencer
-  { id: 'reyna-discover', label: 'Influencer Discovery', section: 'Reyna' },
-  { id: 'reyna-outreach', label: 'Outreach Manager', section: 'Reyna' },
-  { id: 'reyna-tracker', label: 'Campaign Tracker', section: 'Reyna' },
-  { id: 'reyna-ugc', label: 'UGC Hub', section: 'Reyna' },
+  // Reyna merged into Skye
   // Phoenix — Social Media
   { id: 'phoenix-calendar', label: 'Content Calendar', section: 'Phoenix' },
   { id: 'phoenix-scheduler', label: 'Smart Scheduler', section: 'Phoenix' },
@@ -11356,7 +11352,8 @@ const ALL_TOOLS = [
   { id: 'skye-approvals', label: 'Content Approval', section: 'Skye' },
   { id: 'skye-discovery', label: 'Discovery', section: 'Skye' },
   { id: 'skye-contracts', label: 'Contracts', section: 'Skye' },
-  { id: 'lobby-email', label: 'Protocol Mail', section: 'Lobby' },
+  { id: 'skye-ugc', label: 'UGC Hub', section: 'Skye' },
+  { id: 'email', label: 'Company Email', section: 'Lobby' },
   { id: 'settings', label: 'Settings', section: 'Lobby' },
   // Yoru — Automation
   { id: 'yoru-workflow', label: 'Rift Engine', section: 'Yoru' },
@@ -13843,11 +13840,11 @@ const YORU_AGENTS = [
   { name: 'Chamber', role: 'Social Intelligence', tools: ['Instagram scraping', 'Facebook/Meta scraping', 'LinkedIn scraping', 'Twitter/X scraping', 'FB Ads Library'] },
   { name: 'Killjoy', role: 'SEO & Website', tools: ['Full site analysis', 'SEO dashboard', 'Site audit', 'On-page SEO', 'Backlinks', 'Rank tracking'] },
   { name: 'Sova', role: 'Research & Intel', tools: ['Keyword research', 'Keyword gap', 'Competitor keywords', 'Domain overview', 'Content research', 'Traffic insights', 'Ad intelligence', 'Brand monitoring', 'SERP scraping'] },
-  { name: 'Neon', role: 'Content & Copy', tools: ['Blog writer', 'Copywriter', 'Ad creative', 'Email sequences', 'Launch planner', 'Pricing strategy', 'CRO analysis'] },
+  { name: 'Neon', role: 'Content & Copy', tools: ['Blog writer', 'Copywriter', 'Ad creative', 'Launch planner', 'Pricing strategy', 'CRO analysis', 'Link injector'] },
   { name: 'Jett', role: 'Paid Advertising', tools: ['Campaign manager', 'Budget optimizer', 'ROAS tracker', 'A/B tests'] },
   { name: 'Sage', role: 'CRM & Customers', tools: ['Customer database', 'Lifecycle tracker', 'Retention engine', 'Churn predictor'] },
   { name: 'Viper', role: 'Email Marketing', tools: ['Drip campaigns', 'Newsletter editor', 'Segmentation'] },
-  { name: 'Reyna', role: 'Influencer Marketing', tools: ['Influencer discovery', 'Outreach', 'Campaign tracking', 'UGC hub'] },
+  // Reyna merged into Skye
   { name: 'Phoenix', role: 'Social Media Mgmt', tools: ['Content calendar', 'Scheduler', 'Engagement tracking', 'Community inbox'] },
   { name: 'Astra', role: 'Media Planning', tools: ['Media planner', 'GRP calculator', 'Media mix optimizer'] },
   { name: 'Fade', role: 'Analytics & Attribution', tools: ['UTM builder', 'Attribution model', 'Funnel analyzer'] },
@@ -13857,7 +13854,7 @@ const YORU_AGENTS = [
   { name: 'Deadlock', role: 'Production & Supply', tools: ['Production planner', 'Inventory', 'Vendor management', 'QC', 'FSSAI compliance'] },
   { name: 'Clove', role: 'Finance', tools: ['P&L', 'Expenses', 'Invoices', 'Payments', 'Cash flow', 'Budgets', 'Margins'] },
   { name: 'Omen', role: 'Task & Project Mgmt', tools: ['Task board', 'Projects', 'Timeline', 'Meeting notes', 'Brief builder', 'SOW generator'] },
-  { name: 'Skye', role: 'Influencer Relations', tools: ['Influencer DB', 'Campaigns', 'Outreach', 'ROI tracking', 'Content approval', 'Contracts'] },
+  { name: 'Skye', role: 'Influencer Relations', tools: ['Influencer DB', 'Campaigns', 'Outreach', 'ROI tracking', 'Content approval', 'Contracts', 'UGC hub'] },
   { name: 'Tejo', role: 'Govt Schemes & Funding', tools: ['Scheme explorer', 'Scheme database', 'Eligibility checker', 'Application tracker', 'Document prep', 'Funding roadmap', 'State comparator'] },
   { name: 'Waylay', role: 'GBP & Local SEO', tools: ['GBP manager', 'Keyword planner', 'Local SEO audit', 'Content planner', 'Action plans', 'Competitor map'] },
 ];
@@ -15218,7 +15215,7 @@ function SidebarSection({ title, icon: SectionIcon, items, currentPath, onToggle
         {SectionIcon && <SectionIcon size={14} style={{ opacity: 0.7, flexShrink: 0 }} />}
         <span style={{ flex: 1, textAlign: 'left' }}>
           <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase' }}>{agentName}</span>
-          {funcLabel && <span style={{ fontSize: 10, fontWeight: 500, opacity: 0.5, textTransform: 'none', letterSpacing: 0 }}>{funcLabel}</span>}
+          {funcLabel && <span style={{ fontSize: 12, fontWeight: 500, opacity: 0.6, textTransform: 'none', letterSpacing: 0 }}>{funcLabel}</span>}
         </span>
         <ChevronRight size={11} style={{
           transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
@@ -16318,21 +16315,30 @@ export default function App() {
   };
 
   const navSections = [
+    // Alphabetical order — Lobby (Settings) always last
+    {
+      title: 'Astra (Media)', icon: Orbit, agent: 'astra',
+      items: [
+        { path: '/astra-planner', icon: Tv, label: 'Media Planner' },
+        { path: '/astra-grp', icon: Calculator, label: 'GRP Calculator' },
+        { path: '/astra-mix', icon: Orbit, label: 'Media Mix Optimizer' },
+      ]
+    },
+    {
+      title: 'Breach (PR)', icon: Siren, agent: 'breach',
+      items: [
+        { path: '/breach-press', icon: Newspaper, label: 'Press Releases' },
+        { path: '/breach-medialist', icon: Users, label: 'Media List' },
+        { path: '/breach-crisis', icon: Siren, label: 'Crisis Playbook' },
+        { path: '/breach-sentiment', icon: Activity, label: 'Sentiment Monitor' },
+      ]
+    },
     {
       title: 'Brimstone (Strategy)', icon: LayoutDashboard, agent: 'brimstone',
       items: [
         { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { path: '/leads-dashboard', icon: PieChart, label: 'Leads Analytics' },
         { path: '/strategy-builder', icon: Zap, label: 'Strategy Builder' },
-      ]
-    },
-    {
-      title: 'Cypher (Leads)', icon: Crosshair, agent: 'cypher',
-      items: [
-        { path: '/search', icon: Search, label: 'Lead Search' },
-        { path: '/emails', icon: Mail, label: 'Email Extractor' },
-        { path: '/leads', icon: Database, label: 'My Leads' },
-        { path: '/verify', icon: Shield, label: 'Lead Verifier' },
       ]
     },
     {
@@ -16346,97 +16352,37 @@ export default function App() {
       ]
     },
     {
-      title: 'Killjoy (SEO)', icon: Globe, agent: 'killjoy',
+      title: 'Clove (Finance)', icon: BadgeDollarSign, agent: 'clove',
       items: [
-        { path: '/website-analysis', icon: Radar, label: 'Full Analysis' },
-        { path: '/seo-dashboard', icon: BarChart3, label: 'SEO Dashboard' },
-        { path: '/site-audit', icon: Activity, label: 'Site Audit' },
-        { path: '/on-page-seo', icon: FileText, label: 'On-Page SEO' },
-        { path: '/backlinks', icon: Link, label: 'Backlinks' },
-        { path: '/rank-tracker', icon: TrendingUp, label: 'Rank Tracker' },
+        { path: '/clove-pnl', icon: FileBarChart, label: 'Profit & Loss' },
+        { path: '/clove-expenses', icon: Wallet, label: 'Expense Tracker' },
+        { path: '/clove-invoices', icon: Receipt, label: 'Invoice Generator' },
+        { path: '/clove-payments', icon: ArrowUpDown, label: 'Payment Tracker' },
+        { path: '/clove-cashflow', icon: TrendingDown, label: 'Cash Flow' },
+        { path: '/clove-budgets', icon: PiggyBank, label: 'Budget Tracker' },
+        { path: '/clove-margins', icon: Percent, label: 'Margin Analysis' },
       ]
     },
     {
-      title: 'Sova (Research)', icon: Microscope, agent: 'sova',
+      title: 'Cypher (Leads)', icon: Crosshair, agent: 'cypher',
       items: [
-        { path: '/keyword-research', icon: Hash, label: 'Keyword Discovery' },
-        { path: '/keyword-gap', icon: Target, label: 'Content Gaps' },
-        { path: '/organic-research', icon: UserCheck, label: 'Competitor Keywords' },
-        { path: '/domain-overview', icon: Globe, label: 'Domain Overview' },
-        { path: '/content-research', icon: Newspaper, label: 'Content Research' },
-        { path: '/traffic-insights', icon: Eye, label: 'Traffic Insights' },
-        { path: '/content-analyzer', icon: BookOpen, label: 'Content Analyzer' },
-        { path: '/ad-intelligence', icon: DollarSign, label: 'Ad Intelligence' },
-        { path: '/brand-monitoring', icon: Megaphone, label: 'Brand Monitor' },
-        { path: '/serp', icon: Radar, label: 'SERP Scraper' },
+        { path: '/search', icon: Search, label: 'Lead Search' },
+        { path: '/emails', icon: Mail, label: 'Email Extractor' },
+        { path: '/leads', icon: Database, label: 'My Leads' },
+        { path: '/verify', icon: Shield, label: 'Lead Verifier' },
       ]
     },
     {
-      title: 'Neon (Content)', icon: Wand2, agent: 'neon',
+      title: 'Deadlock (Production)', icon: Factory, agent: 'deadlock',
       items: [
-        { path: '/content-hub', icon: Layers, label: 'Content Hub' },
-        { path: '/blog', icon: BookOpen, label: 'Blog Writer' },
-        { path: '/email', icon: Inbox, label: 'Company Email' },
-        { path: '/marketing-hub', icon: Zap, label: 'Skills Hub' },
-        { path: '/copywriter', icon: Type, label: 'Copywriter' },
-        { path: '/ad-creative', icon: Megaphone, label: 'Ad Creative' },
-        { path: '/email-sequence', icon: Send, label: 'Email Sequences' },
-        { path: '/launch-planner', icon: Radar, label: 'Launch Planner' },
-        { path: '/pricing-lab', icon: DollarSign, label: 'Pricing Lab' },
-        { path: '/cro-analyzer', icon: Target, label: 'CRO Analyzer' },
-        { path: '/link-injector', icon: Link, label: 'Link Injector' },
-      ]
-    },
-    {
-      title: 'Jett (Ads)', icon: Flame, agent: 'jett',
-      items: [
-        { path: '/jett-campaigns', icon: Flame, label: 'Campaign Manager' },
-        { path: '/jett-budget', icon: Wallet, label: 'Budget Optimizer' },
-        { path: '/jett-roas', icon: LineChart, label: 'ROAS Tracker' },
-        { path: '/jett-abtests', icon: SplitSquareVertical, label: 'A/B Tests' },
-      ]
-    },
-    {
-      title: 'Sage (CRM)', icon: Heart, agent: 'sage',
-      items: [
-        { path: '/sage-customers', icon: Users, label: 'Customer Database' },
-        { path: '/sage-lifecycle', icon: Repeat2, label: 'Lifecycle Tracker' },
-        { path: '/sage-retention', icon: Heart, label: 'Retention Engine' },
-        { path: '/sage-churn', icon: AlertTriangle, label: 'Churn Predictor' },
-      ]
-    },
-    {
-      title: 'Viper (Email)', icon: Send, agent: 'viper',
-      items: [
-        { path: '/viper-drip', icon: Send, label: 'Drip Campaigns' },
-        { path: '/viper-newsletter', icon: Mail, label: 'Newsletter Editor' },
-        { path: '/viper-segments', icon: Filter, label: 'Segmentation' },
-      ]
-    },
-    {
-      title: 'Reyna (Influencers)', icon: Crown, agent: 'reyna',
-      items: [
-        { path: '/reyna-discover', icon: Crown, label: 'Influencer Discovery' },
-        { path: '/reyna-outreach', icon: Handshake, label: 'Outreach Manager' },
-        { path: '/reyna-tracker', icon: Target, label: 'Campaign Tracker' },
-        { path: '/reyna-ugc', icon: Heart, label: 'UGC Hub' },
-      ]
-    },
-    {
-      title: 'Phoenix (Social)', icon: CalendarDays, agent: 'phoenix',
-      items: [
-        { path: '/phoenix-calendar', icon: CalendarDays, label: 'Content Calendar' },
-        { path: '/phoenix-scheduler', icon: Clock, label: 'Smart Scheduler' },
-        { path: '/phoenix-engagement', icon: ThumbsUp, label: 'Engagement Tracker' },
-        { path: '/phoenix-community', icon: UsersRound, label: 'Community Inbox' },
-      ]
-    },
-    {
-      title: 'Astra (Media)', icon: Orbit, agent: 'astra',
-      items: [
-        { path: '/astra-planner', icon: Tv, label: 'Media Planner' },
-        { path: '/astra-grp', icon: Calculator, label: 'GRP Calculator' },
-        { path: '/astra-mix', icon: Orbit, label: 'Media Mix Optimizer' },
+        { path: '/deadlock-production', icon: Factory, label: 'Production Planner' },
+        { path: '/deadlock-inventory', icon: Boxes, label: 'Raw Materials' },
+        { path: '/deadlock-vendors', icon: Truck, label: 'Vendor Manager' },
+        { path: '/deadlock-qc', icon: FlaskConical, label: 'Quality Control' },
+        { path: '/deadlock-batches', icon: Barcode, label: 'Batch Tracker' },
+        { path: '/deadlock-cogs', icon: Calculator, label: 'COGS Calculator' },
+        { path: '/deadlock-fssai', icon: Leaf, label: 'FSSAI Compliance' },
+        { path: '/deadlock-recipes', icon: PackageCheck, label: 'Recipe Manager' },
       ]
     },
     {
@@ -16456,15 +16402,6 @@ export default function App() {
       ]
     },
     {
-      title: 'Breach (PR)', icon: Siren, agent: 'breach',
-      items: [
-        { path: '/breach-press', icon: Newspaper, label: 'Press Releases' },
-        { path: '/breach-medialist', icon: Users, label: 'Media List' },
-        { path: '/breach-crisis', icon: Siren, label: 'Crisis Playbook' },
-        { path: '/breach-sentiment', icon: Activity, label: 'Sentiment Monitor' },
-      ]
-    },
-    {
       title: 'Harbor (Distribution)', icon: Anchor, agent: 'harbor',
       items: [
         { path: '/harbor-distributors', icon: Building2, label: 'Distributor DB' },
@@ -16478,28 +16415,46 @@ export default function App() {
       ]
     },
     {
-      title: 'Deadlock (Production)', icon: Factory, agent: 'deadlock',
+      title: 'Jett (Ads)', icon: Flame, agent: 'jett',
       items: [
-        { path: '/deadlock-production', icon: Factory, label: 'Production Planner' },
-        { path: '/deadlock-inventory', icon: Boxes, label: 'Raw Materials' },
-        { path: '/deadlock-vendors', icon: Truck, label: 'Vendor Manager' },
-        { path: '/deadlock-qc', icon: FlaskConical, label: 'Quality Control' },
-        { path: '/deadlock-batches', icon: Barcode, label: 'Batch Tracker' },
-        { path: '/deadlock-cogs', icon: Calculator, label: 'COGS Calculator' },
-        { path: '/deadlock-fssai', icon: Leaf, label: 'FSSAI Compliance' },
-        { path: '/deadlock-recipes', icon: PackageCheck, label: 'Recipe Manager' },
+        { path: '/jett-campaigns', icon: Flame, label: 'Campaign Manager' },
+        { path: '/jett-budget', icon: Wallet, label: 'Budget Optimizer' },
+        { path: '/jett-roas', icon: LineChart, label: 'ROAS Tracker' },
+        { path: '/jett-abtests', icon: SplitSquareVertical, label: 'A/B Tests' },
       ]
     },
     {
-      title: 'Clove (Finance)', icon: BadgeDollarSign, agent: 'clove',
+      title: 'KAY/O (Dev Agent)', icon: Terminal, agent: 'kayo',
       items: [
-        { path: '/clove-pnl', icon: FileBarChart, label: 'Profit & Loss' },
-        { path: '/clove-expenses', icon: Wallet, label: 'Expense Tracker' },
-        { path: '/clove-invoices', icon: Receipt, label: 'Invoice Generator' },
-        { path: '/clove-payments', icon: ArrowUpDown, label: 'Payment Tracker' },
-        { path: '/clove-cashflow', icon: TrendingDown, label: 'Cash Flow' },
-        { path: '/clove-budgets', icon: PiggyBank, label: 'Budget Tracker' },
-        { path: '/clove-margins', icon: Percent, label: 'Margin Analysis' },
+        { path: '/kayo-chat', icon: MessageCircle, label: 'KAY/O Chat' },
+        { path: '/kayo-code-review', icon: Eye, label: 'Code Review' },
+        { path: '/kayo-git', icon: GitBranch, label: 'Git Dashboard' },
+        { path: '/kayo-deploy', icon: Rocket, label: 'Deploy Manager' },
+      ]
+    },
+    {
+      title: 'Killjoy (SEO)', icon: Globe, agent: 'killjoy',
+      items: [
+        { path: '/website-analysis', icon: Radar, label: 'Full Analysis' },
+        { path: '/seo-dashboard', icon: BarChart3, label: 'SEO Dashboard' },
+        { path: '/site-audit', icon: Activity, label: 'Site Audit' },
+        { path: '/on-page-seo', icon: FileText, label: 'On-Page SEO' },
+        { path: '/backlinks', icon: Link, label: 'Backlinks' },
+        { path: '/rank-tracker', icon: TrendingUp, label: 'Rank Tracker' },
+      ]
+    },
+    {
+      title: 'Neon (Content)', icon: Wand2, agent: 'neon',
+      items: [
+        { path: '/content-hub', icon: Layers, label: 'Content Hub' },
+        { path: '/blog', icon: BookOpen, label: 'Blog Writer' },
+        { path: '/marketing-hub', icon: Zap, label: 'Skills Hub' },
+        { path: '/copywriter', icon: Type, label: 'Copywriter' },
+        { path: '/ad-creative', icon: Megaphone, label: 'Ad Creative' },
+        { path: '/launch-planner', icon: Radar, label: 'Launch Planner' },
+        { path: '/pricing-lab', icon: DollarSign, label: 'Pricing Lab' },
+        { path: '/cro-analyzer', icon: Target, label: 'CRO Analyzer' },
+        { path: '/link-injector', icon: Link, label: 'Link Injector' },
       ]
     },
     {
@@ -16515,6 +16470,24 @@ export default function App() {
       ]
     },
     {
+      title: 'Phoenix (Social)', icon: CalendarDays, agent: 'phoenix',
+      items: [
+        { path: '/phoenix-calendar', icon: CalendarDays, label: 'Content Calendar' },
+        { path: '/phoenix-scheduler', icon: Clock, label: 'Smart Scheduler' },
+        { path: '/phoenix-engagement', icon: ThumbsUp, label: 'Engagement Tracker' },
+        { path: '/phoenix-community', icon: UsersRound, label: 'Community Inbox' },
+      ]
+    },
+    {
+      title: 'Sage (CRM)', icon: Heart, agent: 'sage',
+      items: [
+        { path: '/sage-customers', icon: Users, label: 'Customer Database' },
+        { path: '/sage-lifecycle', icon: Repeat2, label: 'Lifecycle Tracker' },
+        { path: '/sage-retention', icon: Heart, label: 'Retention Engine' },
+        { path: '/sage-churn', icon: AlertTriangle, label: 'Churn Predictor' },
+      ]
+    },
+    {
       title: 'Skye (Influencers)', icon: Bird, agent: 'skye',
       items: [
         { path: '/skye-influencers', icon: Users, label: 'Influencer DB' },
@@ -16524,34 +16497,22 @@ export default function App() {
         { path: '/skye-approvals', icon: Eye, label: 'Content Approval' },
         { path: '/skye-discovery', icon: Search, label: 'Discovery' },
         { path: '/skye-contracts', icon: FileText, label: 'Contracts' },
+        { path: '/skye-ugc', icon: Heart, label: 'UGC Hub' },
       ]
     },
     {
-      title: 'Lobby (Settings)', icon: Settings, agent: 'lobby',
+      title: 'Sova (Research)', icon: Microscope, agent: 'sova',
       items: [
-        ...(isAdmin ? [
-          { path: '/admin-panel', icon: Shield, label: 'Admin Panel' },
-          { path: '/user-management', icon: Users, label: 'User Management' },
-        ] : []),
-        { path: '/lobby-email', icon: Mail, label: 'Protocol Mail' },
-        { path: '/settings', icon: Settings, label: 'Settings' },
-      ]
-    },
-    {
-      title: 'Yoru (Automation)', icon: Waypoints, agent: 'yoru',
-      items: [
-        { path: '/yoru-workflow', icon: Waypoints, label: 'Rift Engine' },
-        { path: '/yoru-automations', icon: FolderKanban, label: 'Saved Rifts' },
-        { path: '/yoru-history', icon: Clock, label: 'Rift History' },
-      ]
-    },
-    {
-      title: 'KAY/O (Dev Agent)', icon: Terminal, agent: 'kayo',
-      items: [
-        { path: '/kayo-chat', icon: MessageCircle, label: 'KAY/O Chat' },
-        { path: '/kayo-code-review', icon: Eye, label: 'Code Review' },
-        { path: '/kayo-git', icon: GitBranch, label: 'Git Dashboard' },
-        { path: '/kayo-deploy', icon: Rocket, label: 'Deploy Manager' },
+        { path: '/keyword-research', icon: Hash, label: 'Keyword Discovery' },
+        { path: '/keyword-gap', icon: Target, label: 'Content Gaps' },
+        { path: '/organic-research', icon: UserCheck, label: 'Competitor Keywords' },
+        { path: '/domain-overview', icon: Globe, label: 'Domain Overview' },
+        { path: '/content-research', icon: Newspaper, label: 'Content Research' },
+        { path: '/traffic-insights', icon: Eye, label: 'Traffic Insights' },
+        { path: '/content-analyzer', icon: BookOpen, label: 'Content Analyzer' },
+        { path: '/ad-intelligence', icon: DollarSign, label: 'Ad Intelligence' },
+        { path: '/brand-monitoring', icon: Megaphone, label: 'Brand Monitor' },
+        { path: '/serp', icon: Radar, label: 'SERP Scraper' },
       ]
     },
     {
@@ -16567,6 +16528,14 @@ export default function App() {
       ]
     },
     {
+      title: 'Viper (Email)', icon: Send, agent: 'viper',
+      items: [
+        { path: '/viper-drip', icon: Send, label: 'Drip Campaigns' },
+        { path: '/viper-newsletter', icon: Mail, label: 'Newsletter Editor' },
+        { path: '/viper-segments', icon: Filter, label: 'Segmentation' },
+      ]
+    },
+    {
       title: 'Waylay (GBP & SEO)', icon: MapPinned, agent: 'waylay',
       items: [
         { path: '/waylay-gbp', icon: MapPinned, label: 'GBP Manager' },
@@ -16577,7 +16546,27 @@ export default function App() {
         { path: '/waylay-competitors', icon: Target, label: 'Competitor Map' },
         { path: '/waylay-analyzer', icon: Radar, label: 'Profile Analyzer' },
       ]
-    }
+    },
+    {
+      title: 'Yoru (Automation)', icon: Waypoints, agent: 'yoru',
+      items: [
+        { path: '/yoru-workflow', icon: Waypoints, label: 'Rift Engine' },
+        { path: '/yoru-automations', icon: FolderKanban, label: 'Saved Rifts' },
+        { path: '/yoru-history', icon: Clock, label: 'Rift History' },
+      ]
+    },
+    // Settings always last
+    {
+      title: 'Lobby (Settings)', icon: Settings, agent: 'lobby',
+      items: [
+        ...(isAdmin ? [
+          { path: '/admin-panel', icon: Shield, label: 'Admin Panel' },
+          { path: '/user-management', icon: Users, label: 'User Management' },
+        ] : []),
+        { path: '/email', icon: Inbox, label: 'Company Email' },
+        { path: '/settings', icon: Settings, label: 'Settings' },
+      ]
+    },
   ];
 
   return (
@@ -16715,7 +16704,7 @@ export default function App() {
             <Route path="/marketing-hub" element={<MarketingSkillsHub />} />
             <Route path="/copywriter" element={<SkillPanel skillKey="copywriting" />} />
             <Route path="/ad-creative" element={<SkillPanel skillKey="ad-creative" />} />
-            <Route path="/email-sequence" element={<SkillPanel skillKey="email-sequence" />} />
+            {/* Email Sequences removed — use Viper Drip Campaigns */}
             <Route path="/launch-planner" element={<SkillPanel skillKey="launch-strategy" />} />
             <Route path="/pricing-lab" element={<SkillPanel skillKey="pricing-strategy" />} />
             <Route path="/cro-analyzer" element={<SkillPanel skillKey="page-cro" />} />
@@ -16734,11 +16723,7 @@ export default function App() {
             <Route path="/viper-drip" element={<ViperDripBuilder />} />
             <Route path="/viper-newsletter" element={<ViperNewsletter />} />
             <Route path="/viper-segments" element={<ViperSegmentation />} />
-            {/* Reyna — Influencer */}
-            <Route path="/reyna-discover" element={<ReynaDiscovery />} />
-            <Route path="/reyna-outreach" element={<ReynaOutreach />} />
-            <Route path="/reyna-tracker" element={<ReynaCampaignTracker />} />
-            <Route path="/reyna-ugc" element={<ReynaUGCHub />} />
+            {/* Reyna merged into Skye — UGC Hub now under Skye */}
             {/* Phoenix — Social Media */}
             <Route path="/phoenix-calendar" element={<PhoenixCalendar />} />
             <Route path="/phoenix-scheduler" element={<PhoenixScheduler />} />
@@ -16798,9 +16783,10 @@ export default function App() {
             <Route path="/skye-approvals" element={<SkyeContentApproval />} />
             <Route path="/skye-discovery" element={<SkyeDiscovery />} />
             <Route path="/skye-contracts" element={<SkyeContractGen />} />
+            <Route path="/skye-ugc" element={<ReynaUGCHub />} />
             {isAdmin && <Route path="/admin-panel" element={<AdminPanel />} />}
             {isAdmin && <Route path="/user-management" element={<UserManagement />} />}
-            <Route path="/lobby-email" element={<LobbyEmail />} />
+            {/* Protocol Mail removed — Company Email is under Lobby */}
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/yoru-workflow" element={<YoruWorkflow />} />
             <Route path="/yoru-automations" element={<YoruAutomations />} />
