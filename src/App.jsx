@@ -8216,16 +8216,22 @@ function AdminPanel() {
 // MAIN APP
 // =============================================
 // Collapsible sidebar section component
-function SidebarSection({ title, icon: SectionIcon, items, currentPath, agentFaceEl, subtitle }) {
+function SidebarSection({ title, icon: SectionIcon, items, currentPath, agentFaceEl, subtitle, onToggle }) {
   const hasActive = items.some(item => currentPath === item.path);
   const [open, setOpen] = useState(hasActive);
 
   // Auto-open when navigating to a child
   useEffect(() => { if (hasActive) setOpen(true); }, [hasActive]);
 
+  const handleToggle = () => {
+    const newState = !open;
+    setOpen(newState);
+    if (newState && onToggle) onToggle();
+  };
+
   return (
     <div style={{ marginBottom: 2 }}>
-      <button onClick={() => setOpen(!open)} style={{
+      <button onClick={handleToggle} style={{
         display: 'flex', alignItems: 'center', gap: 8, width: '100%',
         padding: '8px 16px', border: 'none', cursor: 'pointer',
         background: hasActive ? 'rgba(124,58,237,0.08)' : 'transparent',
@@ -8304,6 +8310,87 @@ export default function App() {
 
   const isAdmin = currentUser === 'admin' || currentRole === 'Admin';
 
+  // Valorant-style agent select sound effects using Web Audio API
+  const playAgentSound = (agent) => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const now = ctx.currentTime;
+
+      const sounds = {
+        cypher: () => {
+          // Digital surveillance beep — short high-frequency chirps
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.setValueAtTime(1800, now);
+          osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
+          gain.gain.setValueAtTime(0.12, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.2);
+          // Second chirp
+          const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
+          osc2.type = 'square'; osc2.frequency.setValueAtTime(1200, now + 0.08);
+          gain2.gain.setValueAtTime(0.06, now + 0.08); gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc2.connect(gain2); gain2.connect(ctx.destination);
+          osc2.start(now + 0.08); osc2.stop(now + 0.2);
+        },
+        brimstone: () => {
+          // Deep military thud — low bass hit
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.setValueAtTime(120, now);
+          osc.frequency.exponentialRampToValueAtTime(60, now + 0.3);
+          gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.35);
+        },
+        killjoy: () => {
+          // Tech gadget activation — ascending tones
+          [0, 0.06, 0.12].forEach((delay, i) => {
+            const osc = ctx.createOscillator(); const gain = ctx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(600 + i * 400, now + delay);
+            gain.gain.setValueAtTime(0.1, now + delay); gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.1);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(now + delay); osc.stop(now + delay + 0.1);
+          });
+        },
+        neon: () => {
+          // Electric sprint burst — fast ascending sweep
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now);
+          osc.frequency.exponentialRampToValueAtTime(2000, now + 0.12);
+          gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.18);
+          // Crackle
+          const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
+          osc2.type = 'square'; osc2.frequency.setValueAtTime(3000, now + 0.05);
+          gain2.gain.setValueAtTime(0.04, now + 0.05); gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          osc2.connect(gain2); gain2.connect(ctx.destination);
+          osc2.start(now + 0.05); osc2.stop(now + 0.15);
+        },
+        harbor: () => {
+          // Water surge — filtered noise sweep
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.setValueAtTime(300, now);
+          osc.frequency.exponentialRampToValueAtTime(150, now + 0.25);
+          gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.15, now + 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.3);
+        },
+        lobby: () => {
+          // UI click — simple clean click
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          osc.type = 'sine'; osc.frequency.setValueAtTime(800, now);
+          gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now); osc.stop(now + 0.08);
+        },
+      };
+
+      if (sounds[agent]) sounds[agent]();
+      setTimeout(() => ctx.close(), 500);
+    } catch (e) { /* Audio not supported, silently fail */ }
+  };
+
   // Valorant Agent face icons as inline SVG components
   const AgentFace = ({ agent, size = 16 }) => {
     const faces = {
@@ -8349,7 +8436,7 @@ export default function App() {
     },
     {
       title: 'Cypher', icon: Instagram, agentFace: 'cypher',
-      subtitle: 'Social Intelligence',
+      subtitle: 'Information broker — scrapes social intel',
       items: [
         { path: '/instagram', icon: Instagram, label: 'Instagram' },
         { path: '/facebook', icon: Facebook, label: 'Facebook / Meta' },
@@ -8360,7 +8447,7 @@ export default function App() {
     },
     {
       title: 'Harbor', icon: Globe, agentFace: 'harbor',
-      subtitle: 'SEO Optimization & Growth',
+      subtitle: 'Controller — SEO optimization & site audits',
       items: [
         { path: '/website-analysis', icon: Radar, label: 'Full Analysis' },
         { path: '/seo-dashboard', icon: BarChart3, label: 'SEO Dashboard' },
@@ -8372,7 +8459,7 @@ export default function App() {
     },
     {
       title: 'Killjoy', icon: Microscope, agentFace: 'killjoy',
-      subtitle: 'Research & Keyword Planning',
+      subtitle: 'Sentinel — keyword research & competitor intel',
       items: [
         { path: '/keyword-research', icon: Hash, label: 'Keyword Discovery' },
         { path: '/keyword-gap', icon: Target, label: 'Content Gaps' },
@@ -8388,7 +8475,7 @@ export default function App() {
     },
     {
       title: 'Neon', icon: Wand2, agentFace: 'neon',
-      subtitle: 'Content & AI Engine',
+      subtitle: 'Duelist — AI content creation & copywriting',
       items: [
         { path: '/content-hub', icon: Layers, label: 'Content Hub' },
         { path: '/blog', icon: BookOpen, label: 'Blog Writer' },
@@ -8404,7 +8491,7 @@ export default function App() {
     },
     {
       title: 'Lobby', icon: Settings, agentFace: 'lobby',
-      subtitle: 'System & Config',
+      subtitle: 'Home base — settings, sync & admin',
       items: [
         ...(isAdmin ? [
           { path: '/admin-panel', icon: Shield, label: 'Admin Panel' },
@@ -8472,7 +8559,8 @@ export default function App() {
                   <SidebarSection title={sectionLabels[section.title] || section.title} icon={section.icon}
                     items={section.items} currentPath={location.pathname}
                     agentFaceEl={section.agentFace ? <AgentFace agent={section.agentFace} size={16} /> : null}
-                    subtitle={section.subtitle} />
+                    subtitle={section.subtitle}
+                    onToggle={section.agentFace ? () => playAgentSound(section.agentFace) : null} />
                 </div>
               ));
             })()}
