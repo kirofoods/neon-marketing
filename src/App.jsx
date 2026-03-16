@@ -7994,150 +7994,196 @@ function PinLogin({ onSuccess }) {
     return audioCtxRef.current;
   };
 
-  // === PIN DIGIT SOUNDS — Radio comms keypad ===
-  // Each digit: walkie-talkie click + ascending encrypted tone
-  // 4th digit: full radio confirmation burst
+  // === PIN DIGIT SOUNDS — Valorant agent select hover ===
+  // Like hovering over agents before locking in. Each digit = closer to lock-in.
+  // Tight percussive hit + Valorant UI tone that builds tension with each digit.
   const playDigitSound = (index) => {
     try {
       const ctx = getAudioCtx();
       const now = ctx.currentTime;
 
-      // Layer 1: Radio static crackle (noise-like via detuned oscillators)
-      const noise1 = ctx.createOscillator(); const noise2 = ctx.createOscillator();
-      const nGain = ctx.createGain(); const nFilter = ctx.createBiquadFilter();
-      noise1.type = 'sawtooth'; noise2.type = 'square';
-      noise1.frequency.setValueAtTime(3500 + index * 300, now);
-      noise2.frequency.setValueAtTime(3517 + index * 300, now); // slight detune = static
-      nFilter.type = 'bandpass'; nFilter.frequency.setValueAtTime(4000, now); nFilter.Q.setValueAtTime(1.5, now);
-      nGain.gain.setValueAtTime(0.04, now);
-      nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
-      noise1.connect(nFilter); noise2.connect(nFilter);
-      nFilter.connect(nGain); nGain.connect(ctx.destination);
-      noise1.start(now); noise2.start(now);
-      noise1.stop(now + 0.035); noise2.stop(now + 0.035);
+      // Layer 1: Percussive hit — like clicking an agent portrait. Short, punchy, no static.
+      const perc = ctx.createOscillator(); const pG = ctx.createGain();
+      const pF = ctx.createBiquadFilter();
+      perc.type = 'triangle';
+      perc.frequency.setValueAtTime(3000, now);
+      perc.frequency.exponentialRampToValueAtTime(500, now + 0.015);
+      pF.type = 'highpass'; pF.frequency.setValueAtTime(400, now);
+      pG.gain.setValueAtTime(0.13, now);
+      pG.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      perc.connect(pF); pF.connect(pG); pG.connect(ctx.destination);
+      perc.start(now); perc.stop(now + 0.04);
 
-      // Layer 2: Encrypted keypad tone — ascending, bandpass-filtered
-      const freq = [523, 698, 880, 1047][index]; // C5, F5, A5, C6 — musical ascent
-      const osc = ctx.createOscillator(); const gain = ctx.createGain();
-      const bp = ctx.createBiquadFilter();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now + 0.02);
-      osc.frequency.exponentialRampToValueAtTime(freq * 1.02, now + 0.08);
-      bp.type = 'bandpass'; bp.frequency.setValueAtTime(freq, now); bp.Q.setValueAtTime(8, now);
-      gain.gain.setValueAtTime(0.0, now);
-      gain.gain.linearRampToValueAtTime(0.14, now + 0.015);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-      osc.connect(bp); bp.connect(gain); gain.connect(ctx.destination);
-      osc.start(now + 0.02); osc.stop(now + 0.1);
+      // Layer 2: Valorant UI tone — the clean "dink" sound that builds with each slot
+      // Gets brighter and more urgent as you approach 4 digits
+      const tone = ctx.createOscillator(); const tG = ctx.createGain();
+      const tones = [440, 554, 659, 880][index]; // A4, C#5, E5, A5 — builds A major
+      tone.type = 'sine';
+      tone.frequency.setValueAtTime(tones, now + 0.01);
+      tG.gain.setValueAtTime(0.0, now);
+      tG.gain.linearRampToValueAtTime(0.1 + index * 0.02, now + 0.01);
+      tG.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      tone.connect(tG); tG.connect(ctx.destination);
+      tone.start(now + 0.01); tone.stop(now + 0.12);
 
-      // Layer 3: Sub-bass impact (heavier each digit)
-      const sub = ctx.createOscillator(); const sGain = ctx.createGain();
-      sub.type = 'sine';
-      sub.frequency.setValueAtTime(55 + index * 20, now);
-      sub.frequency.exponentialRampToValueAtTime(40, now + 0.06);
-      sGain.gain.setValueAtTime(0.06 + index * 0.02, now);
-      sGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-      sub.connect(sGain); sGain.connect(ctx.destination);
-      sub.start(now); sub.stop(now + 0.08);
+      // Layer 3: Sub thump — gets heavier closer to lock-in
+      if (index > 0) {
+        const sub = ctx.createOscillator(); const sG = ctx.createGain();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(60 + index * 10, now);
+        sub.frequency.exponentialRampToValueAtTime(35, now + 0.06);
+        sG.gain.setValueAtTime(0.04 + index * 0.025, now);
+        sG.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        sub.connect(sG); sG.connect(ctx.destination);
+        sub.start(now); sub.stop(now + 0.08);
+      }
 
-      // 4th digit: "Transmission received" — dual-tone confirmation burst
+      // 4th digit: Brief "locking in" anticipation — fast rising tension
       if (index === 3) {
         setTimeout(() => {
           try {
             const t = ctx.currentTime;
-            // Rising confirmation sweep
-            const sw = ctx.createOscillator(); const swG = ctx.createGain();
-            sw.type = 'sine';
-            sw.frequency.setValueAtTime(600, t);
-            sw.frequency.exponentialRampToValueAtTime(1800, t + 0.12);
-            swG.gain.setValueAtTime(0.1, t);
-            swG.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-            sw.connect(swG); swG.connect(ctx.destination);
-            sw.start(t); sw.stop(t + 0.18);
-            // Parallel fifth harmony
-            const sw2 = ctx.createOscillator(); const sw2G = ctx.createGain();
-            sw2.type = 'sine';
-            sw2.frequency.setValueAtTime(900, t + 0.03);
-            sw2.frequency.exponentialRampToValueAtTime(2400, t + 0.14);
-            sw2G.gain.setValueAtTime(0.06, t + 0.03);
-            sw2G.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-            sw2.connect(sw2G); sw2G.connect(ctx.destination);
-            sw2.start(t + 0.03); sw2.stop(t + 0.2);
-            // Static tail
-            const st = ctx.createOscillator(); const st2 = ctx.createOscillator();
-            const stG = ctx.createGain(); const stF = ctx.createBiquadFilter();
-            st.type = 'sawtooth'; st2.type = 'square';
-            st.frequency.setValueAtTime(5000, t + 0.12); st2.frequency.setValueAtTime(5017, t + 0.12);
-            stF.type = 'highpass'; stF.frequency.setValueAtTime(3000, t);
-            stG.gain.setValueAtTime(0.03, t + 0.12);
-            stG.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
-            st.connect(stF); st2.connect(stF); stF.connect(stG); stG.connect(ctx.destination);
-            st.start(t + 0.12); st2.start(t + 0.12);
-            st.stop(t + 0.22); st2.stop(t + 0.22);
+            // Quick tension riser before the auth check
+            const rise = ctx.createOscillator(); const rG = ctx.createGain();
+            rise.type = 'sawtooth';
+            rise.frequency.setValueAtTime(200, t);
+            rise.frequency.exponentialRampToValueAtTime(1200, t + 0.1);
+            rG.gain.setValueAtTime(0.05, t);
+            rG.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+            const rF = ctx.createBiquadFilter();
+            rF.type = 'lowpass'; rF.frequency.setValueAtTime(3000, t);
+            rise.connect(rF); rF.connect(rG); rG.connect(ctx.destination);
+            rise.start(t); rise.stop(t + 0.12);
           } catch (e) {}
-        }, 80);
+        }, 50);
       }
     } catch (e) {}
   };
 
-  // Login success: "Agent locked in" — triumphant fanfare
+  // === LOGIN SUCCESS — "LOCKED IN" ===
+  // The big Valorant moment. Heavy bass slam → red flash energy →
+  // agent confirmation tone. Like when your agent portrait slams into place.
   const playLoginSuccess = () => {
     try {
       const ctx = getAudioCtx();
       const now = ctx.currentTime;
-      // Three-note ascending victory (C5 → E5 → G5, major triad)
-      [0, 0.1, 0.2].forEach((delay, i) => {
-        const f = [523, 659, 784][i];
-        const osc = ctx.createOscillator(); const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(f, now + delay);
-        gain.gain.setValueAtTime(0.0, now + delay);
-        gain.gain.linearRampToValueAtTime(0.13 - i * 0.02, now + delay + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.2);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(now + delay); osc.stop(now + delay + 0.2);
-      });
-      // Bass foundation
-      const bass = ctx.createOscillator(); const bGain = ctx.createGain();
-      bass.type = 'sine'; bass.frequency.setValueAtTime(131, now + 0.15);
-      bGain.gain.setValueAtTime(0.12, now + 0.15);
-      bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-      bass.connect(bGain); bGain.connect(ctx.destination);
-      bass.start(now + 0.15); bass.stop(now + 0.5);
-      // Shimmer overtone
-      const shim = ctx.createOscillator(); const shimG = ctx.createGain();
-      shim.type = 'triangle'; shim.frequency.setValueAtTime(1568, now + 0.25);
-      shim.frequency.exponentialRampToValueAtTime(1200, now + 0.5);
-      shimG.gain.setValueAtTime(0.04, now + 0.25);
-      shimG.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-      shim.connect(shimG); shimG.connect(ctx.destination);
-      shim.start(now + 0.25); shim.stop(now + 0.5);
+
+      // 1. Bass SLAM — the big impact when "LOCKED IN" appears
+      const slam = ctx.createOscillator(); const slamG = ctx.createGain();
+      slam.type = 'sine';
+      slam.frequency.setValueAtTime(80, now);
+      slam.frequency.exponentialRampToValueAtTime(30, now + 0.3);
+      slamG.gain.setValueAtTime(0.22, now);
+      slamG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      slam.connect(slamG); slamG.connect(ctx.destination);
+      slam.start(now); slam.stop(now + 0.4);
+
+      // 2. Impact transient — sharp attack on the slam
+      const hit = ctx.createOscillator(); const hitG = ctx.createGain();
+      const hitF = ctx.createBiquadFilter();
+      hit.type = 'sawtooth';
+      hit.frequency.setValueAtTime(4000, now);
+      hit.frequency.exponentialRampToValueAtTime(200, now + 0.03);
+      hitF.type = 'lowpass'; hitF.frequency.setValueAtTime(5000, now);
+      hitF.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+      hitG.gain.setValueAtTime(0.15, now);
+      hitG.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      hit.connect(hitF); hitF.connect(hitG); hitG.connect(ctx.destination);
+      hit.start(now); hit.stop(now + 0.06);
+
+      // 3. Valorant red energy sweep — rising filtered tone
+      const sweep = ctx.createOscillator(); const swG = ctx.createGain();
+      const swF = ctx.createBiquadFilter();
+      sweep.type = 'sawtooth';
+      sweep.frequency.setValueAtTime(150, now + 0.05);
+      sweep.frequency.exponentialRampToValueAtTime(800, now + 0.2);
+      swF.type = 'bandpass'; swF.frequency.setValueAtTime(400, now);
+      swF.frequency.exponentialRampToValueAtTime(1200, now + 0.2);
+      swF.Q.setValueAtTime(3, now);
+      swG.gain.setValueAtTime(0.07, now + 0.05);
+      swG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      sweep.connect(swF); swF.connect(swG); swG.connect(ctx.destination);
+      sweep.start(now + 0.05); sweep.stop(now + 0.25);
+
+      // 4. Confirmation tone — clean, authoritative. Agent is selected.
+      const conf = ctx.createOscillator(); const confG = ctx.createGain();
+      conf.type = 'sine';
+      conf.frequency.setValueAtTime(440, now + 0.15); // A4
+      confG.gain.setValueAtTime(0.0, now + 0.15);
+      confG.gain.linearRampToValueAtTime(0.1, now + 0.18);
+      confG.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      conf.connect(confG); confG.connect(ctx.destination);
+      conf.start(now + 0.15); conf.stop(now + 0.5);
+
+      // 5. Octave above — harmonic richness
+      const oct = ctx.createOscillator(); const octG = ctx.createGain();
+      oct.type = 'sine';
+      oct.frequency.setValueAtTime(880, now + 0.18); // A5
+      octG.gain.setValueAtTime(0.0, now + 0.18);
+      octG.gain.linearRampToValueAtTime(0.05, now + 0.2);
+      octG.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      oct.connect(octG); octG.connect(ctx.destination);
+      oct.start(now + 0.18); oct.stop(now + 0.5);
+
+      // 6. Low drone sustain — the "you're in" feeling
+      const drone = ctx.createOscillator(); const drG = ctx.createGain();
+      drone.type = 'sine';
+      drone.frequency.setValueAtTime(55, now + 0.2); // A1
+      drG.gain.setValueAtTime(0.06, now + 0.2);
+      drG.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+      drone.connect(drG); drG.connect(ctx.destination);
+      drone.start(now + 0.2); drone.stop(now + 0.6);
     } catch (e) {}
   };
 
-  // Login fail: "Access denied" — aggressive rejection buzz
+  // === LOGIN FAIL — "REJECTED / TIMED OUT" ===
+  // Like when the timer runs out on agent select or you get kicked.
+  // Harsh descending buzz → glitchy stutter → silence.
   const playLoginFail = () => {
     try {
       const ctx = getAudioCtx();
       const now = ctx.currentTime;
-      // Harsh dual-tone buzz (dissonant)
-      const osc = ctx.createOscillator(); const gain = ctx.createGain();
-      osc.type = 'square'; osc.frequency.setValueAtTime(185, now);
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.setValueAtTime(0.0, now + 0.1);
-      gain.gain.setValueAtTime(0.12, now + 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(now); osc.stop(now + 0.3);
-      // Dissonant overtone
-      const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
-      osc2.type = 'sawtooth'; osc2.frequency.setValueAtTime(233, now);
-      gain2.gain.setValueAtTime(0.06, now);
-      gain2.gain.setValueAtTime(0.0, now + 0.1);
-      gain2.gain.setValueAtTime(0.06, now + 0.15);
-      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-      osc2.connect(gain2); gain2.connect(ctx.destination);
-      osc2.start(now); osc2.stop(now + 0.3);
+
+      // 1. Hard descending rejection — drops in pitch like "NOPE"
+      const rej = ctx.createOscillator(); const rejG = ctx.createGain();
+      rej.type = 'square';
+      rej.frequency.setValueAtTime(350, now);
+      rej.frequency.exponentialRampToValueAtTime(120, now + 0.2);
+      rejG.gain.setValueAtTime(0.12, now);
+      rejG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      rej.connect(rejG); rejG.connect(ctx.destination);
+      rej.start(now); rej.stop(now + 0.25);
+
+      // 2. Dissonant layer — gritty, uncomfortable tritone
+      const dis = ctx.createOscillator(); const disG = ctx.createGain();
+      dis.type = 'sawtooth';
+      dis.frequency.setValueAtTime(247, now); // B3 against the F4 = tritone
+      dis.frequency.exponentialRampToValueAtTime(85, now + 0.2);
+      disG.gain.setValueAtTime(0.06, now);
+      disG.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      dis.connect(disG); disG.connect(ctx.destination);
+      dis.start(now); dis.stop(now + 0.22);
+
+      // 3. Glitch stutter — three rapid cuts like a broken connection
+      [0.08, 0.13, 0.17].forEach((d) => {
+        const gl = ctx.createOscillator(); const glG = ctx.createGain();
+        gl.type = 'square';
+        gl.frequency.setValueAtTime(180 - d * 200, now + d);
+        glG.gain.setValueAtTime(0.08, now + d);
+        glG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.02);
+        gl.connect(glG); glG.connect(ctx.destination);
+        gl.start(now + d); gl.stop(now + d + 0.02);
+      });
+
+      // 4. Sub drop — gut-punch feeling
+      const sub = ctx.createOscillator(); const subG = ctx.createGain();
+      sub.type = 'sine';
+      sub.frequency.setValueAtTime(60, now);
+      sub.frequency.exponentialRampToValueAtTime(25, now + 0.15);
+      subG.gain.setValueAtTime(0.1, now);
+      subG.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      sub.connect(subG); subG.connect(ctx.destination);
+      sub.start(now); sub.stop(now + 0.2);
     } catch (e) {}
   };
 
