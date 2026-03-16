@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { PieChart as RechartsPieChart, Pie, Cell, BarChart as RechartsBarChart, Bar, LineChart as RechartsLineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
+import { initSync, isSyncEnabled, pushToCloud, pullFromCloud, parseFirebaseConfig, getSyncStatus } from './utils/sync.js';
 import {
   LayoutDashboard, Search, Settings, Menu, X, Check,
   AlertCircle, ExternalLink, Zap, TrendingUp, Clock, BarChart3,
@@ -2349,6 +2350,7 @@ function KeywordResearch() {
   const [country, setCountry] = useState('in');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
+  const [selectedForContent, setSelectedForContent] = useState(new Set());
   const [clusters, setClusters] = useState(null);
   const [toast, setToast] = useState(null);
   const [showClusters, setShowClusters] = useState(false);
@@ -2422,6 +2424,33 @@ function KeywordResearch() {
     setToast({ message: 'Keywords copied to clipboard', type: 'success' });
   };
 
+  const toggleKeywordSelect = (kw) => {
+    setSelectedForContent(prev => {
+      const next = new Set(prev);
+      if (next.has(kw)) next.delete(kw); else next.add(kw);
+      return next;
+    });
+  };
+
+  const selectAllKeywords = () => {
+    if (selectedForContent.size === results.length) setSelectedForContent(new Set());
+    else setSelectedForContent(new Set(results.map(r => r.keyword)));
+  };
+
+  const handleCreateContent = () => {
+    const kws = selectedForContent.size > 0
+      ? results.filter(r => selectedForContent.has(r.keyword))
+      : results.slice(0, 10);
+    const payload = {
+      source: 'keyword-research',
+      seedKeyword: keyword,
+      keywords: kws.map(r => ({ keyword: r.keyword, volume: r.volume, difficulty: r.difficulty, type: r.type || 'QUERY' })),
+      timestamp: Date.now()
+    };
+    localStorage.setItem('protocol_seo_to_content', JSON.stringify(payload));
+    window.location.hash = '#/blog';
+  };
+
   const getDifficultyColor = (label) => {
     if (label === 'Easy') return '#059669';
     if (label === 'Medium') return '#f59e0b';
@@ -2468,10 +2497,20 @@ function KeywordResearch() {
 
         {results.length > 0 && (
           <>
-            <div className="card" style={{ marginBottom: 12, padding: '10px 16px', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <button className="btn btn-sm" onClick={copyAllKeywords}><Copy size={12} /> Copy All</button>
-              {!showClusters && <button className="btn btn-sm" onClick={handleCluster}><Layers size={12} /> Cluster</button>}
-              <button className="btn btn-sm" onClick={exportKeywords}><Download size={12} /> Export CSV</button>
+            <div className="card" style={{ marginBottom: 12, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {selectedForContent.size > 0 && (
+                  <span style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>{selectedForContent.size} selected</span>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-sm" onClick={copyAllKeywords}><Copy size={12} /> Copy All</button>
+                {!showClusters && <button className="btn btn-sm" onClick={handleCluster}><Layers size={12} /> Cluster</button>}
+                <button className="btn btn-sm" onClick={exportKeywords}><Download size={12} /> Export CSV</button>
+                <button className="btn btn-sm" onClick={handleCreateContent} style={{ background: 'var(--accent)', color: '#fff', fontWeight: 600 }}>
+                  <Feather size={12} /> Create Content {selectedForContent.size > 0 ? `(${selectedForContent.size})` : ''}
+                </button>
+              </div>
             </div>
 
             {showClusters && clusters ? (
@@ -2499,6 +2538,9 @@ function KeywordResearch() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid var(--border)' }}>
+                      <th style={{ textAlign: 'center', padding: 10, width: 36 }}>
+                        <input type="checkbox" checked={selectedForContent.size === results.length && results.length > 0} onChange={selectAllKeywords} style={{ accentColor: 'var(--accent)', cursor: 'pointer' }} />
+                      </th>
                       <th style={{ textAlign: 'center', padding: 10, width: 40 }}>#</th>
                       <th style={{ textAlign: 'left', padding: 10 }}>Keyword</th>
                       <th style={{ textAlign: 'center', padding: 10 }}>Est. Volume</th>
@@ -2508,7 +2550,10 @@ function KeywordResearch() {
                   </thead>
                   <tbody>
                     {results.map((r, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                      <tr key={i} style={{ borderBottom: '1px solid var(--border)', background: selectedForContent.has(r.keyword) ? 'rgba(124,58,237,0.08)' : 'transparent', cursor: 'pointer' }} onClick={() => toggleKeywordSelect(r.keyword)}>
+                        <td style={{ padding: 10, textAlign: 'center' }}>
+                          <input type="checkbox" checked={selectedForContent.has(r.keyword)} onChange={() => toggleKeywordSelect(r.keyword)} onClick={e => e.stopPropagation()} style={{ accentColor: 'var(--accent)', cursor: 'pointer' }} />
+                        </td>
                         <td style={{ padding: 10, textAlign: 'center', fontSize: 12, color: 'var(--text-tertiary)' }}>{i + 1}</td>
                         <td style={{ padding: 10, fontWeight: 500 }}>{r.keyword}</td>
                         <td style={{ padding: 10, textAlign: 'center', fontSize: 12 }}>{r.volume}</td>
@@ -4188,6 +4233,27 @@ function ContentResearch() {
               <div className="stat-card"><span className="stat-card-label">Featured Snippets</span><span className="stat-card-value">{data.featuredSnippets.length}</span></div>
             </div>
 
+            {/* Create Content CTA */}
+            <div className="card" style={{ marginBottom: 16, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(135deg, rgba(124,58,237,0.1), rgba(168,85,247,0.05))', border: '1px solid rgba(124,58,237,0.2)' }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Ready to create content from this research?</div>
+                <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>Auto-populate Blog Writer with topics, questions &amp; keywords from this analysis</div>
+              </div>
+              <button className="btn btn-primary" style={{ fontSize: 12, whiteSpace: 'nowrap' }} onClick={() => {
+                const kws = [
+                  ...(data.relatedTopics || []).slice(0, 8).map(t => ({ keyword: t, volume: 'N/A', difficulty: 'Medium', type: 'RELATED' })),
+                  ...(data.questions || []).slice(0, 5).map(q => ({ keyword: q, volume: 'Question', difficulty: 'Easy', type: 'QUESTION' }))
+                ];
+                localStorage.setItem('protocol_seo_to_content', JSON.stringify({
+                  source: 'content-research', seedKeyword: data.topic, keywords: kws,
+                  questions: data.questions || [], timestamp: Date.now()
+                }));
+                window.location.hash = '#/blog';
+              }}>
+                <Feather size={14} /> Create Content
+              </button>
+            </div>
+
             {/* Tab bar */}
             <div style={{ display: 'flex', gap: 4, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
               {tabs.map(t => (
@@ -4376,7 +4442,19 @@ function OrganicResearch() {
             {/* Missing keywords */}
             {data.missingKeywords.length > 0 && (
               <div className="card">
-                <div className="card-header"><h3 className="card-title">Not Ranking For ({data.missingKeywords.length})</h3></div>
+                <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 className="card-title">Not Ranking For ({data.missingKeywords.length})</h3>
+                  <button className="btn btn-sm" style={{ background: 'var(--accent)', color: '#fff', fontSize: 11 }} onClick={() => {
+                    const kws = data.missingKeywords.map(kw => ({ keyword: kw, volume: 'N/A', difficulty: 'Medium', type: 'GAP' }));
+                    localStorage.setItem('protocol_seo_to_content', JSON.stringify({
+                      source: 'organic-research-gaps', seedKeyword: data.missingKeywords[0],
+                      keywords: kws, timestamp: Date.now()
+                    }));
+                    window.location.hash = '#/blog';
+                  }}>
+                    <Feather size={12} /> Create Content for Gaps
+                  </button>
+                </div>
                 <div style={{ padding: 16, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {data.missingKeywords.map((kw, i) => (
                     <span key={i} className="badge" style={{ background: 'rgba(239,83,80,0.15)', color: 'var(--error)', padding: '6px 12px', fontSize: 12, borderRadius: 20 }}>{kw}</span>
@@ -6195,6 +6273,34 @@ function BlogWriter() {
   const [seoScore, setSeoScore] = useState(null);
   const [metaTags, setMetaTags] = useState(null);
 
+  // Check for pre-loaded keywords from SEO tools
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('protocol_seo_to_content');
+      if (raw) {
+        const data = JSON.parse(raw);
+        // Only use if less than 10 minutes old
+        if (data.timestamp && Date.now() - data.timestamp < 600000) {
+          setTopic(data.seedKeyword || data.keywords?.[0]?.keyword || '');
+          const preloadedKws = (data.keywords || []).map(k => ({
+            keyword: k.keyword, volume: k.volume || 'N/A', difficulty: k.difficulty || 'Medium',
+            type: k.type || 'QUERY', source: 'seo-research'
+          }));
+          if (preloadedKws.length > 0) {
+            setKeywords(preloadedKws);
+            const autoSel = new Set(preloadedKws.slice(0, 8).map(k => k.keyword));
+            if (data.seedKeyword) autoSel.add(data.seedKeyword);
+            setSelectedKeywords(autoSel);
+            setQuestions(data.questions || []);
+            setStep(2);
+            setToast({ message: `Loaded ${preloadedKws.length} keywords from ${data.source || 'SEO research'}. Review & continue to titles.`, type: 'success' });
+          }
+        }
+        localStorage.removeItem('protocol_seo_to_content');
+      }
+    } catch (e) { console.error('Pre-load keywords error:', e); }
+  }, []);
+
   // ---- Step 1→2: Research ----
   const handleResearch = async () => {
     if (!topic.trim()) return;
@@ -7324,38 +7430,38 @@ const ALL_TOOLS = [
   { id: 'email-extractor', label: 'Email Extractor', section: 'Lead Gen' },
   { id: 'my-leads', label: 'My Leads', section: 'Lead Gen' },
   { id: 'lead-verifier', label: 'Lead Verifier', section: 'Lead Gen' },
-  { id: 'instagram', label: 'Instagram Scraper', section: 'Social Scrapers' },
-  { id: 'facebook', label: 'Facebook / Meta', section: 'Social Scrapers' },
-  { id: 'fb-ads', label: 'FB Ads Library', section: 'Social Scrapers' },
-  { id: 'linkedin', label: 'LinkedIn Scraper', section: 'Social Scrapers' },
-  { id: 'twitter', label: 'Twitter / X Scraper', section: 'Social Scrapers' },
-  { id: 'website-analysis', label: 'Full Analysis', section: 'Website' },
-  { id: 'seo-dashboard', label: 'SEO Dashboard', section: 'Website' },
-  { id: 'site-audit', label: 'Site Audit', section: 'Website' },
-  { id: 'keyword-research', label: 'Keywords', section: 'Website' },
-  { id: 'rank-tracker', label: 'Rank Tracker', section: 'Website' },
-  { id: 'domain-overview', label: 'Domain Overview', section: 'Research' },
-  { id: 'on-page-seo', label: 'On-Page SEO', section: 'Research' },
-  { id: 'backlinks', label: 'Backlinks', section: 'Research' },
-  { id: 'organic-research', label: 'Organic Research', section: 'Research' },
-  { id: 'traffic-insights', label: 'Traffic Insights', section: 'Research' },
-  { id: 'keyword-gap', label: 'Keyword Gap', section: 'Research' },
-  { id: 'content-analyzer', label: 'Content', section: 'Research' },
-  { id: 'content-research', label: 'Content Research', section: 'Research' },
-  { id: 'ad-intelligence', label: 'Ad Intelligence', section: 'Research' },
-  { id: 'brand-monitoring', label: 'Brand Monitor', section: 'Research' },
-  { id: 'serp-scraper', label: 'SERP Scraper', section: 'Research' },
-  { id: 'content-hub', label: 'Content Hub', section: 'Content & AI' },
-  { id: 'blog', label: 'Blog Writer', section: 'Content & AI' },
-  { id: 'email', label: 'Company Email', section: 'Content & AI' },
-  { id: 'marketing-hub', label: 'Skills Hub', section: 'Content & AI' },
-  { id: 'copywriter', label: 'Copywriter', section: 'Content & AI' },
-  { id: 'ad-creative', label: 'Ad Creative', section: 'Content & AI' },
-  { id: 'email-sequence', label: 'Email Sequences', section: 'Content & AI' },
-  { id: 'launch-planner', label: 'Launch Planner', section: 'Content & AI' },
-  { id: 'pricing-lab', label: 'Pricing Lab', section: 'Content & AI' },
-  { id: 'cro-analyzer', label: 'CRO Analyzer', section: 'Content & AI' },
-  { id: 'settings', label: 'Settings', section: 'System' },
+  { id: 'instagram', label: 'Instagram Scraper', section: 'Cypher' },
+  { id: 'facebook', label: 'Facebook / Meta', section: 'Cypher' },
+  { id: 'fb-ads', label: 'FB Ads Library', section: 'Cypher' },
+  { id: 'linkedin', label: 'LinkedIn Scraper', section: 'Cypher' },
+  { id: 'twitter', label: 'Twitter / X Scraper', section: 'Cypher' },
+  { id: 'website-analysis', label: 'Full Analysis', section: 'Harbor' },
+  { id: 'seo-dashboard', label: 'SEO Dashboard', section: 'Harbor' },
+  { id: 'site-audit', label: 'Site Audit', section: 'Harbor' },
+  { id: 'on-page-seo', label: 'On-Page SEO', section: 'Harbor' },
+  { id: 'backlinks', label: 'Backlinks', section: 'Harbor' },
+  { id: 'rank-tracker', label: 'Rank Tracker', section: 'Harbor' },
+  { id: 'keyword-research', label: 'Keyword Discovery', section: 'Killjoy' },
+  { id: 'keyword-gap', label: 'Content Gaps', section: 'Killjoy' },
+  { id: 'organic-research', label: 'Competitor Keywords', section: 'Killjoy' },
+  { id: 'domain-overview', label: 'Domain Overview', section: 'Killjoy' },
+  { id: 'content-research', label: 'Content Research', section: 'Killjoy' },
+  { id: 'traffic-insights', label: 'Traffic Insights', section: 'Killjoy' },
+  { id: 'content-analyzer', label: 'Content Analyzer', section: 'Killjoy' },
+  { id: 'ad-intelligence', label: 'Ad Intelligence', section: 'Killjoy' },
+  { id: 'brand-monitoring', label: 'Brand Monitor', section: 'Killjoy' },
+  { id: 'serp-scraper', label: 'SERP Scraper', section: 'Killjoy' },
+  { id: 'content-hub', label: 'Content Hub', section: 'Neon' },
+  { id: 'blog', label: 'Blog Writer', section: 'Neon' },
+  { id: 'email', label: 'Company Email', section: 'Neon' },
+  { id: 'marketing-hub', label: 'Skills Hub', section: 'Neon' },
+  { id: 'copywriter', label: 'Copywriter', section: 'Neon' },
+  { id: 'ad-creative', label: 'Ad Creative', section: 'Neon' },
+  { id: 'email-sequence', label: 'Email Sequences', section: 'Neon' },
+  { id: 'launch-planner', label: 'Launch Planner', section: 'Neon' },
+  { id: 'pricing-lab', label: 'Pricing Lab', section: 'Neon' },
+  { id: 'cro-analyzer', label: 'CRO Analyzer', section: 'Neon' },
+  { id: 'settings', label: 'Settings', section: 'Lobby' },
 ];
 
 const ROLES = ['Admin', 'Manager', 'Analyst', 'Viewer'];
@@ -7548,6 +7654,114 @@ function UserManagement() {
 // =============================================
 // SETTINGS
 // =============================================
+// =============================================
+// CLOUD SYNC PANEL
+// =============================================
+function SyncPanel({ toast }) {
+  const [firebaseConfigStr, setFirebaseConfigStr] = useState(() => localStorage.getItem('protocol_firebase_config') || '');
+  const [syncing, setSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState(null);
+  const [connected, setConnected] = useState(isSyncEnabled());
+
+  useEffect(() => {
+    // Try to auto-connect if config exists
+    const saved = localStorage.getItem('protocol_firebase_config');
+    if (saved && !isSyncEnabled()) {
+      const config = parseFirebaseConfig(saved);
+      if (config) {
+        const ok = initSync(config);
+        setConnected(ok);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (connected) {
+      const pin = sessionStorage.getItem('kj_current_user') || localStorage.getItem('kj_last_user');
+      if (pin) {
+        getSyncStatus(pin).then(s => setSyncStatus(s));
+      }
+    }
+  }, [connected]);
+
+  const handleConnect = () => {
+    const config = parseFirebaseConfig(firebaseConfigStr);
+    if (!config) {
+      toast({ message: 'Invalid Firebase config. Paste the full JSON object with apiKey, projectId, and databaseURL.', type: 'error' });
+      return;
+    }
+    localStorage.setItem('protocol_firebase_config', firebaseConfigStr.trim());
+    const ok = initSync(config);
+    setConnected(ok);
+    if (ok) toast({ message: 'Firebase connected! You can now sync data across devices.', type: 'success' });
+    else toast({ message: 'Failed to connect to Firebase. Check your config.', type: 'error' });
+  };
+
+  const handlePush = async () => {
+    setSyncing(true);
+    const pin = sessionStorage.getItem('kj_current_user') || localStorage.getItem('kj_last_user');
+    if (!pin) { toast({ message: 'No user session found', type: 'error' }); setSyncing(false); return; }
+    const result = await pushToCloud(pin);
+    if (result.success) {
+      localStorage.setItem('_protocol_last_local_sync', String(Date.now()));
+      toast({ message: `Synced ${result.keys} items to cloud`, type: 'success' });
+      getSyncStatus(pin).then(s => setSyncStatus(s));
+    } else {
+      toast({ message: `Sync failed: ${result.error}`, type: 'error' });
+    }
+    setSyncing(false);
+  };
+
+  const handlePull = async () => {
+    setSyncing(true);
+    const pin = sessionStorage.getItem('kj_current_user') || localStorage.getItem('kj_last_user');
+    if (!pin) { toast({ message: 'No user session found', type: 'error' }); setSyncing(false); return; }
+    const result = await pullFromCloud(pin);
+    if (result.success) {
+      toast({ message: result.keys > 0 ? `Pulled ${result.keys} items from cloud` : 'No cloud data found for this user', type: result.keys > 0 ? 'success' : 'info' });
+    } else {
+      toast({ message: `Pull failed: ${result.error}`, type: 'error' });
+    }
+    setSyncing(false);
+  };
+
+  return (
+    <div>
+      {!connected ? (
+        <>
+          <label className="label">Firebase Config (JSON)</label>
+          <textarea className="input" rows={5} value={firebaseConfigStr} onChange={e => setFirebaseConfigStr(e.target.value)}
+            placeholder={'{\n  "apiKey": "...",\n  "authDomain": "...",\n  "projectId": "...",\n  "databaseURL": "https://....firebaseio.com",\n  "storageBucket": "...",\n  "messagingSenderId": "...",\n  "appId": "..."\n}'}
+            style={{ fontFamily: 'monospace', fontSize: 11, resize: 'vertical' }} />
+          <button className="btn btn-primary" onClick={handleConnect} style={{ marginTop: 10 }}><Zap size={14} /> Connect Firebase</button>
+        </>
+      ) : (
+        <div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <button className="btn btn-primary" onClick={handlePush} disabled={syncing} style={{ flex: 1 }}>
+              {syncing ? <><LoadingDots /> Syncing...</> : <><Send size={14} /> Push to Cloud</>}
+            </button>
+            <button className="btn btn-secondary" onClick={handlePull} disabled={syncing} style={{ flex: 1 }}>
+              {syncing ? <><LoadingDots /> Pulling...</> : <><Download size={14} /> Pull from Cloud</>}
+            </button>
+          </div>
+          {syncStatus && syncStatus.hasCloudData && (
+            <div style={{ padding: '10px 14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-sm)', fontSize: 12, color: 'var(--text-secondary)' }}>
+              <div>Last synced: <strong>{new Date(syncStatus.lastSync).toLocaleString()}</strong></div>
+              <div>From: {syncStatus.device}</div>
+              <div>Cloud items: {syncStatus.keyCount}</div>
+            </div>
+          )}
+          <button className="btn btn-sm" onClick={() => { localStorage.removeItem('protocol_firebase_config'); setConnected(false); setFirebaseConfigStr(''); }}
+            style={{ marginTop: 10, fontSize: 11, color: 'var(--text-tertiary)' }}>
+            Disconnect Firebase
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SettingsPage() {
   const [toast, setToast] = useState(null);
   const [googleKey, setGoogleKey] = useState(() => localStorage.getItem('kj_google_key') || '');
@@ -7683,6 +7897,22 @@ function SettingsPage() {
                 {localStorage.getItem(prov.store) && <div style={{ marginTop: 4, fontSize: 11, color: 'var(--success)' }}><Check size={10} /> Set</div>}
               </div>
             ))}
+          </div>
+
+          {/* Cloud Sync */}
+          <div className="card" style={{ border: '1px solid rgba(124,58,237,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <h3 className="card-title" style={{ color: 'var(--accent)' }}>Cloud Sync</h3>
+              <span className="badge" style={{ background: isSyncEnabled() ? 'var(--success)' : 'var(--bg-tertiary)', color: isSyncEnabled() ? '#fff' : 'var(--text-tertiary)' }}>
+                {isSyncEnabled() ? 'Connected' : 'Not Connected'}
+              </span>
+            </div>
+            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 14 }}>
+              Sync your data across devices using Firebase. Create a free Firebase project at{' '}
+              <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--info)' }}>console.firebase.google.com</a>.
+              Enable Realtime Database, then paste your Firebase config JSON below.
+            </p>
+            <SyncPanel toast={setToast} />
           </div>
 
           {/* Data Management */}
@@ -7986,7 +8216,7 @@ function AdminPanel() {
 // MAIN APP
 // =============================================
 // Collapsible sidebar section component
-function SidebarSection({ title, icon: SectionIcon, items, currentPath }) {
+function SidebarSection({ title, icon: SectionIcon, items, currentPath, agentFaceEl, subtitle }) {
   const hasActive = items.some(item => currentPath === item.path);
   const [open, setOpen] = useState(hasActive);
 
@@ -8003,8 +8233,11 @@ function SidebarSection({ title, icon: SectionIcon, items, currentPath }) {
         fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1,
         borderRadius: 'var(--radius-sm)', transition: 'all 0.15s'
       }}>
-        {SectionIcon && <SectionIcon size={13} />}
-        <span style={{ flex: 1, textAlign: 'left' }}>{title}</span>
+        {agentFaceEl || (SectionIcon && <SectionIcon size={13} />)}
+        <span style={{ flex: 1, textAlign: 'left' }}>
+          {title}
+          {subtitle && <span style={{ display: 'block', fontSize: 8, fontWeight: 500, textTransform: 'none', letterSpacing: 0, opacity: 0.6, marginTop: 1 }}>{subtitle}</span>}
+        </span>
         <ChevronRight size={12} style={{
           transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
           transition: 'transform 0.2s', opacity: 0.6
@@ -8071,6 +8304,31 @@ export default function App() {
 
   const isAdmin = currentUser === 'admin' || currentRole === 'Admin';
 
+  // Valorant Agent face icons as inline SVG components
+  const AgentFace = ({ agent, size = 16 }) => {
+    const faces = {
+      cypher: (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#1a1a2e"/><rect x="6" y="8" width="12" height="3" rx="1" fill="#00d4ff" opacity="0.9"/><circle cx="9" cy="9.5" r="1.2" fill="#fff"/><circle cx="15" cy="9.5" r="1.2" fill="#fff"/><path d="M8 15 Q12 18 16 15" stroke="#00d4ff" strokeWidth="1.5" fill="none"/><rect x="10" y="3" width="4" height="4" rx="1" fill="#00d4ff" opacity="0.6"/></svg>
+      ),
+      brimstone: (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#1a1a2e"/><rect x="5" y="7" width="14" height="4" rx="1" fill="#ff6b35" opacity="0.9"/><circle cx="9" cy="9" r="1.5" fill="#fff"/><circle cx="15" cy="9" r="1.5" fill="#fff"/><path d="M8 15 L12 17 L16 15" stroke="#ff6b35" strokeWidth="2" fill="none"/><path d="M6 4 L12 2 L18 4" stroke="#ff6b35" strokeWidth="1.5" fill="none"/></svg>
+      ),
+      killjoy: (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#1a1a2e"/><rect x="7" y="7" width="4" height="5" rx="2" fill="#ffd700" opacity="0.9"/><rect x="13" y="7" width="4" height="5" rx="2" fill="#ffd700" opacity="0.9"/><circle cx="9" cy="9.5" r="1" fill="#1a1a2e"/><circle cx="15" cy="9.5" r="1" fill="#1a1a2e"/><path d="M9 15 Q12 17 15 15" stroke="#ffd700" strokeWidth="1.5" fill="none"/><circle cx="12" cy="3" r="2" fill="#ffd700" opacity="0.5"/></svg>
+      ),
+      neon: (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#1a1a2e"/><path d="M7 8 L10 8 L10 12 L7 12Z" fill="#7c3aed" opacity="0.9"/><path d="M14 8 L17 8 L17 12 L14 12Z" fill="#7c3aed" opacity="0.9"/><circle cx="8.5" cy="10" r="1" fill="#00ffff"/><circle cx="15.5" cy="10" r="1" fill="#00ffff"/><path d="M9 15 Q12 18 15 15" stroke="#7c3aed" strokeWidth="1.5" fill="none"/><path d="M5 6 L12 3 L19 6" stroke="#00ffff" strokeWidth="1" fill="none" opacity="0.6"/></svg>
+      ),
+      harbor: (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#1a1a2e"/><path d="M6 8 Q12 5 18 8" stroke="#0ea5e9" strokeWidth="2" fill="none"/><circle cx="9" cy="10" r="1.5" fill="#0ea5e9"/><circle cx="15" cy="10" r="1.5" fill="#0ea5e9"/><path d="M8 15 Q12 17 16 15" stroke="#0ea5e9" strokeWidth="1.5" fill="none"/><path d="M5 19 Q9 17 12 18 Q15 19 19 17" stroke="#0ea5e9" strokeWidth="1" fill="none" opacity="0.5"/></svg>
+      ),
+      lobby: (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#1a1a2e" stroke="#64748b" strokeWidth="1"/><circle cx="9" cy="10" r="1.5" fill="#64748b"/><circle cx="15" cy="10" r="1.5" fill="#64748b"/><path d="M9 15 L15 15" stroke="#64748b" strokeWidth="1.5"/><rect x="10" y="4" width="4" height="2" rx="1" fill="#64748b" opacity="0.6"/></svg>
+      ),
+    };
+    return faces[agent] || null;
+  };
+
   const navSections = [
     {
       title: 'Overview', icon: LayoutDashboard,
@@ -8090,7 +8348,8 @@ export default function App() {
       ]
     },
     {
-      title: 'Social Scrapers', icon: Instagram,
+      title: 'Cypher', icon: Instagram, agentFace: 'cypher',
+      subtitle: 'Social Intelligence',
       items: [
         { path: '/instagram', icon: Instagram, label: 'Instagram' },
         { path: '/facebook', icon: Facebook, label: 'Facebook / Meta' },
@@ -8100,33 +8359,36 @@ export default function App() {
       ]
     },
     {
-      title: 'Website', icon: Globe,
+      title: 'Harbor', icon: Globe, agentFace: 'harbor',
+      subtitle: 'SEO Optimization & Growth',
       items: [
         { path: '/website-analysis', icon: Radar, label: 'Full Analysis' },
         { path: '/seo-dashboard', icon: BarChart3, label: 'SEO Dashboard' },
         { path: '/site-audit', icon: Activity, label: 'Site Audit' },
-        { path: '/keyword-research', icon: Hash, label: 'Keywords' },
+        { path: '/on-page-seo', icon: FileText, label: 'On-Page SEO' },
+        { path: '/backlinks', icon: Link, label: 'Backlinks' },
         { path: '/rank-tracker', icon: TrendingUp, label: 'Rank Tracker' },
       ]
     },
     {
-      title: 'Research', icon: Microscope,
+      title: 'Killjoy', icon: Microscope, agentFace: 'killjoy',
+      subtitle: 'Research & Keyword Planning',
       items: [
+        { path: '/keyword-research', icon: Hash, label: 'Keyword Discovery' },
+        { path: '/keyword-gap', icon: Target, label: 'Content Gaps' },
+        { path: '/organic-research', icon: UserCheck, label: 'Competitor Keywords' },
         { path: '/domain-overview', icon: Globe, label: 'Domain Overview' },
-        { path: '/on-page-seo', icon: FileText, label: 'On-Page SEO' },
-        { path: '/backlinks', icon: Link, label: 'Backlinks' },
-        { path: '/organic-research', icon: UserCheck, label: 'Organic Research' },
-        { path: '/traffic-insights', icon: Eye, label: 'Traffic Insights' },
-        { path: '/keyword-gap', icon: Target, label: 'Keyword Gap' },
-        { path: '/content-analyzer', icon: BookOpen, label: 'Content' },
         { path: '/content-research', icon: Newspaper, label: 'Content Research' },
+        { path: '/traffic-insights', icon: Eye, label: 'Traffic Insights' },
+        { path: '/content-analyzer', icon: BookOpen, label: 'Content Analyzer' },
         { path: '/ad-intelligence', icon: DollarSign, label: 'Ad Intelligence' },
         { path: '/brand-monitoring', icon: Megaphone, label: 'Brand Monitor' },
         { path: '/serp', icon: Radar, label: 'SERP Scraper' },
       ]
     },
     {
-      title: 'Content & AI', icon: Wand2,
+      title: 'Neon', icon: Wand2, agentFace: 'neon',
+      subtitle: 'Content & AI Engine',
       items: [
         { path: '/content-hub', icon: Layers, label: 'Content Hub' },
         { path: '/blog', icon: BookOpen, label: 'Blog Writer' },
@@ -8141,7 +8403,8 @@ export default function App() {
       ]
     },
     {
-      title: 'System', icon: Settings,
+      title: 'Lobby', icon: Settings, agentFace: 'lobby',
+      subtitle: 'System & Config',
       items: [
         ...(isAdmin ? [
           { path: '/admin-panel', icon: Shield, label: 'Admin Panel' },
@@ -8207,7 +8470,9 @@ export default function App() {
                     </div>
                   )}
                   <SidebarSection title={sectionLabels[section.title] || section.title} icon={section.icon}
-                    items={section.items} currentPath={location.pathname} />
+                    items={section.items} currentPath={location.pathname}
+                    agentFaceEl={section.agentFace ? <AgentFace agent={section.agentFace} size={16} /> : null}
+                    subtitle={section.subtitle} />
                 </div>
               ));
             })()}
