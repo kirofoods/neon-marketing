@@ -7994,62 +7994,150 @@ function PinLogin({ onSuccess }) {
     return audioCtxRef.current;
   };
 
-  // Valorant tactical comms sound — each digit has ascending pitch like agent lock-in
+  // === PIN DIGIT SOUNDS — Radio comms keypad ===
+  // Each digit: walkie-talkie click + ascending encrypted tone
+  // 4th digit: full radio confirmation burst
   const playDigitSound = (index) => {
     try {
       const ctx = getAudioCtx();
       const now = ctx.currentTime;
 
-      // Main tone — ascending tactical beep per digit
-      const freq = [660, 880, 1100, 1320][index];
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(freq, now);
-      osc.frequency.exponentialRampToValueAtTime(freq * 1.08, now + 0.04);
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(freq * 1.5, now);
-      filter.Q.setValueAtTime(5, now);
-      gain.gain.setValueAtTime(0.12, now);
+      // Layer 1: Radio static crackle (noise-like via detuned oscillators)
+      const noise1 = ctx.createOscillator(); const noise2 = ctx.createOscillator();
+      const nGain = ctx.createGain(); const nFilter = ctx.createBiquadFilter();
+      noise1.type = 'sawtooth'; noise2.type = 'square';
+      noise1.frequency.setValueAtTime(3500 + index * 300, now);
+      noise2.frequency.setValueAtTime(3517 + index * 300, now); // slight detune = static
+      nFilter.type = 'bandpass'; nFilter.frequency.setValueAtTime(4000, now); nFilter.Q.setValueAtTime(1.5, now);
+      nGain.gain.setValueAtTime(0.04, now);
+      nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+      noise1.connect(nFilter); noise2.connect(nFilter);
+      nFilter.connect(nGain); nGain.connect(ctx.destination);
+      noise1.start(now); noise2.start(now);
+      noise1.stop(now + 0.035); noise2.stop(now + 0.035);
+
+      // Layer 2: Encrypted keypad tone — ascending, bandpass-filtered
+      const freq = [523, 698, 880, 1047][index]; // C5, F5, A5, C6 — musical ascent
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      const bp = ctx.createBiquadFilter();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + 0.02);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.02, now + 0.08);
+      bp.type = 'bandpass'; bp.frequency.setValueAtTime(freq, now); bp.Q.setValueAtTime(8, now);
+      gain.gain.setValueAtTime(0.0, now);
+      gain.gain.linearRampToValueAtTime(0.14, now + 0.015);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.1);
+      osc.connect(bp); bp.connect(gain); gain.connect(ctx.destination);
+      osc.start(now + 0.02); osc.stop(now + 0.1);
 
-      // Sub-bass thud layer
-      const sub = ctx.createOscillator();
-      const subGain = ctx.createGain();
+      // Layer 3: Sub-bass impact (heavier each digit)
+      const sub = ctx.createOscillator(); const sGain = ctx.createGain();
       sub.type = 'sine';
-      sub.frequency.setValueAtTime(80 + index * 15, now);
-      subGain.gain.setValueAtTime(0.08, now);
-      subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-      sub.connect(subGain);
-      subGain.connect(ctx.destination);
-      sub.start(now);
-      sub.stop(now + 0.08);
+      sub.frequency.setValueAtTime(55 + index * 20, now);
+      sub.frequency.exponentialRampToValueAtTime(40, now + 0.06);
+      sGain.gain.setValueAtTime(0.06 + index * 0.02, now);
+      sGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      sub.connect(sGain); sGain.connect(ctx.destination);
+      sub.start(now); sub.stop(now + 0.08);
 
-      // If 4th digit → play confirmation sweep
+      // 4th digit: "Transmission received" — dual-tone confirmation burst
       if (index === 3) {
         setTimeout(() => {
           try {
             const t = ctx.currentTime;
-            const sweep = ctx.createOscillator();
-            const sGain = ctx.createGain();
-            sweep.type = 'sine';
-            sweep.frequency.setValueAtTime(400, t);
-            sweep.frequency.exponentialRampToValueAtTime(1600, t + 0.15);
-            sGain.gain.setValueAtTime(0.1, t);
-            sGain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-            sweep.connect(sGain);
-            sGain.connect(ctx.destination);
-            sweep.start(t);
-            sweep.stop(t + 0.2);
+            // Rising confirmation sweep
+            const sw = ctx.createOscillator(); const swG = ctx.createGain();
+            sw.type = 'sine';
+            sw.frequency.setValueAtTime(600, t);
+            sw.frequency.exponentialRampToValueAtTime(1800, t + 0.12);
+            swG.gain.setValueAtTime(0.1, t);
+            swG.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+            sw.connect(swG); swG.connect(ctx.destination);
+            sw.start(t); sw.stop(t + 0.18);
+            // Parallel fifth harmony
+            const sw2 = ctx.createOscillator(); const sw2G = ctx.createGain();
+            sw2.type = 'sine';
+            sw2.frequency.setValueAtTime(900, t + 0.03);
+            sw2.frequency.exponentialRampToValueAtTime(2400, t + 0.14);
+            sw2G.gain.setValueAtTime(0.06, t + 0.03);
+            sw2G.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+            sw2.connect(sw2G); sw2G.connect(ctx.destination);
+            sw2.start(t + 0.03); sw2.stop(t + 0.2);
+            // Static tail
+            const st = ctx.createOscillator(); const st2 = ctx.createOscillator();
+            const stG = ctx.createGain(); const stF = ctx.createBiquadFilter();
+            st.type = 'sawtooth'; st2.type = 'square';
+            st.frequency.setValueAtTime(5000, t + 0.12); st2.frequency.setValueAtTime(5017, t + 0.12);
+            stF.type = 'highpass'; stF.frequency.setValueAtTime(3000, t);
+            stG.gain.setValueAtTime(0.03, t + 0.12);
+            stG.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+            st.connect(stF); st2.connect(stF); stF.connect(stG); stG.connect(ctx.destination);
+            st.start(t + 0.12); st2.start(t + 0.12);
+            st.stop(t + 0.22); st2.stop(t + 0.22);
           } catch (e) {}
-        }, 60);
+        }, 80);
       }
+    } catch (e) {}
+  };
+
+  // Login success: "Agent locked in" — triumphant fanfare
+  const playLoginSuccess = () => {
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      // Three-note ascending victory (C5 → E5 → G5, major triad)
+      [0, 0.1, 0.2].forEach((delay, i) => {
+        const f = [523, 659, 784][i];
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, now + delay);
+        gain.gain.setValueAtTime(0.0, now + delay);
+        gain.gain.linearRampToValueAtTime(0.13 - i * 0.02, now + delay + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.2);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(now + delay); osc.stop(now + delay + 0.2);
+      });
+      // Bass foundation
+      const bass = ctx.createOscillator(); const bGain = ctx.createGain();
+      bass.type = 'sine'; bass.frequency.setValueAtTime(131, now + 0.15);
+      bGain.gain.setValueAtTime(0.12, now + 0.15);
+      bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      bass.connect(bGain); bGain.connect(ctx.destination);
+      bass.start(now + 0.15); bass.stop(now + 0.5);
+      // Shimmer overtone
+      const shim = ctx.createOscillator(); const shimG = ctx.createGain();
+      shim.type = 'triangle'; shim.frequency.setValueAtTime(1568, now + 0.25);
+      shim.frequency.exponentialRampToValueAtTime(1200, now + 0.5);
+      shimG.gain.setValueAtTime(0.04, now + 0.25);
+      shimG.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      shim.connect(shimG); shimG.connect(ctx.destination);
+      shim.start(now + 0.25); shim.stop(now + 0.5);
+    } catch (e) {}
+  };
+
+  // Login fail: "Access denied" — aggressive rejection buzz
+  const playLoginFail = () => {
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      // Harsh dual-tone buzz (dissonant)
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.type = 'square'; osc.frequency.setValueAtTime(185, now);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.setValueAtTime(0.0, now + 0.1);
+      gain.gain.setValueAtTime(0.12, now + 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now); osc.stop(now + 0.3);
+      // Dissonant overtone
+      const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
+      osc2.type = 'sawtooth'; osc2.frequency.setValueAtTime(233, now);
+      gain2.gain.setValueAtTime(0.06, now);
+      gain2.gain.setValueAtTime(0.0, now + 0.1);
+      gain2.gain.setValueAtTime(0.06, now + 0.15);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      osc2.connect(gain2); gain2.connect(ctx.destination);
+      osc2.start(now); osc2.stop(now + 0.3);
     } catch (e) {}
   };
 
@@ -8071,23 +8159,22 @@ function PinLogin({ onSuccess }) {
         sessionStorage.setItem('kj_auth', 'true');
         setWelcomeUser(result.username);
         setLockedIn(true);
-        // Play spike plant sound on successful login
-        try {
-          const audio = new Audio('./sounds/spike-plant.mp3');
-          audio.volume = 0.3;
-          audio.play().catch(() => {});
-        } catch (e) {}
-        setTimeout(() => onSuccess(result.username, result.role), 400);
+        playLoginSuccess();
+        // Also try the spike-plant .mp3 as extra layer
+        try { const a = new Audio('./sounds/spike-plant.mp3'); a.volume = 0.25; a.play().catch(() => {}); } catch (e) {}
+        setTimeout(() => onSuccess(result.username, result.role), 500);
       } else {
+        playLoginFail();
         setError(true);
         setShake(true);
-        setTimeout(() => { setShake(false); setPin(['', '', '', '']); inputRefs[0].current?.focus(); }, 600);
+        setTimeout(() => { setShake(false); setPin(['', '', '', '']); inputRefs[0].current?.focus(); }, 700);
       }
     } catch (err) {
       console.error('[PinLogin] Auth error:', err);
+      playLoginFail();
       setError(true);
       setShake(true);
-      setTimeout(() => { setShake(false); setPin(['', '', '', '']); inputRefs[0].current?.focus(); }, 600);
+      setTimeout(() => { setShake(false); setPin(['', '', '', '']); inputRefs[0].current?.focus(); }, 700);
     }
   };
 
@@ -8537,113 +8624,201 @@ export default function App() {
       const now = ctx.currentTime;
 
       const effects = {
-        // Button click — sharp tactical tap
+        // WEAPON BUY — like buying from the Valorant store. Click.
         click: () => {
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'sine'; osc.frequency.setValueAtTime(1000, now);
-          osc.frequency.exponentialRampToValueAtTime(600, now + 0.04);
-          gain.gain.setValueAtTime(0.08, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.06);
+          // Sharp metallic transient + brief tonal confirmation
+          const hit = ctx.createOscillator(); const hG = ctx.createGain();
+          hit.type = 'square'; hit.frequency.setValueAtTime(2500, now);
+          hit.frequency.exponentialRampToValueAtTime(800, now + 0.02);
+          hG.gain.setValueAtTime(0.07, now);
+          hG.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+          hit.connect(hG); hG.connect(ctx.destination);
+          hit.start(now); hit.stop(now + 0.04);
+          const tone = ctx.createOscillator(); const tG = ctx.createGain();
+          tone.type = 'sine'; tone.frequency.setValueAtTime(880, now + 0.015);
+          tG.gain.setValueAtTime(0.05, now + 0.015);
+          tG.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+          tone.connect(tG); tG.connect(ctx.destination);
+          tone.start(now + 0.015); tone.stop(now + 0.06);
         },
-        // Navigation / page change — whoosh sweep
+
+        // TACTICAL MAP TRANSITION — switching sites on the map
         navigate: () => {
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          const filter = ctx.createBiquadFilter();
-          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, now);
-          osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
-          filter.type = 'lowpass'; filter.frequency.setValueAtTime(2000, now);
-          gain.gain.setValueAtTime(0.06, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-          osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.15);
+          // Filtered whoosh + map ping at destination
+          const whoosh = ctx.createOscillator(); const wG = ctx.createGain();
+          const wF = ctx.createBiquadFilter();
+          whoosh.type = 'sawtooth';
+          whoosh.frequency.setValueAtTime(200, now);
+          whoosh.frequency.exponentialRampToValueAtTime(1500, now + 0.1);
+          wF.type = 'bandpass'; wF.frequency.setValueAtTime(800, now);
+          wF.frequency.exponentialRampToValueAtTime(2000, now + 0.1);
+          wF.Q.setValueAtTime(2, now);
+          wG.gain.setValueAtTime(0.06, now);
+          wG.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+          whoosh.connect(wF); wF.connect(wG); wG.connect(ctx.destination);
+          whoosh.start(now); whoosh.stop(now + 0.13);
+          // Arrival ping
+          const ping = ctx.createOscillator(); const pG = ctx.createGain();
+          ping.type = 'sine'; ping.frequency.setValueAtTime(1200, now + 0.1);
+          ping.frequency.exponentialRampToValueAtTime(900, now + 0.16);
+          pG.gain.setValueAtTime(0.06, now + 0.1);
+          pG.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          ping.connect(pG); pG.connect(ctx.destination);
+          ping.start(now + 0.1); ping.stop(now + 0.18);
         },
-        // Success — ascending victory chime (like round win)
+
+        // ROUND WIN — ascending triumphant stinger
         success: () => {
-          [0, 0.08, 0.16].forEach((delay, i) => {
-            const osc = ctx.createOscillator(); const gain = ctx.createGain();
-            osc.type = 'sine'; osc.frequency.setValueAtTime(600 + i * 300, now + delay);
-            gain.gain.setValueAtTime(0.1, now + delay);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.12);
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.start(now + delay); osc.stop(now + delay + 0.12);
+          // Victory triad: C5 → E5 → G5 with sustain
+          [523, 659, 784].forEach((f, i) => {
+            const d = i * 0.09;
+            const osc = ctx.createOscillator(); const g = ctx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(f, now + d);
+            g.gain.setValueAtTime(0.0, now + d);
+            g.gain.linearRampToValueAtTime(0.1, now + d + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.001, now + d + 0.2);
+            osc.connect(g); g.connect(ctx.destination);
+            osc.start(now + d); osc.stop(now + d + 0.2);
+          });
+          // Harmonic shimmer on top
+          const shim = ctx.createOscillator(); const sG = ctx.createGain();
+          shim.type = 'triangle'; shim.frequency.setValueAtTime(1568, now + 0.2);
+          sG.gain.setValueAtTime(0.04, now + 0.2);
+          sG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          shim.connect(sG); sG.connect(ctx.destination);
+          shim.start(now + 0.2); shim.stop(now + 0.4);
+        },
+
+        // ECONOMY ROUND DENIED — can't afford, harsh rejection
+        error: () => {
+          // Double buzz — dissonant minor second
+          [0, 0.12].forEach((d) => {
+            const osc = ctx.createOscillator(); const g = ctx.createGain();
+            osc.type = 'square'; osc.frequency.setValueAtTime(185, now + d);
+            g.gain.setValueAtTime(0.09, now + d);
+            g.gain.exponentialRampToValueAtTime(0.001, now + d + 0.1);
+            osc.connect(g); g.connect(ctx.destination);
+            osc.start(now + d); osc.stop(now + d + 0.1);
+            const dis = ctx.createOscillator(); const dG = ctx.createGain();
+            dis.type = 'sawtooth'; dis.frequency.setValueAtTime(196, now + d);
+            dG.gain.setValueAtTime(0.04, now + d);
+            dG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.1);
+            dis.connect(dG); dG.connect(ctx.destination);
+            dis.start(now + d); dis.stop(now + d + 0.1);
           });
         },
-        // Error — Valorant denied buzzer
-        error: () => {
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'square'; osc.frequency.setValueAtTime(200, now);
-          osc.frequency.setValueAtTime(180, now + 0.1);
-          gain.gain.setValueAtTime(0.1, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.25);
-        },
-        // Toast notification — quick attention ping
+
+        // COMMS INCOMING — teammate callout notification
         notify: () => {
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'sine'; osc.frequency.setValueAtTime(1400, now);
-          osc.frequency.exponentialRampToValueAtTime(1000, now + 0.06);
-          gain.gain.setValueAtTime(0.07, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.1);
+          // Quick radio blip + attention tone
+          const blip = ctx.createOscillator(); const bG = ctx.createGain();
+          blip.type = 'square'; blip.frequency.setValueAtTime(3000, now);
+          bG.gain.setValueAtTime(0.04, now);
+          bG.gain.exponentialRampToValueAtTime(0.001, now + 0.015);
+          blip.connect(bG); bG.connect(ctx.destination);
+          blip.start(now); blip.stop(now + 0.015);
+          const tone = ctx.createOscillator(); const tG = ctx.createGain();
+          tone.type = 'sine'; tone.frequency.setValueAtTime(1200, now + 0.02);
+          tone.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+          tG.gain.setValueAtTime(0.08, now + 0.02);
+          tG.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+          tone.connect(tG); tG.connect(ctx.destination);
+          tone.start(now + 0.02); tone.stop(now + 0.1);
         },
-        // Copy / Export — data transfer swoosh
+
+        // INTEL DOWNLOADED — data transfer confirmation (like Cypher's trap data)
         copy: () => {
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now);
-          osc.frequency.exponentialRampToValueAtTime(1600, now + 0.08);
-          gain.gain.setValueAtTime(0.08, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.12);
+          // Quick data chirps ascending → confirmation beep
+          [0, 0.03, 0.06].forEach((d, i) => {
+            const c = ctx.createOscillator(); const cG = ctx.createGain();
+            c.type = 'square'; c.frequency.setValueAtTime(1400 + i * 500, now + d);
+            cG.gain.setValueAtTime(0.05, now + d);
+            cG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.025);
+            c.connect(cG); cG.connect(ctx.destination);
+            c.start(now + d); c.stop(now + d + 0.025);
+          });
+          const conf = ctx.createOscillator(); const confG = ctx.createGain();
+          conf.type = 'sine'; conf.frequency.setValueAtTime(1047, now + 0.1);
+          confG.gain.setValueAtTime(0.08, now + 0.1);
+          confG.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          conf.connect(confG); confG.connect(ctx.destination);
+          conf.start(now + 0.1); conf.stop(now + 0.18);
         },
-        // Search / Scan — radar ping like Sova recon
+
+        // OWL DRONE SCAN — Sova's recon sonar sweep
         scan: () => {
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'sine'; osc.frequency.setValueAtTime(500, now);
-          osc.frequency.exponentialRampToValueAtTime(2000, now + 0.12);
-          gain.gain.setValueAtTime(0.1, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.2);
-          // Echo
-          const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
-          osc2.type = 'sine'; osc2.frequency.setValueAtTime(2000, now + 0.15);
-          gain2.gain.setValueAtTime(0.04, now + 0.15);
-          gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-          osc2.connect(gain2); gain2.connect(ctx.destination);
-          osc2.start(now + 0.15); osc2.stop(now + 0.3);
+          // Sonar sweep — rising pulse
+          const pulse = ctx.createOscillator(); const pG = ctx.createGain();
+          pulse.type = 'sine'; pulse.frequency.setValueAtTime(400, now);
+          pulse.frequency.exponentialRampToValueAtTime(2200, now + 0.15);
+          pG.gain.setValueAtTime(0.1, now);
+          pG.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          pulse.connect(pG); pG.connect(ctx.destination);
+          pulse.start(now); pulse.stop(now + 0.2);
+          // Radar ring-out
+          const ring = ctx.createOscillator(); const rG = ctx.createGain();
+          ring.type = 'sine'; ring.frequency.setValueAtTime(1800, now + 0.18);
+          ring.frequency.exponentialRampToValueAtTime(1200, now + 0.35);
+          rG.gain.setValueAtTime(0.06, now + 0.18);
+          rG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          ring.connect(rG); rG.connect(ctx.destination);
+          ring.start(now + 0.18); ring.stop(now + 0.4);
+          // Ghost echo
+          const ghost = ctx.createOscillator(); const gG = ctx.createGain();
+          ghost.type = 'sine'; ghost.frequency.setValueAtTime(1500, now + 0.32);
+          gG.gain.setValueAtTime(0.025, now + 0.32);
+          gG.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          ghost.connect(gG); gG.connect(ctx.destination);
+          ghost.start(now + 0.32); ghost.stop(now + 0.45);
         },
-        // Delete / Remove — descending threat
+
+        // SPIKE DEFUSE — descending countdown tick (danger)
         delete: () => {
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(600, now);
-          osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
-          gain.gain.setValueAtTime(0.08, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.2);
+          // Descending alarm tone + static crunch
+          const alarm = ctx.createOscillator(); const aG = ctx.createGain();
+          alarm.type = 'sawtooth'; alarm.frequency.setValueAtTime(800, now);
+          alarm.frequency.exponentialRampToValueAtTime(150, now + 0.18);
+          aG.gain.setValueAtTime(0.08, now);
+          aG.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          alarm.connect(aG); aG.connect(ctx.destination);
+          alarm.start(now); alarm.stop(now + 0.22);
+          // Static crunch at end
+          const st = ctx.createOscillator(); const st2 = ctx.createOscillator();
+          const stG = ctx.createGain();
+          st.type = 'sawtooth'; st2.type = 'square';
+          st.frequency.setValueAtTime(4000, now + 0.15); st2.frequency.setValueAtTime(4015, now + 0.15);
+          stG.gain.setValueAtTime(0.04, now + 0.15);
+          stG.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          st.connect(stG); st2.connect(stG); stG.connect(ctx.destination);
+          st.start(now + 0.15); st2.start(now + 0.15);
+          st.stop(now + 0.2); st2.stop(now + 0.2);
         },
-        // Toggle — quick mode switch
+
+        // ABILITY SWAP — quick tactical switch
         toggle: () => {
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'sine'; osc.frequency.setValueAtTime(900, now);
-          osc.frequency.setValueAtTime(1200, now + 0.03);
-          gain.gain.setValueAtTime(0.07, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.08);
+          // Two-note swap: high→low like switching abilities
+          const n1 = ctx.createOscillator(); const g1 = ctx.createGain();
+          n1.type = 'sine'; n1.frequency.setValueAtTime(1200, now);
+          g1.gain.setValueAtTime(0.07, now);
+          g1.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+          n1.connect(g1); g1.connect(ctx.destination);
+          n1.start(now); n1.stop(now + 0.04);
+          const n2 = ctx.createOscillator(); const g2 = ctx.createGain();
+          n2.type = 'sine'; n2.frequency.setValueAtTime(800, now + 0.04);
+          g2.gain.setValueAtTime(0.06, now + 0.04);
+          g2.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          n2.connect(g2); g2.connect(ctx.destination);
+          n2.start(now + 0.04); n2.stop(now + 0.08);
         },
-        // Hover — subtle presence
+
+        // CROSSHAIR HOVER — subtle aim presence
         hover: () => {
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          const osc = ctx.createOscillator(); const g = ctx.createGain();
           osc.type = 'sine'; osc.frequency.setValueAtTime(1100, now);
-          gain.gain.setValueAtTime(0.03, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-          osc.connect(gain); gain.connect(ctx.destination);
+          osc.frequency.exponentialRampToValueAtTime(1000, now + 0.03);
+          g.gain.setValueAtTime(0.025, now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+          osc.connect(g); g.connect(ctx.destination);
           osc.start(now); osc.stop(now + 0.04);
         },
       };
@@ -8670,113 +8845,252 @@ export default function App() {
   const playSynthSound = (agent) => {
     if (soundsMuted) return;
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = getUICtx();
       const now = ctx.currentTime;
 
       const sounds = {
-        cypher: () => {
-          // Digital surveillance beep — short high-frequency chirps
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'sine'; osc.frequency.setValueAtTime(1800, now);
-          osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
-          gain.gain.setValueAtTime(0.12, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.2);
-          // Second chirp
-          const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
-          osc2.type = 'square'; osc2.frequency.setValueAtTime(1200, now + 0.08);
-          gain2.gain.setValueAtTime(0.06, now + 0.08); gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-          osc2.connect(gain2); gain2.connect(ctx.destination);
-          osc2.start(now + 0.08); osc2.stop(now + 0.2);
-        },
         brimstone: () => {
-          // Deep military thud — low bass hit
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'sine'; osc.frequency.setValueAtTime(120, now);
-          osc.frequency.exponentialRampToValueAtTime(60, now + 0.3);
-          gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.35);
+          // COMMANDER: Military radio click → deep "orders confirmed" bass drop → authority tone
+          // Radio click
+          const click = ctx.createOscillator(); const cG = ctx.createGain();
+          click.type = 'square'; click.frequency.setValueAtTime(4000, now);
+          cG.gain.setValueAtTime(0.08, now); cG.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+          click.connect(cG); cG.connect(ctx.destination);
+          click.start(now); click.stop(now + 0.02);
+          // Deep bass impact — like orbital strike incoming
+          const bass = ctx.createOscillator(); const bG = ctx.createGain();
+          bass.type = 'sine'; bass.frequency.setValueAtTime(90, now + 0.03);
+          bass.frequency.exponentialRampToValueAtTime(45, now + 0.35);
+          bG.gain.setValueAtTime(0.18, now + 0.03);
+          bG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          bass.connect(bG); bG.connect(ctx.destination);
+          bass.start(now + 0.03); bass.stop(now + 0.4);
+          // Authority confirmation tone (low G)
+          const auth = ctx.createOscillator(); const aG = ctx.createGain();
+          auth.type = 'sine'; auth.frequency.setValueAtTime(196, now + 0.08);
+          aG.gain.setValueAtTime(0.08, now + 0.08);
+          aG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          auth.connect(aG); aG.connect(ctx.destination);
+          auth.start(now + 0.08); auth.stop(now + 0.3);
         },
-        killjoy: () => {
-          // Tech gadget activation — ascending tones
-          [0, 0.06, 0.12].forEach((delay, i) => {
-            const osc = ctx.createOscillator(); const gain = ctx.createGain();
-            osc.type = 'sine'; osc.frequency.setValueAtTime(600 + i * 400, now + delay);
-            gain.gain.setValueAtTime(0.1, now + delay); gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.1);
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.start(now + delay); osc.stop(now + delay + 0.1);
-          });
-        },
-        neon: () => {
-          // Electric sprint burst — fast ascending sweep
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now);
-          osc.frequency.exponentialRampToValueAtTime(2000, now + 0.12);
-          gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.18);
-          // Crackle
-          const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
-          osc2.type = 'square'; osc2.frequency.setValueAtTime(3000, now + 0.05);
-          gain2.gain.setValueAtTime(0.04, now + 0.05); gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-          osc2.connect(gain2); gain2.connect(ctx.destination);
-          osc2.start(now + 0.05); osc2.stop(now + 0.15);
-        },
-        harbor: () => {
-          // Water surge — filtered noise sweep
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'sine'; osc.frequency.setValueAtTime(300, now);
-          osc.frequency.exponentialRampToValueAtTime(150, now + 0.25);
-          gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.15, now + 0.08);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.3);
-        },
+
         chamber: () => {
-          // Elegant snap — sharp, clean, sophisticated
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'sine'; osc.frequency.setValueAtTime(1400, now);
-          osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
-          gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.12);
-          // Gold shimmer
-          const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
-          osc2.type = 'triangle'; osc2.frequency.setValueAtTime(2200, now + 0.04);
-          gain2.gain.setValueAtTime(0.06, now + 0.04); gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-          osc2.connect(gain2); gain2.connect(ctx.destination);
-          osc2.start(now + 0.04); osc2.stop(now + 0.15);
+          // WEAPONS DEALER: Elegant weapon cock → gold coin shimmer → precise headshot snap
+          // Weapon cock — sharp metallic transient
+          const cock = ctx.createOscillator(); const cockG = ctx.createGain();
+          const cockF = ctx.createBiquadFilter();
+          cock.type = 'sawtooth'; cock.frequency.setValueAtTime(2200, now);
+          cock.frequency.exponentialRampToValueAtTime(800, now + 0.03);
+          cockF.type = 'highpass'; cockF.frequency.setValueAtTime(600, now);
+          cockG.gain.setValueAtTime(0.12, now);
+          cockG.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+          cock.connect(cockF); cockF.connect(cockG); cockG.connect(ctx.destination);
+          cock.start(now); cock.stop(now + 0.05);
+          // Gold shimmer — high harmonics like Tour De Force
+          const shim = ctx.createOscillator(); const shim2 = ctx.createOscillator();
+          const sG = ctx.createGain();
+          shim.type = 'sine'; shim.frequency.setValueAtTime(2637, now + 0.05); // E7
+          shim2.type = 'sine'; shim2.frequency.setValueAtTime(3520, now + 0.05); // A7
+          sG.gain.setValueAtTime(0.07, now + 0.05);
+          sG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          shim.connect(sG); shim2.connect(sG); sG.connect(ctx.destination);
+          shim.start(now + 0.05); shim2.start(now + 0.05);
+          shim.stop(now + 0.25); shim2.stop(now + 0.25);
+          // Precision snap
+          const snap = ctx.createOscillator(); const snapG = ctx.createGain();
+          snap.type = 'sine'; snap.frequency.setValueAtTime(1400, now + 0.04);
+          snap.frequency.exponentialRampToValueAtTime(700, now + 0.08);
+          snapG.gain.setValueAtTime(0.1, now + 0.04);
+          snapG.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+          snap.connect(snapG); snapG.connect(ctx.destination);
+          snap.start(now + 0.04); snap.stop(now + 0.1);
         },
+
+        cypher: () => {
+          // INFORMATION BROKER: Surveillance camera whirr → encrypted data chirps → "I know exactly where you are"
+          // Camera servo whirr
+          const servo = ctx.createOscillator(); const servoG = ctx.createGain();
+          const servoF = ctx.createBiquadFilter();
+          servo.type = 'sawtooth'; servo.frequency.setValueAtTime(150, now);
+          servo.frequency.linearRampToValueAtTime(400, now + 0.12);
+          servo.frequency.linearRampToValueAtTime(350, now + 0.15);
+          servoF.type = 'bandpass'; servoF.frequency.setValueAtTime(300, now); servoF.Q.setValueAtTime(3, now);
+          servoG.gain.setValueAtTime(0.06, now);
+          servoG.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          servo.connect(servoF); servoF.connect(servoG); servoG.connect(ctx.destination);
+          servo.start(now); servo.stop(now + 0.18);
+          // Encrypted data chirps — rapid staccato
+          [0.08, 0.13, 0.16, 0.18].forEach((d, i) => {
+            const chirp = ctx.createOscillator(); const cG = ctx.createGain();
+            chirp.type = 'square';
+            chirp.frequency.setValueAtTime(1800 + i * 600, now + d);
+            cG.gain.setValueAtTime(0.06, now + d);
+            cG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.025);
+            chirp.connect(cG); cG.connect(ctx.destination);
+            chirp.start(now + d); chirp.stop(now + d + 0.025);
+          });
+          // Spycam "locked on" tone
+          const lock = ctx.createOscillator(); const lG = ctx.createGain();
+          lock.type = 'sine'; lock.frequency.setValueAtTime(1200, now + 0.2);
+          lG.gain.setValueAtTime(0.08, now + 0.2);
+          lG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          lock.connect(lG); lG.connect(ctx.destination);
+          lock.start(now + 0.2); lock.stop(now + 0.35);
+        },
+
         sova: () => {
-          // Recon dart — ascending ping with echo
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'sine'; osc.frequency.setValueAtTime(400, now);
-          osc.frequency.exponentialRampToValueAtTime(1600, now + 0.15);
-          gain.gain.setValueAtTime(0.12, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.25);
-          // Echo ping
-          const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
-          osc2.type = 'sine'; osc2.frequency.setValueAtTime(1600, now + 0.2);
-          osc2.frequency.exponentialRampToValueAtTime(1200, now + 0.35);
-          gain2.gain.setValueAtTime(0.06, now + 0.2); gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-          osc2.connect(gain2); gain2.connect(ctx.destination);
-          osc2.start(now + 0.2); osc2.stop(now + 0.4);
+          // HUNTER/RECON: Bow draw tension → recon dart launch whoosh → sonar radar ping + echo
+          // Bow string tension
+          const bow = ctx.createOscillator(); const bowG = ctx.createGain();
+          bow.type = 'sine'; bow.frequency.setValueAtTime(120, now);
+          bow.frequency.exponentialRampToValueAtTime(350, now + 0.15);
+          bowG.gain.setValueAtTime(0.06, now);
+          bowG.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          bow.connect(bowG); bowG.connect(ctx.destination);
+          bow.start(now); bow.stop(now + 0.15);
+          // Dart launch — fast ascending whoosh
+          const dart = ctx.createOscillator(); const dG = ctx.createGain();
+          const dF = ctx.createBiquadFilter();
+          dart.type = 'sawtooth'; dart.frequency.setValueAtTime(300, now + 0.1);
+          dart.frequency.exponentialRampToValueAtTime(3000, now + 0.18);
+          dF.type = 'bandpass'; dF.frequency.setValueAtTime(1500, now); dF.Q.setValueAtTime(2, now);
+          dG.gain.setValueAtTime(0.07, now + 0.1);
+          dG.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          dart.connect(dF); dF.connect(dG); dG.connect(ctx.destination);
+          dart.start(now + 0.1); dart.stop(now + 0.22);
+          // Sonar ping
+          const ping = ctx.createOscillator(); const pG = ctx.createGain();
+          ping.type = 'sine'; ping.frequency.setValueAtTime(1800, now + 0.22);
+          ping.frequency.exponentialRampToValueAtTime(1400, now + 0.35);
+          pG.gain.setValueAtTime(0.12, now + 0.22);
+          pG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          ping.connect(pG); pG.connect(ctx.destination);
+          ping.start(now + 0.22); ping.stop(now + 0.4);
+          // Radar echo (quieter repeat)
+          const echo = ctx.createOscillator(); const eG = ctx.createGain();
+          echo.type = 'sine'; echo.frequency.setValueAtTime(1600, now + 0.38);
+          echo.frequency.exponentialRampToValueAtTime(1300, now + 0.48);
+          eG.gain.setValueAtTime(0.04, now + 0.38);
+          eG.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          echo.connect(eG); eG.connect(ctx.destination);
+          echo.start(now + 0.38); echo.stop(now + 0.5);
         },
+
+        killjoy: () => {
+          // SENTINEL/TECH: Turret deployment beep-beep-beep → lockdown alarm → "defending this site"
+          // Turret boot sequence — rapid ascending triple beep
+          [0, 0.07, 0.14].forEach((d, i) => {
+            const beep = ctx.createOscillator(); const bG = ctx.createGain();
+            beep.type = 'sine';
+            beep.frequency.setValueAtTime(800 + i * 400, now + d);
+            bG.gain.setValueAtTime(0.1, now + d);
+            bG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.05);
+            beep.connect(bG); bG.connect(ctx.destination);
+            beep.start(now + d); beep.stop(now + d + 0.05);
+          });
+          // Lockdown activation — descending alarm tone
+          const alarm = ctx.createOscillator(); const aG = ctx.createGain();
+          alarm.type = 'square'; alarm.frequency.setValueAtTime(1200, now + 0.22);
+          alarm.frequency.exponentialRampToValueAtTime(600, now + 0.35);
+          aG.gain.setValueAtTime(0.06, now + 0.22);
+          aG.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+          alarm.connect(aG); aG.connect(ctx.destination);
+          alarm.start(now + 0.22); alarm.stop(now + 0.38);
+          // System online hum
+          const hum = ctx.createOscillator(); const hG = ctx.createGain();
+          hum.type = 'sine'; hum.frequency.setValueAtTime(220, now + 0.2);
+          hG.gain.setValueAtTime(0.05, now + 0.2);
+          hG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          hum.connect(hG); hG.connect(ctx.destination);
+          hum.start(now + 0.2); hum.stop(now + 0.4);
+        },
+
+        neon: () => {
+          // DUELIST/ELECTRIC: Sprint charge-up → crackling energy burst → overdrive impact
+          // Electric charge buildup
+          const charge = ctx.createOscillator(); const chG = ctx.createGain();
+          charge.type = 'sawtooth'; charge.frequency.setValueAtTime(100, now);
+          charge.frequency.exponentialRampToValueAtTime(2500, now + 0.15);
+          chG.gain.setValueAtTime(0.08, now);
+          chG.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          charge.connect(chG); chG.connect(ctx.destination);
+          charge.start(now); charge.stop(now + 0.18);
+          // Electric crackle — multiple short bursts
+          [0.06, 0.1, 0.14].forEach((d) => {
+            const crk = ctx.createOscillator(); const crkG = ctx.createGain();
+            crk.type = 'square';
+            crk.frequency.setValueAtTime(3000 + Math.random() * 2000, now + d);
+            crkG.gain.setValueAtTime(0.05, now + d);
+            crkG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.02);
+            crk.connect(crkG); crkG.connect(ctx.destination);
+            crk.start(now + d); crk.stop(now + d + 0.02);
+          });
+          // Overdrive bass impact
+          const od = ctx.createOscillator(); const odG = ctx.createGain();
+          od.type = 'sine'; od.frequency.setValueAtTime(80, now + 0.12);
+          od.frequency.exponentialRampToValueAtTime(40, now + 0.25);
+          odG.gain.setValueAtTime(0.12, now + 0.12);
+          odG.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+          od.connect(odG); odG.connect(ctx.destination);
+          od.start(now + 0.12); od.stop(now + 0.28);
+          // Blue energy shimmer
+          const blue = ctx.createOscillator(); const blG = ctx.createGain();
+          blue.type = 'triangle'; blue.frequency.setValueAtTime(2400, now + 0.15);
+          blue.frequency.exponentialRampToValueAtTime(1800, now + 0.3);
+          blG.gain.setValueAtTime(0.04, now + 0.15);
+          blG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          blue.connect(blG); blG.connect(ctx.destination);
+          blue.start(now + 0.15); blue.stop(now + 0.3);
+        },
+
+        harbor: () => {
+          // WATER CONTROLLER: Tidal surge → cascading wave → deep oceanic rumble
+          const wave = ctx.createOscillator(); const wG = ctx.createGain();
+          wave.type = 'sine'; wave.frequency.setValueAtTime(180, now);
+          wave.frequency.exponentialRampToValueAtTime(350, now + 0.15);
+          wave.frequency.exponentialRampToValueAtTime(100, now + 0.35);
+          wG.gain.setValueAtTime(0.06, now);
+          wG.gain.linearRampToValueAtTime(0.12, now + 0.1);
+          wG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          wave.connect(wG); wG.connect(ctx.destination);
+          wave.start(now); wave.stop(now + 0.4);
+          // Cascade overtone
+          const cas = ctx.createOscillator(); const casG = ctx.createGain();
+          cas.type = 'triangle'; cas.frequency.setValueAtTime(600, now + 0.08);
+          cas.frequency.exponentialRampToValueAtTime(300, now + 0.3);
+          casG.gain.setValueAtTime(0.05, now + 0.08);
+          casG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          cas.connect(casG); casG.connect(ctx.destination);
+          cas.start(now + 0.08); cas.stop(now + 0.35);
+        },
+
         lobby: () => {
-          // UI click — simple clean click
-          const osc = ctx.createOscillator(); const gain = ctx.createGain();
-          osc.type = 'sine'; osc.frequency.setValueAtTime(800, now);
-          gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now); osc.stop(now + 0.08);
+          // HOME BASE: Clean menu open → ambient system hum → ready indicator
+          // Menu open — two-note chime (like Valorant main menu)
+          const n1 = ctx.createOscillator(); const n1G = ctx.createGain();
+          n1.type = 'sine'; n1.frequency.setValueAtTime(784, now); // G5
+          n1G.gain.setValueAtTime(0.08, now);
+          n1G.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          n1.connect(n1G); n1G.connect(ctx.destination);
+          n1.start(now); n1.stop(now + 0.12);
+          const n2 = ctx.createOscillator(); const n2G = ctx.createGain();
+          n2.type = 'sine'; n2.frequency.setValueAtTime(1047, now + 0.06); // C6
+          n2G.gain.setValueAtTime(0.06, now + 0.06);
+          n2G.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          n2.connect(n2G); n2G.connect(ctx.destination);
+          n2.start(now + 0.06); n2.stop(now + 0.18);
+          // Ambient hum
+          const hum = ctx.createOscillator(); const hG = ctx.createGain();
+          hum.type = 'sine'; hum.frequency.setValueAtTime(110, now + 0.1);
+          hG.gain.setValueAtTime(0.03, now + 0.1);
+          hG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          hum.connect(hG); hG.connect(ctx.destination);
+          hum.start(now + 0.1); hum.stop(now + 0.3);
         },
       };
 
       if (sounds[agent]) sounds[agent]();
-      setTimeout(() => ctx.close(), 500);
-    } catch (e) { /* Audio not supported, silently fail */ }
+    } catch (e) { /* Audio not supported */ }
   };
 
   // Valorant Agent face icons as inline SVG components
