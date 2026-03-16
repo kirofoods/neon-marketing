@@ -4,41 +4,41 @@
    ============================================ */
 
 :root {
-  /* Modern dark background colors */
-  --bg-primary: #0a0a0f;
-  --bg-secondary: #12121a;
-  --bg-tertiary: #1a1a26;
-  --bg-elevated: #25252f;
-  --bg-hover: #2d2d38;
-  --bg-active: #35353f;
+  /* VALORANT Dark Tactical Theme */
+  --bg-primary: #0f1923;
+  --bg-secondary: #111d2a;
+  --bg-tertiary: #162030;
+  --bg-elevated: #1c2b3a;
+  --bg-hover: #243444;
+  --bg-active: #2a3d4e;
 
   /* Borders & dividers */
-  --border: #2a2a36;
-  --border-light: #363644;
-  --border-lighter: #454550;
+  --border: #1e3040;
+  --border-light: #2a4050;
+  --border-lighter: #365060;
 
-  /* Text colors */
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-tertiary: #64748b;
-  --text-muted: #475569;
+  /* Text colors — warm Valorant off-white */
+  --text-primary: #ece8e1;
+  --text-secondary: #8b9eab;
+  --text-tertiary: #5e7382;
+  --text-muted: #3d5565;
 
-  /* Brand colors */
-  --accent: #7c3aed;
-  --accent-hover: #6d28d9;
-  --accent-light: #a78bfa;
-  --accent-lighter: rgba(124, 58, 237, 0.1);
-  --accent-glow: rgba(124, 58, 237, 0.25);
+  /* Brand colors — VALORANT RED */
+  --accent: #ff4655;
+  --accent-hover: #e6384a;
+  --accent-light: #ff6b77;
+  --accent-lighter: rgba(255, 70, 85, 0.1);
+  --accent-glow: rgba(255, 70, 85, 0.25);
 
   /* Status colors */
-  --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.1);
-  --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.1);
-  --error: #ef4444;
-  --error-bg: rgba(239, 68, 68, 0.1);
-  --info: #3b82f6;
-  --info-bg: rgba(59, 130, 246, 0.1);
+  --success: #0ac18e;
+  --success-bg: rgba(10, 193, 142, 0.1);
+  --warning: #f5a623;
+  --warning-bg: rgba(245, 166, 35, 0.1);
+  --error: #ff4655;
+  --error-bg: rgba(255, 70, 85, 0.1);
+  --info: #47b5ff;
+  --info-bg: rgba(71, 181, 255, 0.1);
 
   /* Layout */
   --sidebar-width: 260px;
@@ -51,11 +51,12 @@
   --radius-xl: 16px;
   --radius-2xl: 20px;
 
-  /* Shadows */
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.5);
+  /* Shadows — deeper, more tactical */
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 20px rgba(255, 70, 85, 0.15);
 
   /* Transitions */
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -81,6 +82,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 14px;
+  background-image:
+    linear-gradient(rgba(255,70,85,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,70,85,0.015) 1px, transparent 1px);
+  background-size: 80px 80px;
 }
 
 /* Scrollbar — Modern and subtle */
@@ -94,12 +99,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-light);
+  background: rgba(255, 70, 85, 0.25);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-tertiary);
+  background: rgba(255, 70, 85, 0.45);
 }
 
 /* ============================================
@@ -248,16 +253,18 @@ body {
 .sidebar-logo-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, var(--accent), #a78bfa);
-  border-radius: var(--radius-md);
+  background: transparent;
+  border: 1.5px solid var(--accent);
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
   font-size: 18px;
-  color: white;
+  color: var(--accent);
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+  box-shadow: 0 0 12px rgba(255, 70, 85, 0.2);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
 }
 
 .sidebar-logo-text {
@@ -268,13 +275,14 @@ body {
 }
 
 .sidebar-logo-badge {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--accent-light);
-  background: var(--accent-lighter);
-  padding: 3px 8px;
-  border-radius: 4px;
-  margin-left: -2px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--accent);
+  background: transparent;
+  padding: 0;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-left: 0;
   margin-top: 2px;
 }
 
@@ -291,10 +299,11 @@ body {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
-  color: var(--text-tertiary);
+  letter-spacing: 2px;
+  color: var(--accent);
   padding: 16px 12px 8px;
   margin-top: 4px;
+  text-shadow: 0 0 10px rgba(255, 70, 85, 0.2);
 }
 
 .sidebar-link {
@@ -302,7 +311,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: var(--radius-md);
+  border-radius: 2px;
   color: var(--text-secondary);
   text-decoration: none;
   font-size: 13px;
@@ -314,17 +323,19 @@ body {
   width: 100%;
   text-align: left;
   font-family: inherit;
+  position: relative;
 }
 
 .sidebar-link:hover {
-  background: var(--bg-hover);
+  background: rgba(255, 70, 85, 0.06);
   color: var(--text-primary);
 }
 
 .sidebar-link.active {
-  background: var(--accent-lighter);
+  background: rgba(255, 70, 85, 0.1);
   color: var(--accent);
   font-weight: 600;
+  border-left: 2px solid var(--accent);
 }
 
 .sidebar-link.active svg {
@@ -421,29 +432,30 @@ body {
 .card {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 2px;
   padding: 24px;
   transition: all var(--transition);
+  position: relative;
 }
 
 .card:hover {
-  border-color: var(--border-lighter);
+  border-color: rgba(255, 70, 85, 0.2);
   box-shadow: var(--shadow);
 }
 
 .glass-card {
-  background: rgba(18, 18, 26, 0.5);
+  background: rgba(15, 25, 35, 0.6);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(42, 42, 54, 0.5);
-  border-radius: var(--radius-lg);
+  border: 1px solid rgba(30, 48, 64, 0.5);
+  border-radius: 2px;
   padding: 24px;
   transition: all var(--transition);
 }
 
 .glass-card:hover {
-  background: rgba(18, 18, 26, 0.7);
-  border-color: rgba(124, 58, 237, 0.3);
-  box-shadow: 0 0 20px rgba(124, 58, 237, 0.1);
+  background: rgba(15, 25, 35, 0.8);
+  border-color: rgba(255, 70, 85, 0.3);
+  box-shadow: 0 0 20px rgba(255, 70, 85, 0.1);
 }
 
 .card-header {
@@ -466,22 +478,23 @@ body {
 .dashboard-widget {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 2px;
   padding: 24px;
   transition: all var(--transition);
   animation: slideUp var(--transition-smooth);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
 }
 
 .dashboard-widget:hover {
-  border-color: var(--border-lighter);
+  border-color: rgba(255, 70, 85, 0.3);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 20px rgba(255, 70, 85, 0.1);
 }
 
 .metric-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 2px;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -489,6 +502,7 @@ body {
   transition: all var(--transition);
   position: relative;
   overflow: hidden;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
 }
 
 .metric-card::before {
@@ -496,16 +510,16 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.3), transparent);
+  width: 3px;
+  height: 100%;
+  background: var(--accent);
   opacity: 0;
   transition: opacity var(--transition);
 }
 
 .metric-card:hover {
-  border-color: var(--border-lighter);
-  box-shadow: var(--shadow-md);
+  border-color: rgba(255, 70, 85, 0.2);
+  box-shadow: 0 4px 20px rgba(255, 70, 85, 0.08);
   transform: translateY(-2px);
 }
 
@@ -516,16 +530,30 @@ body {
 .stat-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 2px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   transition: all var(--transition);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--accent);
+  opacity: 0.4;
 }
 
 .stat-card:hover {
-  border-color: var(--border-lighter);
+  border-color: rgba(255, 70, 85, 0.2);
   box-shadow: var(--shadow);
 }
 
@@ -592,7 +620,7 @@ body {
   justify-content: center;
   gap: 8px;
   padding: 10px 20px;
-  border-radius: var(--radius-md);
+  border-radius: 2px;
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
@@ -603,6 +631,8 @@ body {
   text-decoration: none;
   white-space: nowrap;
   user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .btn svg {
@@ -613,12 +643,13 @@ body {
 .btn-primary {
   background: var(--accent);
   color: white;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 70, 85, 0.3);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
 }
 
 .btn-primary:hover {
   background: var(--accent-hover);
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 4px 16px rgba(255, 70, 85, 0.5);
   transform: translateY(-1px);
 }
 
@@ -636,12 +667,13 @@ body {
   background: var(--bg-elevated);
   color: var(--text-secondary);
   border: 1px solid var(--border);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
 }
 
 .btn-secondary:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
-  border-color: var(--border-lighter);
+  border-color: var(--accent);
 }
 
 .btn-secondary:active {
@@ -714,11 +746,13 @@ input[type="number"],
 input[type="url"],
 input[type="email"],
 input[type="password"],
+input[type="date"],
+input[type="month"],
 textarea,
 select {
   background: var(--bg-tertiary);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: 2px;
   padding: 10px 14px;
   color: var(--text-primary);
   font-size: 13px;
@@ -740,7 +774,7 @@ textarea:focus,
 select:focus {
   border-color: var(--accent);
   background: var(--bg-elevated);
-  box-shadow: 0 0 0 3px var(--accent-lighter);
+  box-shadow: 0 0 0 2px rgba(255, 70, 85, 0.15);
 }
 
 textarea {
@@ -808,10 +842,12 @@ select option {
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
-  border-radius: 6px;
+  border-radius: 2px;
   font-size: 11px;
   font-weight: 600;
   gap: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .badge-success {
@@ -1482,6 +1518,27 @@ table tbody tr:hover {
   }
 }
 
+/* Iso Chat typing animation */
+.typing-dots span {
+  animation: blink 1.4s infinite;
+  animation-fill-mode: both;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink {
+  0% { opacity: 0.2; }
+  20% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+/* Email client responsive overrides */
+@media (max-width: 768px) {
+  .tool-page .page-body[style*="grid-template-columns: 200px"] {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
@@ -1505,11 +1562,18 @@ table tbody tr:hover {
   }
 
   .page-header {
-    padding: 16px 20px 12px;
+    padding: 16px 16px 12px;
   }
 
   .page-body {
-    padding: 20px 16px;
+    padding: 16px 12px;
+    padding-bottom: 80px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .main-content {
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .grid-2,
@@ -1520,6 +1584,63 @@ table tbody tr:hover {
 
   .template-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Stats row — 2 columns on mobile */
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  /* Tables scroll horizontally */
+  .table-wrapper {
+    margin: 0 -12px;
+    padding: 0 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table td,
+  .data-table th {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  /* Modal fills screen on mobile */
+  .modal-overlay {
+    padding: 8px;
+    align-items: flex-end;
+  }
+
+  .modal-card {
+    max-height: 85vh;
+    max-width: 100%;
+  }
+
+  /* Kanban board scrolls horizontally on mobile */
+  .tool-page > div[style*="grid-template-columns: repeat(4"] {
+    display: flex !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px;
+    padding-bottom: 12px;
+  }
+
+  .tool-page > div[style*="grid-template-columns: repeat(4"] > div {
+    min-width: 260px;
+    flex-shrink: 0;
+  }
+
+  /* Forms grid on mobile */
+  .tool-page .card div[style*="grid-template-columns: 1fr 1fr 1fr"],
+  .tool-page .card div[style*="grid-template-columns: 1fr 1fr"] {
+    display: flex !important;
+    flex-direction: column;
+    gap: 8px !important;
   }
 
   .chat-messages {
@@ -1547,6 +1668,165 @@ table tbody tr:hover {
   .sidebar-logo-text {
     font-size: 16px;
   }
+
+  .stats-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 8px 14px;
+    font-size: 11px;
+  }
+}
+
+/* ============================================
+   MARKDOWN RENDERING
+   ============================================ */
+
+/* ============================================
+   PROTOCOL AGENT TOOL PAGES — Utility Classes
+   ============================================ */
+
+.tool-page {
+  animation: fadeIn 0.3s ease;
+}
+
+.tool-page h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table thead {
+  background: var(--bg-tertiary);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.data-table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.data-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(255, 70, 85, 0.04);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.2s ease;
+  padding: 16px;
+}
+
+.modal-card {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 70, 85, 0.2);
+  padding: 24px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  animation: slideUp 0.3s ease;
+}
+
+.modal-card::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 30px;
+  height: 30px;
+  border-top: 2px solid var(--accent);
+  border-left: 2px solid var(--accent);
+}
+
+.modal-card::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 30px;
+  height: 30px;
+  border-bottom: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+}
+
+/* Kanban board columns */
+.tool-page .card {
+  border: 1px solid var(--border);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
 }
 
 /* ============================================

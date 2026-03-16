@@ -23,7 +23,9 @@ import {
   Anchor, Ship, ClipboardList, Route as RouteIcon, FileCheck, Scale, Boxes,
   Factory, Wrench, Beaker, FlaskConical, Barcode, PackageCheck, Leaf,
   BadgeDollarSign, PiggyBank, ArrowUpDown, FileBarChart, Banknote, TrendingDown, Percent,
-  Ghost, TreePine, Bird, FolderKanban, Milestone, BriefcaseBusiness, StickyNote, GitBranch
+  Ghost, TreePine, Bird, FolderKanban, Milestone, BriefcaseBusiness, StickyNote, GitBranch,
+  Code, TerminalSquare, FolderGit2, Upload, AtSign, MailOpen, Reply, Forward, Archive, Paperclip,
+  Terminal, Code2, GitCommit, GitPullRequest, Rocket
 } from 'lucide-react';
 import { callClaude, isApiKeySet, AI_PROVIDERS, getActiveProvider, setActiveProvider, SYSTEM_PROMPTS, KIRO_CONTEXT, MARKETING_SKILLS, getMarketingPrompt, getSkillsByCategory, detectSkill, getSkillListForAI } from './utils/api';
 import {
@@ -1046,144 +1048,212 @@ function VoiceAssistant() {
 // DASHBOARD
 // =============================================
 function Dashboard() {
-  const [leads, setLeads] = useState(() => getAllLeads());
-  const [history, setHistory] = useState(() => getSearchHistory());
+  const [leads] = useState(() => getAllLeads());
+  const [history] = useState(() => getSearchHistory());
   const [seoData] = useState(() => getSEODashboardData());
 
-  const stats = {
-    totalLeads: leads.length,
-    withEmail: leads.filter(l => l.email).length,
-    withPhone: leads.filter(l => l.phone).length,
-    emailCoverage: leads.length > 0 ? Math.round((leads.filter(l => l.email).length / leads.length) * 100) : 0,
-    conversionRate: leads.length > 0 ? Math.round((leads.filter(l => l.email && l.phone).length / leads.length) * 100) : 0,
-    thisWeek: leads.filter(l => Date.now() - l.scrapedAt < 7 * 86400000).length,
-  };
+  // Cross-agent data aggregation
+  const safeJSON = (key) => { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; } };
 
-  // Lead sources for pie chart
-  const leadSources = {};
-  leads.forEach(l => { const src = l.source || l.type || 'Direct'; leadSources[src] = (leadSources[src] || 0) + 1; });
-  const leadSourceData = Object.entries(leadSources).slice(0, 6).map(([name, value]) => ({ name: name.replace(/_/g, ' '), value }));
+  // Core metrics
+  const totalLeads = leads.length;
+  const tasks = safeJSON('protocol_omen_tasks');
+  const projects = safeJSON('protocol_omen_projects');
+  const partners = safeJSON('protocol_harbor_partners');
+  const orders = safeJSON('protocol_harbor_orders');
+  const inventory = safeJSON('protocol_deadlock_inventory');
+  const plans = safeJSON('protocol_deadlock_plans');
+  const batches = safeJSON('protocol_deadlock_batches');
+  const qcChecks = safeJSON('protocol_deadlock_qc');
+  const vendors = safeJSON('protocol_deadlock_vendors');
+  const influencers = safeJSON('protocol_skye_influencers');
+  const pnl = safeJSON('protocol_kayo_pnl');
+  const expenses = safeJSON('protocol_kayo_expenses');
+  const payments = safeJSON('protocol_kayo_payments');
+  const customers = safeJSON('protocol_sage_customers');
+  const campaigns = safeJSON('protocol_skye_campaigns');
 
-  // SEO health score
+  const revenue = pnl.filter(e => e.type === 'Revenue').reduce((s, e) => s + (e.amount || 0), 0);
+  const totalExpenses = pnl.filter(e => e.type === 'Expense').reduce((s, e) => s + (e.amount || 0), 0) + expenses.reduce((s, e) => s + (e.amount || 0), 0);
+  const netPnL = revenue - totalExpenses;
+  const totalOrderValue = orders.reduce((s, o) => s + (Number(o.amount) || 0), 0);
+  const inventoryValue = inventory.reduce((s, i) => s + ((i.quantity || 0) * (i.costPerUnit || 0)), 0);
+  const lowStock = inventory.filter(i => i.quantity <= i.reorderLevel).length;
+  const receivables = payments.filter(p => p.type === 'Receivable' && p.status !== 'Paid').reduce((s, p) => s + (p.amount || 0), 0);
+  const payables = payments.filter(p => p.type === 'Payable' && p.status !== 'Paid').reduce((s, p) => s + (p.amount || 0), 0);
+  const totalInfluencerReach = influencers.reduce((s, i) => s + (i.followers || 0), 0);
+  const tasksDone = tasks.filter(t => t.status === 'Done').length;
+  const tasksTotal = tasks.length;
+
+  // Agent activity data for bar chart
+  const agentData = [
+    { name: 'Leads', count: totalLeads, color: '#ff4655' },
+    { name: 'Tasks', count: tasksTotal, color: '#47b5ff' },
+    { name: 'Partners', count: partners.length, color: '#0ac18e' },
+    { name: 'Inventory', count: inventory.length, color: '#f5a623' },
+    { name: 'Influencers', count: influencers.length, color: '#a855f7' },
+    { name: 'Orders', count: orders.length, color: '#ec4899' },
+  ];
+
+  // Financial trend data
+  const financeData = [
+    { label: 'Revenue', value: revenue, color: '#0ac18e' },
+    { label: 'Expenses', value: totalExpenses, color: '#ff4655' },
+    { label: 'Orders', value: totalOrderValue, color: '#47b5ff' },
+    { label: 'Receivable', value: receivables, color: '#f5a623' },
+  ];
+
+  const chartColors = ['#ff4655', '#47b5ff', '#0ac18e', '#f5a623', '#a855f7', '#ec4899'];
+
   const seoHealth = Math.min(100, (seoData.trackedDomains * 25) + (seoData.totalKeywords * 0.5));
-
-  // Content stats
-  const contentStats = {
-    blogPosts: (() => { try { return JSON.parse(localStorage.getItem('protocol_blog_posts') || '[]').length; } catch { return 0; } })(),
-    aiUsed: parseInt(localStorage.getItem('protocol_ai_skills_used') || '0'),
-  };
-
-  // Chart data
-  const contentUsageData = [
-    { week: 'W1', blog: Math.ceil(contentStats.blogPosts * 0.2), ai: Math.ceil(contentStats.aiUsed * 0.3) },
-    { week: 'W2', blog: Math.ceil(contentStats.blogPosts * 0.4), ai: Math.ceil(contentStats.aiUsed * 0.5) },
-    { week: 'W3', blog: Math.ceil(contentStats.blogPosts * 0.7), ai: Math.ceil(contentStats.aiUsed * 0.7) },
-    { week: 'W4', blog: contentStats.blogPosts, ai: contentStats.aiUsed },
-  ];
-
-  const brandMentions = parseInt(localStorage.getItem('protocol_brand_mentions') || '0');
-  const socialData = [
-    { day: 'Mon', mentions: Math.ceil(brandMentions * 0.4), scrapes: Math.ceil(history.length * 0.3) },
-    { day: 'Tue', mentions: Math.ceil(brandMentions * 0.5), scrapes: Math.ceil(history.length * 0.4) },
-    { day: 'Wed', mentions: Math.ceil(brandMentions * 0.7), scrapes: Math.ceil(history.length * 0.6) },
-    { day: 'Thu', mentions: Math.ceil(brandMentions * 0.8), scrapes: Math.ceil(history.length * 0.7) },
-    { day: 'Fri', mentions: brandMentions, scrapes: history.length },
-  ];
-
-  const chartColors = ['#7c3aed', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+  const tooltipStyle = { background: '#0f1923', border: '1px solid rgba(255,70,85,0.2)', borderRadius: 2, color: '#ece8e1' };
 
   return (
     <>
       <div className="page-header">
         <div>
-          <h1>Dashboard</h1>
-          <p className="page-header-sub">Your complete marketing command center</p>
+          <h1 style={{ letterSpacing: 3, textTransform: 'uppercase', fontSize: 22 }}>// COMMAND CENTER</h1>
+          <p className="page-header-sub" style={{ color: '#ff4655', letterSpacing: 2, fontSize: 10, textTransform: 'uppercase' }}>Protocol Tactical Overview — All Agents</p>
         </div>
       </div>
       <div className="page-body">
-        <div className="grid-4" style={{ marginBottom: 28 }}>
-          <div className="stat-card"><span className="stat-card-label">Total Leads</span><span className="stat-card-value">{stats.totalLeads}</span><span className="stat-card-change positive"><Database size={12} /> {stats.thisWeek} this week</span></div>
-          <div className="stat-card"><span className="stat-card-label">Email Coverage</span><span className="stat-card-value">{stats.emailCoverage}%</span><span className="stat-card-change positive"><Mail size={12} /> {stats.withEmail} leads</span></div>
-          <div className="stat-card"><span className="stat-card-label">Conversion Rate</span><span className="stat-card-value">{stats.conversionRate}%</span><span className="stat-card-change positive"><TrendingUp size={12} /> Complete data</span></div>
-          <div className="stat-card"><span className="stat-card-label">SEO Health</span><span className="stat-card-value">{Math.round(seoHealth)}</span><span className="stat-card-change positive"><Globe size={12} /> {seoData.trackedDomains} domains</span></div>
+        {/* TOP METRICS — 6 key cards */}
+        <div className="stats-row" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', marginBottom: 24 }}>
+          {[
+            ['LEADS', totalLeads, '#ff4655', Database],
+            ['REVENUE', '₹' + revenue.toLocaleString(), '#0ac18e', TrendingUp],
+            ['PARTNERS', partners.length, '#47b5ff', Building2],
+            ['INVENTORY', inventory.length + ' items', '#f5a623', Package],
+            ['TASKS', tasksDone + '/' + tasksTotal, '#a855f7', CheckCircle2],
+            ['INFLUENCERS', influencers.length, '#ec4899', Users],
+          ].map(([label, val, color, Icon]) => (
+            <div key={label} className="stat-card" style={{ borderColor: 'rgba(255,70,85,0.08)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#5e7382', textTransform: 'uppercase' }}>{label}</div>
+                <Icon size={14} color={color} />
+              </div>
+              <div style={{ fontSize: 26, fontWeight: 800, color, letterSpacing: -0.5 }}>{val}</div>
+            </div>
+          ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
-          <div className="glass-card">
-            <div style={{ padding: 16, borderBottom: '1px solid var(--border)' }}><h3 className="card-title">Lead Sources</h3></div>
-            <div style={{ padding: 16, minHeight: 280 }}>
-              {leadSourceData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={240}>
-                  <RechartsPieChart><Pie data={leadSourceData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={2} dataKey="value">
-                    {leadSourceData.map((_, i) => (<Cell key={`cell-${i}`} fill={chartColors[i % chartColors.length]} />))}
-                  </Pie><RechartsTooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)' }} /><Legend wrapperStyle={{ paddingTop: 16, fontSize: 12 }} /></RechartsPieChart>
-                </ResponsiveContainer>
-              ) : (<div style={{ height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>Search for leads to see source breakdown</div>)}
-            </div>
+        {/* FINANCIAL OVERVIEW BAR */}
+        <div className="card" style={{ padding: 20, marginBottom: 20, background: 'rgba(15,25,35,0.8)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ff4655' }}>// Financial Status</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: netPnL >= 0 ? '#0ac18e' : '#ff4655' }}>Net: {netPnL >= 0 ? '+' : ''}₹{netPnL.toLocaleString()}</div>
           </div>
-
-          <div className="glass-card">
-            <div style={{ padding: 16, borderBottom: '1px solid var(--border)' }}><h3 className="card-title">SEO Performance</h3></div>
-            <div style={{ padding: 16, minHeight: 280 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                <div style={{ background: 'var(--bg-tertiary)', padding: 12, borderRadius: 8, textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Tracked Domains</div>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: '#7c3aed' }}>{seoData.trackedDomains}</div>
-                </div>
-                <div style={{ background: 'var(--bg-tertiary)', padding: 12, borderRadius: 8, textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 4 }}>Total Keywords</div>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: '#06b6d4' }}>{seoData.totalKeywords}</div>
-                </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
+            {financeData.map(f => (
+              <div key={f.label} style={{ textAlign: 'center', padding: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 2, border: '1px solid rgba(255,70,85,0.06)' }}>
+                <div style={{ fontSize: 10, letterSpacing: 1.5, color: '#5e7382', textTransform: 'uppercase', marginBottom: 6 }}>{f.label}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: f.color }}>₹{f.value.toLocaleString()}</div>
               </div>
-              <div style={{ padding: 12, background: 'var(--bg-tertiary)', borderRadius: 8 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Health Score</div>
-                <div className="score-bar"><div className="score-bar-fill" style={{ width: `${Math.min(100, seoHealth)}%`, background: 'linear-gradient(90deg, #7c3aed, #06b6d4)' }} /></div>
-              </div>
-            </div>
-          </div>
-
-          <div className="glass-card">
-            <div style={{ padding: 16, borderBottom: '1px solid var(--border)' }}><h3 className="card-title">Content & AI Usage</h3></div>
-            <div style={{ padding: 16, minHeight: 280 }}>
-              <ResponsiveContainer width="100%" height={240}>
-                <AreaChart data={contentUsageData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorBlog" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#7c3aed" stopOpacity={0.8} /><stop offset="95%" stopColor="#7c3aed" stopOpacity={0} /></linearGradient>
-                    <linearGradient id="colorAI" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#06b6d4" stopOpacity={0.8} /><stop offset="95%" stopColor="#06b6d4" stopOpacity={0} /></linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" /><XAxis dataKey="week" stroke="#64748b" style={{ fontSize: 12 }} /><YAxis stroke="#64748b" style={{ fontSize: 12 }} />
-                  <RechartsTooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8 }} />
-                  <Area type="monotone" dataKey="blog" stackId="1" stroke="#7c3aed" fillOpacity={1} fill="url(#colorBlog)" name="Blog Posts" />
-                  <Area type="monotone" dataKey="ai" stackId="1" stroke="#06b6d4" fillOpacity={1} fill="url(#colorAI)" name="AI Skills" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="glass-card">
-            <div style={{ padding: 16, borderBottom: '1px solid var(--border)' }}><h3 className="card-title">Brand & Social</h3></div>
-            <div style={{ padding: 16, minHeight: 280 }}>
-              <ResponsiveContainer width="100%" height={240}>
-                <RechartsLineChart data={socialData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" /><XAxis dataKey="day" stroke="#64748b" style={{ fontSize: 12 }} /><YAxis stroke="#64748b" style={{ fontSize: 12 }} />
-                  <RechartsTooltip contentStyle={{ background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8 }} /><Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Line type="monotone" dataKey="mentions" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b', r: 4 }} name="Mentions" />
-                  <Line type="monotone" dataKey="scrapes" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981', r: 4 }} name="Scrapes" />
-                </RechartsLineChart>
-              </ResponsiveContainer>
-            </div>
+            ))}
           </div>
         </div>
 
+        {/* CHARTS GRID */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16, marginBottom: 20 }}>
+          {/* Agent Activity Bar Chart */}
+          <div className="card" style={{ padding: 20 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ff4655', marginBottom: 16 }}>// Agent Data Counts</div>
+            <ResponsiveContainer width="100%" height={220}>
+              <RechartsBarChart data={agentData} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,70,85,0.08)" />
+                <XAxis dataKey="name" stroke="#5e7382" style={{ fontSize: 11 }} />
+                <YAxis stroke="#5e7382" style={{ fontSize: 11 }} />
+                <RechartsTooltip contentStyle={tooltipStyle} />
+                <Bar dataKey="count" radius={[2, 2, 0, 0]}>
+                  {agentData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Bar>
+              </RechartsBarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Operations Status */}
+          <div className="card" style={{ padding: 20 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ff4655', marginBottom: 16 }}>// Operations Status</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[
+                ['Production Plans', plans.length, plans.filter(p=>p.status==='Completed').length, '#0ac18e'],
+                ['QC Checks', qcChecks.length, qcChecks.filter(c=>c.status==='Pass').length, '#47b5ff'],
+                ['Batches', batches.length, batches.filter(b=>b.status==='Released').length, '#f5a623'],
+                ['Vendors', vendors.length, vendors.filter(v=>v.status==='Active').length, '#a855f7'],
+                ['Customers (CRM)', customers.length, customers.length, '#ec4899'],
+                ['Active Campaigns', campaigns.length, campaigns.filter(c=>c.status==='Live').length, '#ff4655'],
+              ].map(([label, total, done, color]) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 8, height: 8, background: color, borderRadius: 1, flexShrink: 0 }} />
+                  <div style={{ flex: 1, fontSize: 12, color: '#8b9eab' }}>{label}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#ece8e1' }}>{done}/{total}</div>
+                  <div style={{ width: 80, height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ width: total ? `${(done/total)*100}%` : '0%', height: '100%', background: color, borderRadius: 2, transition: 'width 0.5s ease' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* SEO & Content */}
+          <div className="card" style={{ padding: 20 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ff4655', marginBottom: 16 }}>// SEO & Content Intel</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+              <div style={{ textAlign: 'center', padding: 12, background: 'rgba(255,70,85,0.04)', borderRadius: 2 }}>
+                <div style={{ fontSize: 10, color: '#5e7382', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Domains</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: '#ff4655' }}>{seoData.trackedDomains}</div>
+              </div>
+              <div style={{ textAlign: 'center', padding: 12, background: 'rgba(71,181,255,0.04)', borderRadius: 2 }}>
+                <div style={{ fontSize: 10, color: '#5e7382', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Keywords</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: '#47b5ff' }}>{seoData.totalKeywords}</div>
+              </div>
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+                <span style={{ color: '#5e7382' }}>SEO Health</span><span style={{ color: '#0ac18e', fontWeight: 600 }}>{Math.round(seoHealth)}%</span>
+              </div>
+              <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'hidden' }}>
+                <div style={{ width: `${Math.min(100, seoHealth)}%`, height: '100%', background: 'linear-gradient(90deg, #ff4655, #0ac18e)', borderRadius: 2 }} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '8px 0', borderTop: '1px solid rgba(255,70,85,0.06)' }}>
+              <span style={{ color: '#5e7382' }}>Influencer Reach</span>
+              <span style={{ color: '#ec4899', fontWeight: 600 }}>{totalInfluencerReach > 1000000 ? (totalInfluencerReach/1000000).toFixed(1)+'M' : totalInfluencerReach > 1000 ? (totalInfluencerReach/1000).toFixed(0)+'K' : totalInfluencerReach}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '8px 0', borderTop: '1px solid rgba(255,70,85,0.06)' }}>
+              <span style={{ color: '#5e7382' }}>Low Stock Alerts</span>
+              <span style={{ color: lowStock > 0 ? '#ff4655' : '#0ac18e', fontWeight: 600 }}>{lowStock}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '8px 0', borderTop: '1px solid rgba(255,70,85,0.06)' }}>
+              <span style={{ color: '#5e7382' }}>Outstanding (Recv - Pay)</span>
+              <span style={{ color: '#f5a623', fontWeight: 600 }}>₹{(receivables - payables).toLocaleString()}</span>
+            </div>
+          </div>
+
+          {/* Active Projects */}
+          <div className="card" style={{ padding: 20 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ff4655', marginBottom: 16 }}>// Active Projects</div>
+            {projects.length === 0 ? (
+              <div style={{ color: '#5e7382', fontSize: 12, textAlign: 'center', padding: 20 }}>No projects yet. Create one in Omen.</div>
+            ) : projects.slice(0, 5).map(p => (
+              <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(255,70,85,0.06)', fontSize: 12 }}>
+                <div><div style={{ fontWeight: 600, color: '#ece8e1' }}>{p.name}</div><div style={{ fontSize: 10, color: '#5e7382' }}>{p.department}</div></div>
+                <span style={{ padding: '2px 8px', fontSize: 10, borderRadius: 2, background: p.status==='Active' ? 'rgba(10,193,142,0.15)' : 'rgba(255,70,85,0.1)', color: p.status==='Active' ? '#0ac18e' : '#ff4655' }}>{p.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* RECENT SEARCHES */}
         <div className="card" style={{ padding: 20, marginBottom: 20 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Recent Searches</h3>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#ff4655', marginBottom: 12 }}>// Recent Searches</div>
           {history.length === 0 ? (
-            <p style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>No searches yet. Start searching for leads!</p>
+            <p style={{ color: '#5e7382', fontSize: 12 }}>No searches yet. Use Cypher to start acquiring leads.</p>
           ) : (
             history.slice(0, 5).map((h, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: i % 2 === 0 ? 'var(--bg-tertiary)' : 'transparent', borderRadius: 'var(--radius-sm)', marginBottom: 2 }}>
-                <div><div style={{ fontSize: 13, fontWeight: 500 }}>{h.query}</div><div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{h.location || 'No location'} • {h.resultCount} results</div></div>
-                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{new Date(h.date).toLocaleDateString()}</span>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: i % 2 === 0 ? 'rgba(255,70,85,0.02)' : 'transparent', borderRadius: 2, marginBottom: 2 }}>
+                <div><div style={{ fontSize: 13, fontWeight: 500 }}>{h.query}</div><div style={{ fontSize: 11, color: '#5e7382' }}>{h.location || 'No location'} • {h.resultCount} results</div></div>
+                <span style={{ fontSize: 11, color: '#5e7382' }}>{new Date(h.date).toLocaleDateString()}</span>
               </div>
             ))
           )}
@@ -9764,15 +9834,15 @@ const ALL_TOOLS = [
   { id: 'dashboard', label: 'Dashboard', section: 'Brimstone' },
   { id: 'leads-dashboard', label: 'Leads Analytics', section: 'Brimstone' },
   { id: 'strategy-builder', label: 'Strategy Builder', section: 'Brimstone' },
-  { id: 'lead-search', label: 'Lead Search', section: 'Chamber' },
-  { id: 'email-extractor', label: 'Email Extractor', section: 'Chamber' },
-  { id: 'my-leads', label: 'My Leads', section: 'Chamber' },
-  { id: 'lead-verifier', label: 'Lead Verifier', section: 'Chamber' },
-  { id: 'instagram', label: 'Instagram Scraper', section: 'Cypher' },
-  { id: 'facebook', label: 'Facebook / Meta', section: 'Cypher' },
-  { id: 'fb-ads', label: 'FB Ads Library', section: 'Cypher' },
-  { id: 'linkedin', label: 'LinkedIn Scraper', section: 'Cypher' },
-  { id: 'twitter', label: 'Twitter / X Scraper', section: 'Cypher' },
+  { id: 'lead-search', label: 'Lead Search', section: 'Cypher' },
+  { id: 'email-extractor', label: 'Email Extractor', section: 'Cypher' },
+  { id: 'my-leads', label: 'My Leads', section: 'Cypher' },
+  { id: 'lead-verifier', label: 'Lead Verifier', section: 'Cypher' },
+  { id: 'instagram', label: 'Instagram Scraper', section: 'Chamber' },
+  { id: 'facebook', label: 'Facebook / Meta', section: 'Chamber' },
+  { id: 'fb-ads', label: 'FB Ads Library', section: 'Chamber' },
+  { id: 'linkedin', label: 'LinkedIn Scraper', section: 'Chamber' },
+  { id: 'twitter', label: 'Twitter / X Scraper', section: 'Chamber' },
   { id: 'website-analysis', label: 'Full Analysis', section: 'Killjoy' },
   { id: 'seo-dashboard', label: 'SEO Dashboard', section: 'Killjoy' },
   { id: 'site-audit', label: 'Site Audit', section: 'Killjoy' },
@@ -9877,7 +9947,12 @@ const ALL_TOOLS = [
   { id: 'skye-approvals', label: 'Content Approval', section: 'Skye' },
   { id: 'skye-discovery', label: 'Discovery', section: 'Skye' },
   { id: 'skye-contracts', label: 'Contracts', section: 'Skye' },
+  { id: 'lobby-email', label: 'Protocol Mail', section: 'Lobby' },
   { id: 'settings', label: 'Settings', section: 'Lobby' },
+  { id: 'iso-chat', label: 'Iso Chat', section: 'Iso' },
+  { id: 'iso-code-review', label: 'Code Review', section: 'Iso' },
+  { id: 'iso-git', label: 'Git Dashboard', section: 'Iso' },
+  { id: 'iso-deploy', label: 'Deploy Manager', section: 'Iso' },
 ];
 
 const ROLES = ['Admin', 'Manager', 'Analyst', 'Viewer'];
@@ -10387,6 +10462,630 @@ function SettingsPage() {
         {toast && <Toast {...toast} onClose={() => setToast(null)} />}
       </div>
     </>
+  );
+}
+
+// ========= LOBBY EMAIL — IMAP Email Client =========
+function LobbyEmail() {
+  const [accounts, setAccounts] = useState(() => JSON.parse(localStorage.getItem('protocol_email_accounts') || '[]'));
+  const [activeAccount, setActiveAccount] = useState(null);
+  const [emails, setEmails] = useState([]);
+  const [selectedEmail, setSelectedEmail] = useState(null);
+  const [showCompose, setShowCompose] = useState(false);
+  const [showAddAccount, setShowAddAccount] = useState(false);
+  const [folder, setFolder] = useState('INBOX');
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [compose, setCompose] = useState({ to: '', subject: '', body: '', cc: '', bcc: '' });
+  const [showReply, setShowReply] = useState(false);
+  const [newAccount, setNewAccount] = useState({ email: '', password: '', imapHost: '', imapPort: '993', smtpHost: '', smtpPort: '587', name: '' });
+
+  const PRESET_PROVIDERS = {
+    gmail: { imapHost: 'imap.gmail.com', imapPort: '993', smtpHost: 'smtp.gmail.com', smtpPort: '587' },
+    outlook: { imapHost: 'outlook.office365.com', imapPort: '993', smtpHost: 'smtp.office365.com', smtpPort: '587' },
+    yahoo: { imapHost: 'imap.mail.yahoo.com', imapPort: '993', smtpHost: 'smtp.mail.yahoo.com', smtpPort: '587' },
+    zoho: { imapHost: 'imap.zoho.com', imapPort: '993', smtpHost: 'smtp.zoho.com', smtpPort: '587' },
+    custom: { imapHost: '', imapPort: '993', smtpHost: '', smtpPort: '587' }
+  };
+
+  const folders = ['INBOX', 'Sent', 'Drafts', 'Starred', 'Archive', 'Trash'];
+
+  const saveAccounts = (accs) => { setAccounts(accs); localStorage.setItem('protocol_email_accounts', JSON.stringify(accs)); };
+
+  const addAccount = () => {
+    if (!newAccount.email || !newAccount.password || !newAccount.imapHost) { setToast({ type: 'error', message: 'Fill required fields' }); return; }
+    const acc = { ...newAccount, id: Date.now().toString(), addedAt: new Date().toISOString() };
+    saveAccounts([...accounts, acc]);
+    setActiveAccount(acc);
+    setShowAddAccount(false);
+    setNewAccount({ email: '', password: '', imapHost: '', imapPort: '993', smtpHost: '', smtpPort: '587', name: '' });
+    setToast({ type: 'success', message: 'Account added' });
+    // Load demo emails for this account
+    loadDemoEmails(acc);
+  };
+
+  const loadDemoEmails = (acc) => {
+    setLoading(true);
+    // Since IMAP requires a backend proxy (browser can't do raw TCP/TLS), we simulate
+    // In production, this would call a serverless function or IMAP-to-REST proxy
+    setTimeout(() => {
+      const demoEmails = [
+        { id: '1', from: 'team@kirofoods.com', to: acc.email, subject: 'Q1 Marketing Report Ready', body: 'Hi team,\n\nThe Q1 marketing performance report is ready for review. Key highlights:\n\n- Social media engagement up 34%\n- Lead generation exceeded targets by 22%\n- Brand awareness metrics showing positive trends\n\nPlease review and share feedback by Friday.\n\nBest,\nMarketing Team', date: new Date(Date.now() - 3600000).toISOString(), read: false, starred: false, folder: 'INBOX', attachments: ['Q1_Report.pdf'] },
+        { id: '2', from: 'shreyansh@kirofoods.com', to: acc.email, subject: 'Product Launch Timeline Update', body: 'Hi,\n\nUpdating the launch timeline:\n\n- Packaging finalized: March 20\n- First production batch: March 25\n- Distribution setup: April 1-5\n- Soft launch: April 10\n- Full launch: April 20\n\nLet me know if any concerns.\n\nShreyansh', date: new Date(Date.now() - 7200000).toISOString(), read: false, starred: true, folder: 'INBOX', attachments: [] },
+        { id: '3', from: 'vendor@packagingco.in', to: acc.email, subject: 'RE: Packaging Proofs Approved', body: 'Dear Kiro Foods Team,\n\nThank you for approving the packaging proofs. We will begin production immediately.\n\nEstimated delivery: 5000 units by March 22.\n\nRegards,\nPackaging Co.', date: new Date(Date.now() - 86400000).toISOString(), read: true, starred: false, folder: 'INBOX', attachments: ['proof_v3.pdf', 'invoice.pdf'] },
+        { id: '4', from: 'analytics@google.com', to: acc.email, subject: 'Your weekly Search Console report', body: 'Your site kirofoods.com received 1,234 clicks in the past week, up 15% from the previous period. Top queries: "healthy rte food india", "clean label ready to eat", "kiro foods".', date: new Date(Date.now() - 172800000).toISOString(), read: true, starred: false, folder: 'INBOX', attachments: [] },
+        { id: '5', from: acc.email, to: 'distributor@metro.in', subject: 'Distribution Partnership Proposal', body: 'Dear Metro Team,\n\nI am writing to propose a distribution partnership for Kiro Foods products in the Western region.\n\nAttached is our product catalog and proposed terms.\n\nLooking forward to discussing.\n\nBest regards', date: new Date(Date.now() - 259200000).toISOString(), read: true, starred: false, folder: 'Sent', attachments: ['catalog.pdf'] },
+        { id: '6', from: acc.email, to: 'creative@agency.com', subject: 'Draft: Campaign Brief - Summer Launch', body: 'Subject to review...', date: new Date(Date.now() - 345600000).toISOString(), read: true, starred: false, folder: 'Drafts', attachments: [] },
+      ];
+      setEmails(demoEmails);
+      setLoading(false);
+    }, 800);
+  };
+
+  const filteredEmails = emails.filter(e => {
+    const inFolder = folder === 'Starred' ? e.starred : e.folder === folder;
+    const matchesSearch = !searchQuery || e.subject.toLowerCase().includes(searchQuery.toLowerCase()) || e.from.toLowerCase().includes(searchQuery.toLowerCase());
+    return inFolder && matchesSearch;
+  });
+
+  const removeAccount = (id) => {
+    const updated = accounts.filter(a => a.id !== id);
+    saveAccounts(updated);
+    if (activeAccount?.id === id) { setActiveAccount(null); setEmails([]); }
+  };
+
+  const toggleStar = (id) => { setEmails(prev => prev.map(e => e.id === id ? { ...e, starred: !e.starred } : e)); };
+  const markRead = (id) => { setEmails(prev => prev.map(e => e.id === id ? { ...e, read: true } : e)); };
+  const moveToTrash = (id) => { setEmails(prev => prev.map(e => e.id === id ? { ...e, folder: 'Trash' } : e)); setSelectedEmail(null); };
+  const archiveEmail = (id) => { setEmails(prev => prev.map(e => e.id === id ? { ...e, folder: 'Archive' } : e)); setSelectedEmail(null); };
+
+  const sendEmail = () => {
+    if (!compose.to || !compose.subject) { setToast({ type: 'error', message: 'Fill To and Subject' }); return; }
+    const sent = { id: Date.now().toString(), from: activeAccount.email, to: compose.to, subject: compose.subject, body: compose.body, date: new Date().toISOString(), read: true, starred: false, folder: 'Sent', attachments: [] };
+    setEmails(prev => [...prev, sent]);
+    setCompose({ to: '', subject: '', body: '', cc: '', bcc: '' });
+    setShowCompose(false);
+    setShowReply(false);
+    setToast({ type: 'success', message: 'Email sent (demo mode)' });
+  };
+
+  const replyToEmail = (email) => {
+    setCompose({ to: email.from, subject: `Re: ${email.subject}`, body: `\n\n--- Original Message ---\nFrom: ${email.from}\nDate: ${new Date(email.date).toLocaleString()}\n\n${email.body}`, cc: '', bcc: '' });
+    setShowReply(true);
+    setShowCompose(true);
+  };
+
+  const forwardEmail = (email) => {
+    setCompose({ to: '', subject: `Fwd: ${email.subject}`, body: `\n\n--- Forwarded Message ---\nFrom: ${email.from}\nTo: ${email.to}\nDate: ${new Date(email.date).toLocaleString()}\nSubject: ${email.subject}\n\n${email.body}`, cc: '', bcc: '' });
+    setShowCompose(true);
+  };
+
+  useEffect(() => { if (toast) { const t = setTimeout(() => setToast(null), 3000); return () => clearTimeout(t); }}, [toast]);
+
+  return (
+    <div className="tool-page">
+      {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
+      <div className="page-header"><h1><Mail size={22} /> Protocol Mail</h1><p>Secure email client — connect IMAP/SMTP accounts</p></div>
+
+      {!activeAccount ? (
+        <div className="page-body">
+          <div className="stats-row">
+            {accounts.map(acc => (
+              <div key={acc.id} className="stat-card" style={{cursor:'pointer'}} onClick={() => { setActiveAccount(acc); loadDemoEmails(acc); }}>
+                <AtSign size={18} style={{color:'var(--accent)'}} />
+                <div style={{fontSize:'14px',fontWeight:600,color:'var(--text-primary)',marginTop:8}}>{acc.name || acc.email}</div>
+                <div style={{fontSize:'11px',color:'var(--text-secondary)'}}>{acc.email}</div>
+                <button className="btn-secondary" style={{marginTop:8,fontSize:'11px',padding:'4px 8px'}} onClick={(e) => { e.stopPropagation(); removeAccount(acc.id); }}>Remove</button>
+              </div>
+            ))}
+            <div className="stat-card" style={{cursor:'pointer',border:'1px dashed var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:8}} onClick={() => setShowAddAccount(true)}>
+              <UserPlus size={24} style={{color:'var(--accent)'}} />
+              <span style={{fontSize:'13px',color:'var(--text-secondary)'}}>Add Account</span>
+            </div>
+          </div>
+          <div style={{marginTop:24,padding:16,background:'var(--bg-secondary)',borderRadius:4}}>
+            <h3 style={{color:'var(--accent)',marginBottom:8}}>Setup Guide</h3>
+            <p style={{fontSize:'13px',color:'var(--text-secondary)',lineHeight:1.6}}>
+              <strong>Gmail:</strong> Enable "Less secure app access" or use an App Password (Settings → Security → 2-Step Verification → App Passwords).<br/>
+              <strong>Outlook:</strong> Use your regular password. IMAP is enabled by default.<br/>
+              <strong>Note:</strong> Browser-based IMAP requires a backend proxy for production use. Currently running in demo mode with simulated emails.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="page-body" style={{display:'grid',gridTemplateColumns:'200px 300px 1fr',gap:0,height:'calc(100vh - 140px)',overflow:'hidden'}}>
+          {/* Sidebar - Folders */}
+          <div style={{borderRight:'1px solid var(--border)',padding:'12px 0',overflowY:'auto'}}>
+            <div style={{padding:'0 12px',marginBottom:12}}>
+              <button className="btn-primary" style={{width:'100%',fontSize:'13px'}} onClick={() => { setCompose({ to:'', subject:'', body:'', cc:'', bcc:'' }); setShowCompose(true); }}>
+                <Send size={14} /> Compose
+              </button>
+            </div>
+            {folders.map(f => (
+              <div key={f} onClick={() => setFolder(f)} style={{padding:'8px 16px',cursor:'pointer',fontSize:'13px',color: folder === f ? 'var(--accent)' : 'var(--text-secondary)',background: folder === f ? 'var(--accent)11' : 'transparent',borderLeft: folder === f ? '2px solid var(--accent)' : '2px solid transparent',display:'flex',alignItems:'center',gap:8}}>
+                {f === 'INBOX' ? <Inbox size={14}/> : f === 'Sent' ? <Send size={14}/> : f === 'Drafts' ? <FileText size={14}/> : f === 'Starred' ? <Star size={14}/> : f === 'Archive' ? <Archive size={14}/> : <Trash2 size={14}/>}
+                {f}
+                {f === 'INBOX' && <span style={{marginLeft:'auto',background:'var(--accent)',color:'#fff',borderRadius:8,padding:'1px 6px',fontSize:'10px'}}>{emails.filter(e => e.folder === 'INBOX' && !e.read).length}</span>}
+              </div>
+            ))}
+            <div style={{borderTop:'1px solid var(--border)',margin:'12px 0',padding:'12px 16px'}}>
+              <div style={{fontSize:'11px',color:'var(--text-secondary)',marginBottom:4}}>{activeAccount.email}</div>
+              <button className="btn-secondary" style={{fontSize:'11px',padding:'4px 8px',width:'100%'}} onClick={() => { setActiveAccount(null); setEmails([]); setSelectedEmail(null); }}>Switch Account</button>
+            </div>
+          </div>
+
+          {/* Email List */}
+          <div style={{borderRight:'1px solid var(--border)',overflowY:'auto'}}>
+            <div style={{padding:12,borderBottom:'1px solid var(--border)'}}>
+              <input type="text" placeholder="Search emails..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="input" style={{fontSize:'12px',padding:'6px 10px'}} />
+            </div>
+            {loading ? <div style={{padding:24,textAlign:'center',color:'var(--text-secondary)'}}>Loading...</div> :
+              filteredEmails.length === 0 ? <div style={{padding:24,textAlign:'center',color:'var(--text-secondary)',fontSize:'13px'}}>No emails in {folder}</div> :
+              filteredEmails.sort((a,b) => new Date(b.date) - new Date(a.date)).map(email => (
+                <div key={email.id} onClick={() => { setSelectedEmail(email); markRead(email.id); }} style={{padding:'10px 12px',borderBottom:'1px solid var(--border)',cursor:'pointer',background: selectedEmail?.id === email.id ? 'var(--accent)11' : !email.read ? 'var(--bg-tertiary)' : 'transparent'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
+                    <span style={{fontSize:'12px',fontWeight: !email.read ? 700 : 400,color:'var(--text-primary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:180}}>{email.from === activeAccount.email ? `To: ${email.to}` : email.from.split('@')[0]}</span>
+                    <Star size={12} style={{cursor:'pointer',color: email.starred ? '#fbbf24' : 'var(--text-secondary)',fill: email.starred ? '#fbbf24' : 'none'}} onClick={(e) => { e.stopPropagation(); toggleStar(email.id); }} />
+                  </div>
+                  <div style={{fontSize:'12px',fontWeight: !email.read ? 600 : 400,color:'var(--text-primary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{email.subject}</div>
+                  <div style={{display:'flex',justifyContent:'space-between',marginTop:4}}>
+                    <span style={{fontSize:'10px',color:'var(--text-secondary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:180}}>{email.body.substring(0,60)}...</span>
+                    <span style={{fontSize:'10px',color:'var(--text-secondary)',whiteSpace:'nowrap'}}>{new Date(email.date).toLocaleDateString()}</span>
+                  </div>
+                  {email.attachments?.length > 0 && <div style={{marginTop:4}}><Paperclip size={10} style={{color:'var(--text-secondary)'}} /> <span style={{fontSize:'10px',color:'var(--text-secondary)'}}>{email.attachments.length}</span></div>}
+                </div>
+              ))
+            }
+          </div>
+
+          {/* Email Detail / Compose */}
+          <div style={{overflowY:'auto',padding:16}}>
+            {showCompose ? (
+              <div>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+                  <h3 style={{color:'var(--text-primary)',fontSize:'16px'}}>{showReply ? 'Reply' : 'New Email'}</h3>
+                  <button className="btn-secondary" onClick={() => { setShowCompose(false); setShowReply(false); }}>Cancel</button>
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                  <input className="input" placeholder="To" value={compose.to} onChange={e => setCompose({...compose, to: e.target.value})} />
+                  <input className="input" placeholder="CC" value={compose.cc} onChange={e => setCompose({...compose, cc: e.target.value})} />
+                  <input className="input" placeholder="Subject" value={compose.subject} onChange={e => setCompose({...compose, subject: e.target.value})} />
+                  <textarea className="input" rows={12} placeholder="Write your message..." value={compose.body} onChange={e => setCompose({...compose, body: e.target.value})} style={{fontFamily:'inherit',resize:'vertical'}} />
+                  <div style={{display:'flex',gap:8}}>
+                    <button className="btn-primary" onClick={sendEmail}><Send size={14} /> Send</button>
+                    <button className="btn-secondary"><Paperclip size={14} /> Attach</button>
+                  </div>
+                </div>
+              </div>
+            ) : selectedEmail ? (
+              <div>
+                <div style={{marginBottom:16}}>
+                  <h2 style={{color:'var(--text-primary)',fontSize:'18px',marginBottom:8}}>{selectedEmail.subject}</h2>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <div>
+                      <div style={{fontSize:'13px',color:'var(--text-primary)',fontWeight:600}}>{selectedEmail.from}</div>
+                      <div style={{fontSize:'11px',color:'var(--text-secondary)'}}>To: {selectedEmail.to} · {new Date(selectedEmail.date).toLocaleString()}</div>
+                    </div>
+                    <div style={{display:'flex',gap:6}}>
+                      <button className="btn-secondary" style={{padding:'4px 8px',fontSize:'11px'}} onClick={() => replyToEmail(selectedEmail)}><Reply size={12}/> Reply</button>
+                      <button className="btn-secondary" style={{padding:'4px 8px',fontSize:'11px'}} onClick={() => forwardEmail(selectedEmail)}><Forward size={12}/> Fwd</button>
+                      <button className="btn-secondary" style={{padding:'4px 8px',fontSize:'11px'}} onClick={() => archiveEmail(selectedEmail.id)}><Archive size={12}/></button>
+                      <button className="btn-secondary" style={{padding:'4px 8px',fontSize:'11px'}} onClick={() => moveToTrash(selectedEmail.id)}><Trash2 size={12}/></button>
+                    </div>
+                  </div>
+                </div>
+                {selectedEmail.attachments?.length > 0 && (
+                  <div style={{padding:10,background:'var(--bg-secondary)',borderRadius:4,marginBottom:16,display:'flex',gap:8,flexWrap:'wrap'}}>
+                    {selectedEmail.attachments.map((a,i) => (
+                      <div key={i} style={{display:'flex',alignItems:'center',gap:4,padding:'4px 10px',background:'var(--bg-tertiary)',borderRadius:4,fontSize:'12px',color:'var(--text-secondary)'}}><Paperclip size={12}/> {a}</div>
+                    ))}
+                  </div>
+                )}
+                <div style={{whiteSpace:'pre-wrap',fontSize:'14px',color:'var(--text-primary)',lineHeight:1.7}}>{selectedEmail.body}</div>
+              </div>
+            ) : (
+              <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100%',color:'var(--text-secondary)',fontSize:'14px'}}>
+                <div style={{textAlign:'center'}}><MailOpen size={48} style={{opacity:0.3,marginBottom:12}} /><br/>Select an email to read</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Add Account Modal */}
+      {showAddAccount && (
+        <div className="modal-overlay" onClick={() => setShowAddAccount(false)}>
+          <div className="modal-card" onClick={e => e.stopPropagation()} style={{maxWidth:480}}>
+            <h3 style={{color:'var(--accent)',marginBottom:16}}>Add Email Account</h3>
+            <div style={{display:'flex',gap:6,marginBottom:16,flexWrap:'wrap'}}>
+              {Object.keys(PRESET_PROVIDERS).map(p => (
+                <button key={p} className="btn-secondary" style={{fontSize:'11px',padding:'4px 10px',textTransform:'capitalize'}} onClick={() => setNewAccount({...newAccount, ...PRESET_PROVIDERS[p]})}>{p}</button>
+              ))}
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:10}}>
+              <input className="input" placeholder="Display Name" value={newAccount.name} onChange={e => setNewAccount({...newAccount, name: e.target.value})} />
+              <input className="input" placeholder="Email Address *" value={newAccount.email} onChange={e => setNewAccount({...newAccount, email: e.target.value})} />
+              <input className="input" type="password" placeholder="Password / App Password *" value={newAccount.password} onChange={e => setNewAccount({...newAccount, password: e.target.value})} />
+              <div style={{display:'grid',gridTemplateColumns:'1fr 100px',gap:8}}>
+                <input className="input" placeholder="IMAP Host *" value={newAccount.imapHost} onChange={e => setNewAccount({...newAccount, imapHost: e.target.value})} />
+                <input className="input" placeholder="Port" value={newAccount.imapPort} onChange={e => setNewAccount({...newAccount, imapPort: e.target.value})} />
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 100px',gap:8}}>
+                <input className="input" placeholder="SMTP Host" value={newAccount.smtpHost} onChange={e => setNewAccount({...newAccount, smtpHost: e.target.value})} />
+                <input className="input" placeholder="Port" value={newAccount.smtpPort} onChange={e => setNewAccount({...newAccount, smtpPort: e.target.value})} />
+              </div>
+            </div>
+            <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
+              <button className="btn-secondary" onClick={() => setShowAddAccount(false)}>Cancel</button>
+              <button className="btn-primary" onClick={addAccount}>Add Account</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ========= ISO — AI Chatbot Agent with GitHub Deploy =========
+function IsoChat() {
+  const [messages, setMessages] = useState(() => JSON.parse(localStorage.getItem('protocol_iso_messages') || '[]'));
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [mode, setMode] = useState('chat'); // chat, code, deploy
+  const [codeContext, setCodeContext] = useState('');
+  const [deployLog, setDeployLog] = useState(() => JSON.parse(localStorage.getItem('protocol_iso_deploys') || '[]'));
+  const [showDeployHistory, setShowDeployHistory] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [ghToken, setGhToken] = useState(() => localStorage.getItem('protocol_iso_gh_token') || '');
+  const [ghRepo, setGhRepo] = useState(() => localStorage.getItem('protocol_iso_gh_repo') || 'kirofoods/neon-marketing');
+  const [ghBranch, setGhBranch] = useState(() => localStorage.getItem('protocol_iso_gh_branch') || 'main');
+
+  const saveMessages = (msgs) => { setMessages(msgs); localStorage.setItem('protocol_iso_messages', JSON.stringify(msgs.slice(-100))); };
+
+  const ISO_SYSTEM = `You are ISO, an AI agent inside PROTOCOL — the Valorant-themed marketing platform for Kiro Foods India. You are named after the Valorant agent Iso. Your personality is calm, precise, and focused — like a sharpshooter who never misses.
+
+You have deep knowledge of:
+- The NEON/PROTOCOL codebase (React 18, Vite, single App.jsx monolith)
+- All 20+ agents in the platform (Brimstone, Sova, Jett, Sage, Viper, etc.)
+- Marketing strategy for Kiro Foods (clean-label RTE/RTC FMCG brand in India)
+- Web development (React, JavaScript, CSS, HTML)
+- GitHub deployment workflows
+
+When users ask you to modify the app:
+1. Understand what they want to change
+2. Provide the exact code changes needed
+3. Explain what the changes do
+4. Offer to push to GitHub when ready
+
+Keep responses concise and tactical. Use Valorant terminology when natural. You're not just a chatbot — you're a combat-ready dev agent.`;
+
+  const sendMessage = async () => {
+    if (!input.trim() || loading) return;
+    const userMsg = { role: 'user', content: input, timestamp: new Date().toISOString() };
+    const updated = [...messages, userMsg];
+    saveMessages(updated);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const contextNote = mode === 'code' ? '\n[CODE MODE: User wants code changes. Provide exact code with file paths and line references.]' : mode === 'deploy' ? '\n[DEPLOY MODE: User wants to push changes to GitHub.]' : '';
+      const response = await callClaude(input + contextNote, ISO_SYSTEM);
+      const assistantMsg = { role: 'assistant', content: response, timestamp: new Date().toISOString() };
+      saveMessages([...updated, assistantMsg]);
+    } catch (err) {
+      const errMsg = { role: 'assistant', content: `⚠ Error: ${err.message}. Check your AI API key in Settings.`, timestamp: new Date().toISOString() };
+      saveMessages([...updated, errMsg]);
+    }
+    setLoading(false);
+  };
+
+  const pushToGitHub = async (commitMessage) => {
+    if (!ghToken) { setToast({ type: 'error', message: 'Set GitHub token in Iso Settings' }); return; }
+    const entry = { id: Date.now(), message: commitMessage || 'Update via Iso agent', timestamp: new Date().toISOString(), status: 'pending', repo: ghRepo, branch: ghBranch };
+    const newLog = [entry, ...deployLog];
+    setDeployLog(newLog);
+    localStorage.setItem('protocol_iso_deploys', JSON.stringify(newLog.slice(-50)));
+
+    try {
+      // GitHub API: Get current file SHA, update file content
+      // This creates a commit via the GitHub Contents API
+      const apiBase = `https://api.github.com/repos/${ghRepo}`;
+
+      // First verify the token works
+      const checkRes = await fetch(apiBase, { headers: { 'Authorization': `Bearer ${ghToken}`, 'Accept': 'application/vnd.github.v3+json' } });
+      if (!checkRes.ok) throw new Error('Invalid GitHub token or repo');
+
+      // Trigger a workflow dispatch to deploy
+      const dispatchRes = await fetch(`${apiBase}/dispatches`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${ghToken}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event_type: 'iso-deploy', client_payload: { message: commitMessage } })
+      });
+
+      entry.status = dispatchRes.ok ? 'triggered' : 'failed';
+      entry.response = dispatchRes.ok ? 'Deployment workflow triggered' : `HTTP ${dispatchRes.status}`;
+
+      const finalLog = [entry, ...deployLog.filter(d => d.id !== entry.id)];
+      setDeployLog(finalLog);
+      localStorage.setItem('protocol_iso_deploys', JSON.stringify(finalLog.slice(-50)));
+      setToast({ type: dispatchRes.ok ? 'success' : 'error', message: entry.response });
+    } catch (err) {
+      entry.status = 'error'; entry.response = err.message;
+      const finalLog = [entry, ...deployLog.filter(d => d.id !== entry.id)];
+      setDeployLog(finalLog);
+      localStorage.setItem('protocol_iso_deploys', JSON.stringify(finalLog.slice(-50)));
+      setToast({ type: 'error', message: err.message });
+    }
+  };
+
+  const clearChat = () => { saveMessages([]); };
+
+  useEffect(() => { if (toast) { const t = setTimeout(() => setToast(null), 3000); return () => clearTimeout(t); }}, [toast]);
+
+  const messagesEndRef = React.useRef(null);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
+
+  return (
+    <div className="tool-page" style={{height:'calc(100vh - 60px)',display:'flex',flexDirection:'column'}}>
+      {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
+      <div className="page-header" style={{flexShrink:0}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8}}>
+          <h1><Bot size={22} /> Iso — Combat Dev Agent</h1>
+          <div style={{display:'flex',gap:6}}>
+            {['chat','code','deploy'].map(m => (
+              <button key={m} className={mode === m ? 'btn-primary' : 'btn-secondary'} style={{fontSize:'11px',padding:'4px 12px',textTransform:'capitalize'}} onClick={() => setMode(m)}>
+                {m === 'chat' ? <MessageCircle size={12}/> : m === 'code' ? <Code size={12}/> : <Rocket size={12}/>} {m}
+              </button>
+            ))}
+            <button className="btn-secondary" style={{fontSize:'11px',padding:'4px 8px'}} onClick={() => setShowSettings(!showSettings)}><Settings size={12}/></button>
+            <button className="btn-secondary" style={{fontSize:'11px',padding:'4px 8px'}} onClick={() => setShowDeployHistory(!showDeployHistory)}><GitCommit size={12}/></button>
+            <button className="btn-secondary" style={{fontSize:'11px',padding:'4px 8px'}} onClick={clearChat}><Trash2 size={12}/></button>
+          </div>
+        </div>
+        <p>AI-powered chat agent — ask anything, modify code, push to GitHub</p>
+      </div>
+
+      {/* Settings Panel */}
+      {showSettings && (
+        <div style={{padding:16,background:'var(--bg-secondary)',borderBottom:'1px solid var(--border)',flexShrink:0}}>
+          <h4 style={{color:'var(--accent)',fontSize:'13px',marginBottom:10}}>GitHub Configuration</h4>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
+            <div>
+              <label style={{fontSize:'11px',color:'var(--text-secondary)'}}>Personal Access Token</label>
+              <input className="input" type="password" value={ghToken} onChange={e => { setGhToken(e.target.value); localStorage.setItem('protocol_iso_gh_token', e.target.value); }} placeholder="ghp_..." />
+            </div>
+            <div>
+              <label style={{fontSize:'11px',color:'var(--text-secondary)'}}>Repository</label>
+              <input className="input" value={ghRepo} onChange={e => { setGhRepo(e.target.value); localStorage.setItem('protocol_iso_gh_repo', e.target.value); }} placeholder="owner/repo" />
+            </div>
+            <div>
+              <label style={{fontSize:'11px',color:'var(--text-secondary)'}}>Branch</label>
+              <input className="input" value={ghBranch} onChange={e => { setGhBranch(e.target.value); localStorage.setItem('protocol_iso_gh_branch', e.target.value); }} placeholder="main" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Deploy History */}
+      {showDeployHistory && (
+        <div style={{padding:16,background:'var(--bg-secondary)',borderBottom:'1px solid var(--border)',maxHeight:200,overflowY:'auto',flexShrink:0}}>
+          <h4 style={{color:'var(--accent)',fontSize:'13px',marginBottom:10}}>Deploy History</h4>
+          {deployLog.length === 0 ? <p style={{fontSize:'12px',color:'var(--text-secondary)'}}>No deployments yet</p> :
+            deployLog.map(d => (
+              <div key={d.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid var(--border)',fontSize:'12px'}}>
+                <div>
+                  <span style={{color: d.status === 'triggered' ? '#22c55e' : d.status === 'error' ? '#ef4444' : '#fbbf24',marginRight:8}}>●</span>
+                  <span style={{color:'var(--text-primary)'}}>{d.message}</span>
+                </div>
+                <span style={{color:'var(--text-secondary)',fontSize:'10px'}}>{new Date(d.timestamp).toLocaleString()}</span>
+              </div>
+            ))
+          }
+        </div>
+      )}
+
+      {/* Chat Messages */}
+      <div style={{flex:1,overflowY:'auto',padding:16,display:'flex',flexDirection:'column',gap:12}}>
+        {messages.length === 0 && (
+          <div style={{textAlign:'center',padding:'40px 20px',color:'var(--text-secondary)'}}>
+            <Bot size={48} style={{opacity:0.3,marginBottom:12}} />
+            <h3 style={{color:'var(--text-primary)',fontSize:'16px',marginBottom:8}}>Iso Online</h3>
+            <p style={{fontSize:'13px',maxWidth:400,margin:'0 auto'}}>I'm your combat dev agent. Ask me anything about the platform, request code changes, or deploy updates to production.</p>
+            <div style={{display:'flex',gap:8,justifyContent:'center',marginTop:16,flexWrap:'wrap'}}>
+              {['How do I add a new agent?','Show me the route structure','What agents are in PROTOCOL?','Help me fix a bug'].map(q => (
+                <button key={q} className="btn-secondary" style={{fontSize:'11px',padding:'6px 12px'}} onClick={() => { setInput(q); }}>{q}</button>
+              ))}
+            </div>
+          </div>
+        )}
+        {messages.map((msg, i) => (
+          <div key={i} style={{display:'flex',justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',maxWidth:'100%'}}>
+            <div style={{maxWidth:'80%',padding:'10px 14px',borderRadius: msg.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',background: msg.role === 'user' ? 'var(--accent)' : 'var(--bg-secondary)',color: msg.role === 'user' ? '#fff' : 'var(--text-primary)',fontSize:'13px',lineHeight:1.6,wordBreak:'break-word'}}>
+              <div style={{whiteSpace:'pre-wrap'}}>{msg.content}</div>
+              <div style={{fontSize:'9px',opacity:0.5,marginTop:4,textAlign:'right'}}>{new Date(msg.timestamp).toLocaleTimeString()}</div>
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div style={{display:'flex',justifyContent:'flex-start'}}>
+            <div style={{padding:'10px 14px',borderRadius:'12px 12px 12px 2px',background:'var(--bg-secondary)',color:'var(--text-secondary)',fontSize:'13px'}}>
+              <span className="typing-dots">Iso is thinking<span>.</span><span>.</span><span>.</span></span>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Deploy Quick Action */}
+      {mode === 'deploy' && (
+        <div style={{padding:'8px 16px',background:'var(--bg-tertiary)',borderTop:'1px solid var(--border)',display:'flex',gap:8,alignItems:'center',flexShrink:0}}>
+          <Rocket size={14} style={{color:'var(--accent)'}} />
+          <span style={{fontSize:'12px',color:'var(--text-secondary)',flex:1}}>Deploy to {ghRepo} ({ghBranch})</span>
+          <button className="btn-primary" style={{fontSize:'11px',padding:'4px 12px'}} onClick={() => pushToGitHub('Update via Iso agent')}>
+            <GitPullRequest size={12}/> Push & Deploy
+          </button>
+        </div>
+      )}
+
+      {/* Input Bar */}
+      <div style={{padding:12,borderTop:'1px solid var(--border)',display:'flex',gap:8,alignItems:'center',flexShrink:0,background:'var(--bg-primary)'}}>
+        <div style={{flex:1,display:'flex',alignItems:'center',gap:8,background:'var(--bg-secondary)',borderRadius:8,padding:'4px 12px',border:'1px solid var(--border)'}}>
+          {mode === 'chat' ? <MessageCircle size={16} style={{color:'var(--text-secondary)',flexShrink:0}}/> : mode === 'code' ? <Code size={16} style={{color:'var(--accent)',flexShrink:0}}/> : <Rocket size={16} style={{color:'#22c55e',flexShrink:0}}/>}
+          <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMessage()} placeholder={mode === 'chat' ? 'Ask Iso anything...' : mode === 'code' ? 'Describe code changes...' : 'Describe what to deploy...'} style={{flex:1,background:'transparent',border:'none',outline:'none',color:'var(--text-primary)',fontSize:'14px',padding:'8px 0'}} />
+        </div>
+        <button className="btn-primary" onClick={sendMessage} disabled={loading || !input.trim()} style={{padding:'10px 16px'}}>
+          <Send size={16} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ========= ISO COMPONENTS — Sub-tools =========
+function IsoCodeReview() {
+  const [code, setCode] = useState('');
+  const [review, setReview] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const reviewCode = async () => {
+    if (!code.trim()) return;
+    setLoading(true);
+    try {
+      const response = await callClaude(`Review this code for bugs, performance issues, and best practices:\n\n\`\`\`\n${code}\n\`\`\``, 'You are ISO, a code review specialist. Provide concise, actionable feedback. Flag critical issues first, then suggestions. Use severity levels: 🔴 Critical, 🟡 Warning, 🟢 Suggestion.');
+      setReview(response);
+    } catch (err) { setReview('Error: ' + err.message); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="tool-page">
+      <div className="page-header"><h1><Eye size={22} /> Iso Code Review</h1><p>AI-powered code review — paste code for instant analysis</p></div>
+      <div className="page-body">
+        <textarea className="input" rows={10} value={code} onChange={e => setCode(e.target.value)} placeholder="Paste code here for review..." style={{fontFamily:'monospace',fontSize:'12px'}} />
+        <button className="btn-primary" style={{marginTop:12}} onClick={reviewCode} disabled={loading}>{loading ? 'Analyzing...' : 'Review Code'}</button>
+        {review && <div style={{marginTop:16,padding:16,background:'var(--bg-secondary)',borderRadius:4,whiteSpace:'pre-wrap',fontSize:'13px',color:'var(--text-primary)',lineHeight:1.7}}>{review}</div>}
+      </div>
+    </div>
+  );
+}
+
+function IsoGitDashboard() {
+  const [commits, setCommits] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+  const ghToken = localStorage.getItem('protocol_iso_gh_token') || '';
+  const ghRepo = localStorage.getItem('protocol_iso_gh_repo') || 'kirofoods/neon-marketing';
+
+  const fetchCommits = async () => {
+    if (!ghToken) { setToast({ type: 'error', message: 'Set GitHub token in Iso Chat settings' }); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`https://api.github.com/repos/${ghRepo}/commits?per_page=20`, {
+        headers: { 'Authorization': `Bearer ${ghToken}`, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      setCommits(data);
+    } catch (err) { setToast({ type: 'error', message: err.message }); }
+    setLoading(false);
+  };
+
+  useEffect(() => { if (ghToken) fetchCommits(); }, []);
+  useEffect(() => { if (toast) { const t = setTimeout(() => setToast(null), 3000); return () => clearTimeout(t); }}, [toast]);
+
+  return (
+    <div className="tool-page">
+      {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
+      <div className="page-header">
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <h1><GitBranch size={22} /> Git Dashboard</h1>
+          <button className="btn-primary" onClick={fetchCommits} disabled={loading}><RefreshCw size={14}/> Refresh</button>
+        </div>
+        <p>Recent commits to {ghRepo}</p>
+      </div>
+      <div className="page-body">
+        {!ghToken ? <p style={{color:'var(--text-secondary)'}}>Set your GitHub token in Iso Chat settings to view commits.</p> :
+          loading ? <p style={{color:'var(--text-secondary)'}}>Loading...</p> :
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {commits.map(c => (
+              <div key={c.sha} style={{padding:12,background:'var(--bg-secondary)',borderRadius:4,borderLeft:'3px solid var(--accent)'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12}}>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:'13px',color:'var(--text-primary)',fontWeight:500}}>{c.commit?.message?.split('\n')[0]}</div>
+                    <div style={{fontSize:'11px',color:'var(--text-secondary)',marginTop:4}}>{c.commit?.author?.name} · {c.sha?.substring(0,7)}</div>
+                  </div>
+                  <span style={{fontSize:'10px',color:'var(--text-secondary)',whiteSpace:'nowrap'}}>{new Date(c.commit?.author?.date).toLocaleDateString()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        }
+      </div>
+    </div>
+  );
+}
+
+function IsoDeployManager() {
+  const [workflows, setWorkflows] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+  const ghToken = localStorage.getItem('protocol_iso_gh_token') || '';
+  const ghRepo = localStorage.getItem('protocol_iso_gh_repo') || 'kirofoods/neon-marketing';
+
+  const fetchWorkflows = async () => {
+    if (!ghToken) { setToast({ type: 'error', message: 'Set GitHub token' }); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs?per_page=15`, {
+        headers: { 'Authorization': `Bearer ${ghToken}`, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      setWorkflows(data.workflow_runs || []);
+    } catch (err) { setToast({ type: 'error', message: err.message }); }
+    setLoading(false);
+  };
+
+  useEffect(() => { if (ghToken) fetchWorkflows(); }, []);
+  useEffect(() => { if (toast) { const t = setTimeout(() => setToast(null), 3000); return () => clearTimeout(t); }}, [toast]);
+
+  const statusColor = (s) => s === 'completed' ? '#22c55e' : s === 'in_progress' ? '#fbbf24' : s === 'failure' ? '#ef4444' : 'var(--text-secondary)';
+
+  return (
+    <div className="tool-page">
+      {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
+      <div className="page-header">
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <h1><Rocket size={22} /> Deploy Manager</h1>
+          <button className="btn-primary" onClick={fetchWorkflows} disabled={loading}><RefreshCw size={14}/> Refresh</button>
+        </div>
+        <p>GitHub Actions workflow runs for {ghRepo}</p>
+      </div>
+      <div className="page-body">
+        {!ghToken ? <p style={{color:'var(--text-secondary)'}}>Set GitHub token in Iso Chat settings.</p> :
+          loading ? <p style={{color:'var(--text-secondary)'}}>Loading...</p> :
+          <div className="table-wrapper">
+            <table className="data-table">
+              <thead><tr><th>Status</th><th>Workflow</th><th>Branch</th><th>Commit</th><th>Duration</th><th>Date</th></tr></thead>
+              <tbody>
+                {workflows.map(w => (
+                  <tr key={w.id}>
+                    <td><span style={{color: statusColor(w.status || w.conclusion)}}>● {w.conclusion || w.status}</span></td>
+                    <td>{w.name}</td>
+                    <td>{w.head_branch}</td>
+                    <td style={{fontFamily:'monospace',fontSize:'11px'}}>{w.head_sha?.substring(0,7)}</td>
+                    <td>{w.run_started_at && w.updated_at ? `${Math.round((new Date(w.updated_at) - new Date(w.run_started_at))/1000)}s` : '-'}</td>
+                    <td>{new Date(w.created_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
   );
 }
 
@@ -11294,45 +11993,62 @@ export default function App() {
     } catch (e) {}
   };
 
-  // Agent ult voicelines via speech synthesis
+  // Agent ult voicelines — MP3 first, speech synthesis fallback
+  const voicelineAudioRef = React.useRef(null);
   const playUltVoiceline = (agent) => {
     try {
-      const lines = {
-        brimstone: "Open up the sky!",
-        chamber: "They are so dead.",
-        cypher: "I know exactly where you are.",
-        sova: "I am the hunter!",
-        killjoy: "You should run.",
-        neon: "Let's go!",
-        jett: "Watch this!",
-        sage: "You will not kill my allies!",
-        viper: "Don't get in my way.",
-        reyna: "The hunt begins!",
-        phoenix: "Jokes over, you're dead!",
-        astra: "You have no idea what I can do.",
-        fade: "Face your fear!",
-        gekko: "Go get them, buddy!",
-        breach: "Let's go!",
-        harbor: "I control the tide.",
-        deadlock: "No one escapes my grasp.",
-        kayo: "No more tricks.",
-        omen: "I am everywhere.",
-        skye: "Seek them out!",
-        lobby: "Choose your agent."
-      };
-      const line = lines[agent];
-      if (!line) return;
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(line);
-      u.rate = 0.88;
-      u.pitch = 0.6;
-      u.volume = 0.9;
-      // Prefer a deeper / male voice if available
-      const voices = window.speechSynthesis.getVoices();
-      const pick = voices.find(v => /male|daniel|james|google uk english male/i.test(v.name))
-        || voices.find(v => /english/i.test(v.lang || v.name));
-      if (pick) u.voice = pick;
-      window.speechSynthesis.speak(u);
+      // MP3 voiceline paths — place real Valorant agent voice MP3s in public/voicelines/
+      // File naming: {agentname}.mp3 (e.g., jett.mp3, sage.mp3, reyna.mp3)
+      const mp3Path = `./voicelines/${agent}.mp3`;
+
+      // Stop any currently playing voiceline
+      if (voicelineAudioRef.current) {
+        voicelineAudioRef.current.pause();
+        voicelineAudioRef.current.currentTime = 0;
+      }
+
+      const audio = new Audio(mp3Path);
+      audio.volume = 0.85;
+      voicelineAudioRef.current = audio;
+
+      // Try MP3 first — on error, fall back to speech synthesis
+      audio.play().catch(() => {
+        // Fallback: speech synthesis
+        const lines = {
+          brimstone: "Open up the sky!",
+          chamber: "They are so dead.",
+          cypher: "I know exactly where you are.",
+          sova: "I am the hunter!",
+          killjoy: "You should run.",
+          neon: "Let's go!",
+          jett: "Watch this!",
+          sage: "You will not kill my allies!",
+          viper: "Don't get in my way.",
+          reyna: "The hunt begins!",
+          phoenix: "Jokes over, you're dead!",
+          astra: "You have no idea what I can do.",
+          fade: "Face your fear!",
+          gekko: "Go get them, buddy!",
+          breach: "Let's go!",
+          harbor: "I control the tide.",
+          deadlock: "No one escapes my grasp.",
+          kayo: "No more tricks.",
+          omen: "I am everywhere.",
+          skye: "Seek them out!",
+          lobby: "Choose your agent.",
+          iso: "Watch this, one shot is all I need."
+        };
+        const line = lines[agent];
+        if (!line) return;
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(line);
+        u.rate = 0.88; u.pitch = 0.6; u.volume = 0.9;
+        const voices = window.speechSynthesis.getVoices();
+        const pick = voices.find(v => /male|daniel|james|google uk english male/i.test(v.name))
+          || voices.find(v => /english/i.test(v.lang || v.name));
+        if (pick) u.voice = pick;
+        window.speechSynthesis.speak(u);
+      });
     } catch (e) {}
   };
 
@@ -11871,6 +12587,24 @@ export default function App() {
           hum.connect(hG); hG.connect(ctx.destination);
           hum.start(now + 0.1); hum.stop(now + 0.3);
         },
+        iso: () => {
+          // SHARPSHOOTER: Precise single-shot energy, focused beam
+          const shot = ctx.createOscillator(); const shotG = ctx.createGain();
+          shot.type = 'sawtooth'; shot.frequency.setValueAtTime(1200, now);
+          shot.frequency.exponentialRampToValueAtTime(200, now + 0.15);
+          shotG.gain.setValueAtTime(0.1, now);
+          shotG.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          shot.connect(shotG); shotG.connect(ctx.destination);
+          shot.start(now); shot.stop(now + 0.15);
+          // Shield shimmer
+          const sh = ctx.createOscillator(); const shG = ctx.createGain();
+          sh.type = 'sine'; sh.frequency.setValueAtTime(2000, now + 0.08);
+          sh.frequency.exponentialRampToValueAtTime(1500, now + 0.2);
+          shG.gain.setValueAtTime(0.06, now + 0.08);
+          shG.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          sh.connect(shG); shG.connect(ctx.destination);
+          sh.start(now + 0.08); sh.stop(now + 0.22);
+        },
       };
 
       if (sounds[agent]) sounds[agent]();
@@ -11919,8 +12653,8 @@ export default function App() {
       ]
     },
     {
-      title: 'Chamber', icon: Crosshair, agentFace: 'chamber',
-      subtitle: 'Weapons dealer — lead acquisition & targeting',
+      title: 'Cypher', icon: Crosshair, agentFace: 'cypher',
+      subtitle: 'Information broker — lead acquisition & targeting',
       items: [
         { path: '/search', icon: Search, label: 'Lead Search' },
         { path: '/emails', icon: Mail, label: 'Email Extractor' },
@@ -11929,8 +12663,8 @@ export default function App() {
       ]
     },
     {
-      title: 'Cypher', icon: Instagram, agentFace: 'cypher',
-      subtitle: 'Information broker — scrapes social intel',
+      title: 'Chamber', icon: Instagram, agentFace: 'chamber',
+      subtitle: 'Weapons dealer — scrapes social intel',
       items: [
         { path: '/instagram', icon: Instagram, label: 'Instagram' },
         { path: '/facebook', icon: Facebook, label: 'Facebook / Meta' },
@@ -12144,7 +12878,18 @@ export default function App() {
           { path: '/admin-panel', icon: Shield, label: 'Admin Panel' },
           { path: '/user-management', icon: Users, label: 'User Management' },
         ] : []),
+        { path: '/lobby-email', icon: Mail, label: 'Protocol Mail' },
         { path: '/settings', icon: Settings, label: 'Settings' },
+      ]
+    },
+    {
+      title: 'Iso', icon: Bot, agentFace: 'iso',
+      subtitle: 'Combat dev agent — AI chat, code & deploy',
+      items: [
+        { path: '/iso-chat', icon: MessageCircle, label: 'Iso Chat' },
+        { path: '/iso-code-review', icon: Eye, label: 'Code Review' },
+        { path: '/iso-git', icon: GitBranch, label: 'Git Dashboard' },
+        { path: '/iso-deploy', icon: Rocket, label: 'Deploy Manager' },
       ]
     }
   ];
@@ -12370,7 +13115,12 @@ export default function App() {
             <Route path="/skye-contracts" element={<SkyeContractGen />} />
             {isAdmin && <Route path="/admin-panel" element={<AdminPanel />} />}
             {isAdmin && <Route path="/user-management" element={<UserManagement />} />}
+            <Route path="/lobby-email" element={<LobbyEmail />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/iso-chat" element={<IsoChat />} />
+            <Route path="/iso-code-review" element={<IsoCodeReview />} />
+            <Route path="/iso-git" element={<IsoGitDashboard />} />
+            <Route path="/iso-deploy" element={<IsoDeployManager />} />
           </Routes>
         </main>
       </div>
