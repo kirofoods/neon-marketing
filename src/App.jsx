@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { PieChart as RechartsPieChart, Pie, Cell, BarChart as RechartsBarChart, Bar, LineChart as RechartsLineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
-import { initSync, isSyncEnabled, pushToCloud, pullFromCloud, parseFirebaseConfig, getSyncStatus, enableAutoSync, disableAutoSync, isAutoSyncEnabled, startRealtimeSync } from './utils/sync.js';
+import { initSync, isSyncEnabled, pushToCloud, pullFromCloud, parseFirebaseConfig, getSyncStatus, enableAutoSync, disableAutoSync, isAutoSyncEnabled, startRealtimeSync, autoInit } from './utils/sync.js';
 import {
   LayoutDashboard, Search, Settings, Menu, X, Check,
   AlertCircle, ExternalLink, Zap, TrendingUp, Clock, BarChart3,
@@ -10183,14 +10183,10 @@ function SyncPanel({ toast }) {
   const [showSetup, setShowSetup] = useState(false);
 
   useEffect(() => {
-    // Try to auto-connect if config exists
-    const saved = localStorage.getItem('protocol_firebase_config');
-    if (saved && !isSyncEnabled()) {
-      const config = parseFirebaseConfig(saved);
-      if (config) {
-        const ok = initSync(config);
-        setConnected(ok);
-      }
+    // Auto-connect with built-in config (zero-setup)
+    if (!isSyncEnabled()) {
+      const ok = autoInit();
+      setConnected(ok);
     }
   }, []);
 
@@ -12269,15 +12265,11 @@ export default function App() {
   // Migrate old data on first load
   useEffect(() => { migrateOldData(); }, []);
 
-  // Auto-sync: connect Firebase and enable auto-sync on login
+  // Auto-sync: connect Firebase and enable auto-sync on login (zero-setup — built-in config)
   useEffect(() => {
     if (!authenticated) return;
-    const savedConfig = localStorage.getItem('protocol_firebase_config');
-    if (!savedConfig) return;
-    const config = parseFirebaseConfig(savedConfig);
-    if (!config) return;
-    // Initialize Firebase if not already
-    if (!isSyncEnabled()) initSync(config);
+    // Auto-initialize Firebase with built-in config (no manual setup needed)
+    autoInit();
     if (!isSyncEnabled()) return;
     const pin = sessionStorage.getItem('kj_current_user') || localStorage.getItem('kj_last_user');
     if (!pin) return;

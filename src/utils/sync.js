@@ -4,6 +4,18 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, set, get, onValue, off } from 'firebase/database';
 
+// Default Firebase config — built-in so sync works out of the box
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAxeAE6grHwn70y8WsJCdRTVNkpc0g7usc",
+  authDomain: "protocol-kiro-sync.firebaseapp.com",
+  databaseURL: "https://protocol-kiro-sync-default-rtdb.firebaseio.com",
+  projectId: "protocol-kiro-sync",
+  storageBucket: "protocol-kiro-sync.firebasestorage.app",
+  messagingSenderId: "214490026324",
+  appId: "1:214490026324:web:fa19a21f148d4bc0e0f8c1",
+  measurementId: "G-B1G0TDBP0W"
+};
+
 let app = null;
 let db = null;
 let syncListener = null;
@@ -11,6 +23,23 @@ let syncEnabled = false;
 let autoSyncTimer = null;
 let autoSyncPin = null;
 let autoSyncEnabled = false;
+
+// Auto-initialize with built-in config on module load
+export function autoInit() {
+  if (syncEnabled) return true;
+  // Check for user-provided config first, fall back to built-in
+  const savedConfig = localStorage.getItem('protocol_firebase_config');
+  let config = null;
+  if (savedConfig) {
+    config = parseFirebaseConfig(savedConfig);
+  }
+  if (!config) {
+    config = DEFAULT_FIREBASE_CONFIG;
+    // Save so SyncPanel shows as connected
+    localStorage.setItem('protocol_firebase_config', JSON.stringify(DEFAULT_FIREBASE_CONFIG));
+  }
+  return initSync(config);
+}
 
 // Keys to sync across devices — ALL agent data
 const SYNC_KEYS = [
