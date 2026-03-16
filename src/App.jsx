@@ -17403,7 +17403,15 @@ export default function App() {
         { path: '/settings', icon: Settings, label: 'Settings' },
       ]
     },
-  ];
+  ].sort((a, b) => {
+    // Settings/Lobby always last
+    if (a.agent === 'lobby') return 1;
+    if (b.agent === 'lobby') return -1;
+    // Alphabetical by displayed agent name (theme-aware)
+    const nameA = a.title.split('(')[0].trim().toLowerCase();
+    const nameB = b.title.split('(')[0].trim().toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
 
   return (
     <AppErrorBoundary>
