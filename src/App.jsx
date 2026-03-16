@@ -4818,6 +4818,390 @@ Return JSON:
   const getGradeColor = (g) => g === 'A' ? '#059669' : g === 'B' ? '#3b82f6' : g === 'C' ? '#f59e0b' : '#ef4444';
   const getScoreColor = (s) => s >= 80 ? '#059669' : s >= 60 ? '#f59e0b' : '#ef4444';
 
+  // ---- PDF Report Generation ----
+  const downloadPDFReport = async () => {
+    if (!results || !aiReport) return;
+    try {
+      const { jsPDF } = await import('jspdf');
+      const autoTable = (await import('jspdf-autotable')).default;
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const W = doc.internal.pageSize.getWidth();
+      const H = doc.internal.pageSize.getHeight();
+      const margin = 16;
+      const contentW = W - margin * 2;
+      let y = 0;
+
+      const addFooter = (pg) => {
+        doc.setFontSize(7); doc.setTextColor(140);
+        doc.text(`PROTOCOL — Killjoy SEO Report for ${results.domain}`, margin, H - 8);
+        doc.text(`Page ${pg}`, W - margin, H - 8, { align: 'right' });
+      };
+
+      const checkPage = (needed = 20) => {
+        if (y + needed > H - 18) { addFooter(doc.getNumberOfPages()); doc.addPage(); y = 20; }
+      };
+
+      const sectionTitle = (text, color = [124, 58, 237]) => {
+        checkPage(18);
+        doc.setFontSize(13); doc.setTextColor(...color); doc.setFont(undefined, 'bold');
+        doc.text(text, margin, y); y += 2;
+        doc.setDrawColor(...color); doc.setLineWidth(0.5); doc.line(margin, y, W - margin, y); y += 8;
+      };
+
+      const bodyText = (text, opts = {}) => {
+        doc.setFontSize(opts.size || 10); doc.setTextColor(opts.color || 50); doc.setFont(undefined, opts.bold ? 'bold' : 'normal');
+        const lines = doc.splitTextToSize(text, opts.width || contentW);
+        lines.forEach(line => { checkPage(6); doc.text(line, opts.x || margin, y); y += opts.lineHeight || 5; });
+      };
+
+      // ===== COVER PAGE =====
+      // Dark header block
+      doc.setFillColor(15, 15, 20); doc.rect(0, 0, W, 100, 'F');
+      // Accent line
+      doc.setFillColor(124, 58, 237); doc.rect(0, 100, W, 3, 'F');
+      // Title
+      doc.setFontSize(32); doc.setTextColor(255); doc.setFont(undefined, 'bold');
+      doc.text('PROTOCOL', margin, 40);
+      doc.setFontSize(12); doc.setTextColor(168, 85, 247);
+      doc.text('TACTICAL MARKETING ENGINE — KILLJOY SEO DIVISION', margin, 52);
+      // Domain
+      doc.setFontSize(22); doc.setTextColor(255);
+      doc.text(results.domain.toUpperCase(), margin, 75);
+      doc.setFontSize(10); doc.setTextColor(180);
+      doc.text('Comprehensive Website Analysis Report', margin, 85);
+
+      // Grade circle on cover
+      const gradeColor = aiReport.overallGrade === 'A' ? [5, 150, 105] : aiReport.overallGrade === 'B' ? [59, 130, 246] : aiReport.overallGrade === 'C' ? [245, 158, 11] : [239, 68, 68];
+      doc.setFillColor(...gradeColor); doc.circle(W - 40, 60, 20, 'F');
+      doc.setFontSize(28); doc.setTextColor(255); doc.setFont(undefined, 'bold');
+      doc.text(aiReport.overallGrade || '?', W - 40, 67, { align: 'center' });
+      doc.setFontSize(8); doc.text('GRADE', W - 40, 74, { align: 'center' });
+
+      // Report info
+      y = 115;
+      doc.setFontSize(10); doc.setTextColor(80); doc.setFont(undefined, 'normal');
+      doc.text(`Generated: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}`, margin, y); y += 6;
+      doc.text(`Health Score: ${aiReport.healthScore || '—'}/100`, margin, y); y += 6;
+      if (aiReport.scores) {
+        doc.text(`Technical: ${aiReport.scores.technical || '—'}  |  Content: ${aiReport.scores.content || '—'}  |  Authority: ${aiReport.scores.authority || '—'}  |  UX: ${aiReport.scores.ux || '—'}`, margin, y);
+        y += 10;
+      }
+
+      // Executive Summary
+      sectionTitle('EXECUTIVE SUMMARY');
+      bodyText(aiReport.executiveSummary || 'No summary available.', { size: 11 });
+      y += 6;
+
+      // ===== SCORE BREAKDOWN =====
+      if (aiReport.scores) {
+        sectionTitle('SCORE BREAKDOWN');
+        autoTable(doc, {
+          startY: y,
+          head: [['Category', 'Score', 'Rating']],
+          body: [
+            ['Technical SEO', `${aiReport.scores.technical || '—'}/100`, (aiReport.scores.technical || 0) >= 80 ? 'Good' : (aiReport.scores.technical || 0) >= 60 ? 'Needs Work' : 'Poor'],
+            ['Content Quality', `${aiReport.scores.content || '—'}/100`, (aiReport.scores.content || 0) >= 80 ? 'Good' : (aiReport.scores.content || 0) >= 60 ? 'Needs Work' : 'Poor'],
+            ['Authority & Links', `${aiReport.scores.authority || '—'}/100`, (aiReport.scores.authority || 0) >= 80 ? 'Good' : (aiReport.scores.authority || 0) >= 60 ? 'Needs Work' : 'Poor'],
+            ['User Experience', `${aiReport.scores.ux || '—'}/100`, (aiReport.scores.ux || 0) >= 80 ? 'Good' : (aiReport.scores.ux || 0) >= 60 ? 'Needs Work' : 'Poor'],
+          ],
+          theme: 'grid',
+          headStyles: { fillColor: [124, 58, 237], fontSize: 10 },
+          bodyStyles: { fontSize: 9 },
+          margin: { left: margin, right: margin },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+      }
+
+      // ===== SITE AUDIT DATA =====
+      if (results.siteAudit) {
+        sectionTitle('SITE CRAWL RESULTS');
+        const sa = results.siteAudit;
+        autoTable(doc, {
+          startY: y,
+          head: [['Metric', 'Value']],
+          body: [
+            ['Health Score', `${sa.healthScore}/100`],
+            ['Pages Crawled', `${sa.pagesCrawled}`],
+            ['Critical Issues', `${sa.summary?.criticalIssues || 0}`],
+            ['Warnings', `${sa.summary?.warnings || 0}`],
+            ['Missing Titles', `${sa.summary?.missingTitles || 0}`],
+            ['Missing Descriptions', `${sa.summary?.missingDescriptions || 0}`],
+            ['Avg Words/Page', `${sa.avgWordsPerPage || '—'}`],
+          ],
+          theme: 'striped',
+          headStyles: { fillColor: [239, 68, 68], fontSize: 10 },
+          bodyStyles: { fontSize: 9 },
+          margin: { left: margin, right: margin },
+          columnStyles: { 0: { fontStyle: 'bold' } },
+        });
+        y = doc.lastAutoTable.finalY + 8;
+
+        // Issues list
+        if ((sa.issues || []).length > 0) {
+          bodyText('Issues Found:', { bold: true, size: 11 }); y += 2;
+          autoTable(doc, {
+            startY: y,
+            head: [['Severity', 'Issue', 'Description']],
+            body: sa.issues.slice(0, 20).map(i => [i.type || 'info', i.title || '', i.description || '']),
+            theme: 'grid',
+            headStyles: { fillColor: [80, 80, 100], fontSize: 9 },
+            bodyStyles: { fontSize: 8 },
+            margin: { left: margin, right: margin },
+            columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 45 } },
+          });
+          y = doc.lastAutoTable.finalY + 10;
+        }
+      }
+
+      // ===== CORE WEB VITALS =====
+      if (results.vitals) {
+        sectionTitle('CORE WEB VITALS');
+        const v = results.vitals;
+        autoTable(doc, {
+          startY: y,
+          head: [['Metric', 'Score/Value']],
+          body: [
+            ['Performance', `${v.scores?.performance || '—'}/100`],
+            ['Accessibility', `${v.scores?.accessibility || '—'}/100`],
+            ['Best Practices', `${v.scores?.bestPractices || '—'}/100`],
+            ['SEO', `${v.scores?.seo || '—'}/100`],
+            ['First Contentful Paint (FCP)', v.metrics?.FCP || '—'],
+            ['Largest Contentful Paint (LCP)', v.metrics?.LCP || '—'],
+            ['Cumulative Layout Shift (CLS)', v.metrics?.CLS || '—'],
+            ['Total Blocking Time (TBT)', v.metrics?.TBT || '—'],
+          ],
+          theme: 'striped',
+          headStyles: { fillColor: [6, 182, 212], fontSize: 10 },
+          bodyStyles: { fontSize: 9 },
+          margin: { left: margin, right: margin },
+          columnStyles: { 0: { fontStyle: 'bold' } },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+      }
+
+      // ===== TARGET KEYWORDS =====
+      if ((aiReport.topKeywords || []).length > 0) {
+        sectionTitle('TARGET KEYWORDS & OPPORTUNITIES');
+        autoTable(doc, {
+          startY: y,
+          head: [['Keyword', 'Volume', 'Difficulty', 'Rank', 'Opportunity']],
+          body: aiReport.topKeywords.map(kw => [kw.keyword, kw.volume || '—', kw.difficulty || '—', kw.currentRank || '—', kw.opportunity || '']),
+          theme: 'grid',
+          headStyles: { fillColor: [124, 58, 237], fontSize: 9 },
+          bodyStyles: { fontSize: 8 },
+          margin: { left: margin, right: margin },
+          columnStyles: { 0: { fontStyle: 'bold', cellWidth: 35 }, 4: { cellWidth: 50 } },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+      }
+
+      // ===== CRITICAL FIXES =====
+      if ((aiReport.criticalFixes || []).length > 0) {
+        sectionTitle('CRITICAL FIXES (Priority)', [239, 68, 68]);
+        autoTable(doc, {
+          startY: y,
+          head: [['#', 'Issue', 'Impact', 'Effort', 'How to Fix']],
+          body: aiReport.criticalFixes.map((f, i) => [i + 1, f.issue, f.impact, f.effort, f.howToFix]),
+          theme: 'grid',
+          headStyles: { fillColor: [239, 68, 68], fontSize: 9 },
+          bodyStyles: { fontSize: 8 },
+          margin: { left: margin, right: margin },
+          columnStyles: { 0: { cellWidth: 8 }, 2: { cellWidth: 16 }, 3: { cellWidth: 16 } },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+      }
+
+      // ===== QUICK WINS =====
+      if ((aiReport.quickWins || []).length > 0) {
+        sectionTitle('QUICK WINS', [5, 150, 105]);
+        autoTable(doc, {
+          startY: y,
+          head: [['Action', 'Expected Result', 'Timeframe']],
+          body: aiReport.quickWins.map(w => [w.action, w.expectedResult, w.timeframe]),
+          theme: 'grid',
+          headStyles: { fillColor: [5, 150, 105], fontSize: 9 },
+          bodyStyles: { fontSize: 8 },
+          margin: { left: margin, right: margin },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+      }
+
+      // ===== CONTENT STRATEGY =====
+      if (aiReport.contentStrategy) {
+        sectionTitle('CONTENT STRATEGY');
+        const cs = aiReport.contentStrategy;
+        if ((cs.gaps || []).length > 0) {
+          bodyText('Content Gaps:', { bold: true, color: [239, 68, 68] }); y += 1;
+          cs.gaps.forEach(g => { bodyText(`  •  ${g}`, { size: 9 }); });
+          y += 4;
+        }
+        if ((cs.topicClusters || []).length > 0) {
+          bodyText('Topic Clusters to Build:', { bold: true, color: [124, 58, 237] }); y += 1;
+          cs.topicClusters.forEach(t => { bodyText(`  •  ${t}`, { size: 9 }); });
+          y += 4;
+        }
+        if ((cs.contentCalendarIdeas || []).length > 0) {
+          bodyText('Content Calendar Ideas:', { bold: true, color: [5, 150, 105] }); y += 1;
+          cs.contentCalendarIdeas.forEach((c, i) => { bodyText(`  ${i + 1}. ${c}`, { size: 9 }); });
+          y += 4;
+        }
+        if ((cs.programmaticOpportunities || []).length > 0) {
+          bodyText('Programmatic SEO Opportunities:', { bold: true, color: [59, 130, 246] }); y += 1;
+          cs.programmaticOpportunities.forEach(p => { bodyText(`  •  ${p}`, { size: 9 }); });
+          y += 4;
+        }
+        y += 4;
+      }
+
+      // ===== TECHNICAL ISSUES =====
+      if ((aiReport.technicalIssues || []).length > 0) {
+        sectionTitle('TECHNICAL ISSUES');
+        autoTable(doc, {
+          startY: y,
+          head: [['Issue', 'Severity', 'Fix']],
+          body: aiReport.technicalIssues.map(t => [t.issue, t.severity, t.fix]),
+          theme: 'grid',
+          headStyles: { fillColor: [80, 80, 100], fontSize: 9 },
+          bodyStyles: { fontSize: 8 },
+          margin: { left: margin, right: margin },
+          columnStyles: { 1: { cellWidth: 20 } },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+      }
+
+      // ===== COMPETITIVE ANALYSIS =====
+      if (aiReport.competitiveAnalysis) {
+        sectionTitle('COMPETITIVE LANDSCAPE');
+        const ca = aiReport.competitiveAnalysis;
+        if ((ca.mainCompetitors || []).length > 0) {
+          bodyText('Main Competitors:', { bold: true }); y += 1;
+          ca.mainCompetitors.forEach((c, i) => { bodyText(`  ${i + 1}. ${c}`, { size: 9 }); });
+          y += 4;
+        }
+        if ((ca.whatTheyDoBetter || []).length > 0) {
+          bodyText('What They Do Better:', { bold: true, color: [239, 68, 68] }); y += 1;
+          ca.whatTheyDoBetter.forEach(c => { bodyText(`  •  ${c}`, { size: 9 }); });
+          y += 4;
+        }
+        if ((ca.yourAdvantages || []).length > 0) {
+          bodyText('Your Advantages:', { bold: true, color: [5, 150, 105] }); y += 1;
+          ca.yourAdvantages.forEach(c => { bodyText(`  •  ${c}`, { size: 9 }); });
+          y += 4;
+        }
+        y += 4;
+      }
+
+      // ===== BACKLINKS =====
+      if (results.backlinks) {
+        sectionTitle('BACKLINK PROFILE');
+        autoTable(doc, {
+          startY: y,
+          head: [['Metric', 'Value']],
+          body: [
+            ['Estimated Backlinks', `${results.backlinks.estimatedBacklinks || '—'}`],
+            ['Domain Rank', `${results.backlinks.domainRank || '—'}`],
+            ['Referring Domains', `${results.backlinks.referringDomains || '—'}`],
+          ],
+          theme: 'striped',
+          headStyles: { fillColor: [59, 130, 246], fontSize: 10 },
+          bodyStyles: { fontSize: 9 },
+          margin: { left: margin, right: margin },
+          columnStyles: { 0: { fontStyle: 'bold' } },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+      }
+
+      // ===== TRAFFIC =====
+      if (results.traffic) {
+        sectionTitle('TRAFFIC INSIGHTS');
+        bodyText(`Estimated Monthly Traffic: ${results.traffic.estimatedTraffic || '—'}`, { bold: true, size: 11 }); y += 4;
+        if ((results.traffic.topPages || []).length > 0) {
+          autoTable(doc, {
+            startY: y,
+            head: [['#', 'Page', 'Traffic Share']],
+            body: results.traffic.topPages.slice(0, 10).map((p, i) => [i + 1, p.url || p.page || '—', p.trafficShare || p.traffic || '—']),
+            theme: 'grid',
+            headStyles: { fillColor: [168, 85, 247], fontSize: 9 },
+            bodyStyles: { fontSize: 8 },
+            margin: { left: margin, right: margin },
+          });
+          y = doc.lastAutoTable.finalY + 10;
+        }
+      }
+
+      // ===== 6-MONTH ROADMAP =====
+      if ((aiReport.monthlyRoadmap || []).length > 0) {
+        sectionTitle('6-MONTH SEO ROADMAP');
+        autoTable(doc, {
+          startY: y,
+          head: [['Month', 'Focus Area', 'Expected Result', 'Key Tasks']],
+          body: aiReport.monthlyRoadmap.map(m => [
+            `Month ${m.month}`,
+            m.focus,
+            m.expectedResult || '',
+            (m.tasks || []).join(', ')
+          ]),
+          theme: 'grid',
+          headStyles: { fillColor: [124, 58, 237], fontSize: 9 },
+          bodyStyles: { fontSize: 8 },
+          margin: { left: margin, right: margin },
+          columnStyles: { 0: { cellWidth: 18 }, 2: { cellWidth: 35 } },
+        });
+        y = doc.lastAutoTable.finalY + 8;
+
+        if (aiReport.estimatedImpact) {
+          checkPage(16);
+          doc.setFillColor(5, 150, 105, 0.08);
+          const impactLines = doc.splitTextToSize(aiReport.estimatedImpact, contentW - 10);
+          const boxH = impactLines.length * 5 + 14;
+          doc.setFillColor(230, 255, 240); doc.roundedRect(margin, y, contentW, boxH, 3, 3, 'F');
+          doc.setFontSize(9); doc.setTextColor(5, 150, 105); doc.setFont(undefined, 'bold');
+          doc.text('ESTIMATED IMPACT', margin + 5, y + 7);
+          doc.setFont(undefined, 'normal'); doc.setTextColor(50);
+          impactLines.forEach((line, i) => { doc.text(line, margin + 5, y + 14 + i * 5); });
+          y += boxH + 10;
+        }
+      }
+
+      // ===== AI SEARCH VISIBILITY =====
+      if (aiReport.aiSearchVisibility) {
+        sectionTitle('AI SEARCH VISIBILITY');
+        bodyText(`Score: ${aiReport.aiSearchVisibility.score || '—'}/100`, { bold: true, size: 11 }); y += 3;
+        if ((aiReport.aiSearchVisibility.recommendations || []).length > 0) {
+          bodyText('Recommendations:', { bold: true }); y += 1;
+          aiReport.aiSearchVisibility.recommendations.forEach((r, i) => { bodyText(`  ${i + 1}. ${r}`, { size: 9 }); });
+          y += 4;
+        }
+      }
+
+      // ===== SERP COMPETITORS =====
+      if ((results.competitors || []).length > 0) {
+        sectionTitle('SERP COMPETITORS');
+        autoTable(doc, {
+          startY: y,
+          head: [['Position', 'Title', 'URL']],
+          body: results.competitors.slice(0, 10).map(c => [c.position || '—', c.title || '—', c.url || '—']),
+          theme: 'grid',
+          headStyles: { fillColor: [80, 80, 100], fontSize: 9 },
+          bodyStyles: { fontSize: 7 },
+          margin: { left: margin, right: margin },
+          columnStyles: { 0: { cellWidth: 16 }, 1: { cellWidth: 50 } },
+        });
+        y = doc.lastAutoTable.finalY + 10;
+      }
+
+      // Add footer to all pages
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) { doc.setPage(i); addFooter(i); }
+
+      doc.save(`Protocol-SEO-Report-${results.domain.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`);
+      setToast({ message: 'PDF report downloaded!', type: 'success' });
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      setToast({ message: `PDF error: ${err.message}`, type: 'error' });
+    }
+  };
+
   return (
     <>
       <div className="page-header">
@@ -5024,9 +5408,14 @@ Return JSON:
                   </div>
                 )}
 
-                <button className="btn btn-secondary" onClick={() => generateAIReport(results)} disabled={loadingAI} style={{ marginBottom: 16 }}>
-                  <RefreshCw size={14} /> Regenerate AI Report
-                </button>
+                <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+                  <button className="btn btn-primary" onClick={downloadPDFReport} style={{ background: '#dc2626', gap: 6 }}>
+                    <Download size={14} /> Download PDF Report
+                  </button>
+                  <button className="btn btn-secondary" onClick={() => generateAIReport(results)} disabled={loadingAI}>
+                    <RefreshCw size={14} /> Regenerate AI Report
+                  </button>
+                </div>
               </>
             )}
 
