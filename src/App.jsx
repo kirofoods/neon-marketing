@@ -11207,6 +11207,13 @@ const ALL_TOOLS = [
   { id: 'tejo-documents', label: 'Document Prep', section: 'Tejo' },
   { id: 'tejo-funding', label: 'Funding Roadmap', section: 'Tejo' },
   { id: 'tejo-states', label: 'State Comparator', section: 'Tejo' },
+  // Waylay — GBP & Local SEO
+  { id: 'waylay-gbp', label: 'GBP Manager', section: 'Waylay' },
+  { id: 'waylay-keywords', label: 'Keyword Planner', section: 'Waylay' },
+  { id: 'waylay-local-seo', label: 'Local SEO', section: 'Waylay' },
+  { id: 'waylay-content', label: 'Content Planner', section: 'Waylay' },
+  { id: 'waylay-plans', label: 'Action Plans', section: 'Waylay' },
+  { id: 'waylay-competitors', label: 'Competitor Map', section: 'Waylay' },
 ];
 
 const ROLES = ['Admin', 'Manager', 'Analyst', 'Viewer'];
@@ -11833,6 +11840,487 @@ function SettingsPage() {
   );
 }
 
+// ========= WAYLAY — Google Business Profile & Local SEO Management =========
+// Waylay handles GBP optimization, keyword planning, local SEO, content planning, and actionable plan generation
+
+const WAYLAY_SYSTEM = `You are WAYLAY, the Local SEO & Google Business Profile specialist inside PROTOCOL — the Valorant-themed marketing platform for Kiro Foods India.
+
+KIRO FOODS CONTEXT:
+• Brand: Kiro Foods India — pre-launch clean-label, healthy Ready-to-Eat/Ready-to-Cook food startup
+• Target: Health-conscious Indian consumers aged 22-40
+• Markets: Metro/Tier 1 cities across India (Delhi, Mumbai, Bangalore, Pune, Hyderabad, Kolkata, Chandigarh)
+• Positioning: Premium healthy alternative to processed food; focus on fresh, natural, zero-preservatives
+• Stage: Pre-launch — need strong local SEO foundations & GBP strategy before market entry
+
+YOUR CORE RESPONSIBILITIES:
+
+1. GOOGLE BUSINESS PROFILE (GBP) OPTIMIZATION
+• Profile completeness: every field filled with keyword-rich, compelling copy
+• Categories: Primary (Food Delivery, Food Service) + secondary (Healthy Restaurant, Meal Prep Service, Food Manufacturer)
+• Attributes: Serves Lunch, Serves Dinner, Delivery Available, Takeout Available, Dine-in Available, Vegetarian Options, Health-Conscious, Freshly Prepared
+• Photos: 5+ high-quality images (hero shot, products, team, production, ambiance); rotate seasonally
+• Posts: Weekly updates with keyword-rich titles — new products, health tips, recipe ideas
+• Q&A: Proactive FAQ seeded with common questions + answers showcasing USP
+• Reviews: Response template & strategy to build 50+ reviews in first 60 days
+
+2. LOCAL SEO STRATEGY
+• NAP Consistency: Business name, address, phone identical across Google My Business, Google Maps, local directories
+• Citation Building: List on top 20-30 Indian food business directories (FoodIntro, Zomato, Swiggy, Urban Company, Magicpin, JustDial, LocalCircles)
+• Review Strategy: Email campaigns, QR codes, SMS reminders to encourage organic reviews
+• Local Backlinks: Partner with food bloggers, health influencers, local media for press coverage & links
+• Local Pack Ranking: Target "healthy food delivery near [city]", "[product type] in [area]" keywords
+
+3. KEYWORD PLANNING & RESEARCH
+• Seed Keywords: "healthy ready to eat food India", "clean label snacks", "meal prep delivery", "organic food online", "fresh food subscription"
+• Long-Tail: "Best healthy meals near Indiranagar Bangalore", "Zero oil snacks for weight loss Delhi", "Preservative-free lunch boxes Mumbai"
+• Intent-Based: Informational (health tips), Transactional (buy, delivery), Local (near me, [area]), Comparison (vs competitors)
+• Competitor Keywords: Identify what similar brands rank for; find gaps
+• Seasonal: New Year's resolutions (Jan), summer health (March-May), festive gifting (Sept-Oct)
+• Question-Based: "How to eat healthy on a budget?", "Can I lose weight eating RTE meals?", "Where to find organic food online?"
+
+4. CONTENT PLANNING
+• Blog Strategy: 12-week calendar of SEO-optimized blog posts (1200-1500 words each)
+• Landing Pages: Product pages, city/region pages, health benefit pages (e.g., "High-Protein Meals", "Low-Carb Lunch Boxes")
+• FAQ Schema: Structured data for Google's "People Also Ask" — answer common health/diet questions
+• Internal Linking: Each blog links to 2-3 product pages; product pages link to related blogs
+• Topics: Health myths, nutrition tips, lifestyle content, meal prep hacks, success stories
+
+5. ACTIONABLE PLANS
+• Plan Types: GBP Launch Sprint (2 weeks), Local SEO Blitz (4 weeks), Keyword Domination (8 weeks), Content Blitz (12 weeks), Review Acquisition (ongoing)
+• Format: Weekly action items with owners, deadlines, KPIs (photos uploaded, reviews collected, blog posts published, rank position gains)
+• Priority: P0 (must do), P1 (should do), P2 (nice to have)
+
+6. COMPETITOR ANALYSIS
+• Local Competitors: Map top 3-5 local/regional competitors in each city
+• GBP Comparison: Photo count, review count, rating, post frequency, Q&A coverage
+• Keyword Gaps: Which high-intent keywords they rank for but you don't
+• Content Gaps: Blog topics, landing pages, FAQ topics they cover
+• Beat-Them Plan: Actionable steps to outrank them (more reviews, better photos, more frequent posts, better content)
+
+WHEN A USER ASKS:
+1. Listen to their specific need (GBP help, keyword research, local SEO audit, content calendar, action plan, competitor analysis)
+2. Ask clarifying questions if needed (location, competitor name, target keyword, timeline)
+3. Provide data-driven, tactical advice with examples specific to Kiro Foods and Indian market
+4. Format outputs as: Metrics → Recommendations → Action Plan → Success Metrics
+
+TONE: Direct, confident, tactical. You see the full local SEO picture. You think in terms of rankings, reviews, and revenue. You tie every action back to Kiro's pre-launch goals: build authority, collect reviews, rank in local pack, prepare for market entry.`;
+
+function WaylayGBPManager() {
+  const [messages, setMessages] = useState(() => safeJSON(localStorage.getItem('protocol_waylay_messages'), []));
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+  const bottomRef = useRef(null);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  const saveMessages = (msgs) => {
+    setMessages(msgs);
+    localStorage.setItem('protocol_waylay_messages', JSON.stringify(msgs.slice(-50)));
+  };
+
+  const send = async () => {
+    if (!input.trim()) return;
+    const newMsg = { role: 'user', content: input };
+    const updated = [...messages, newMsg];
+    saveMessages(updated);
+    setInput('');
+    setLoading(true);
+    try {
+      const resp = await callClaude(input, WAYLAY_SYSTEM, updated.slice(-8));
+      saveMessages([...updated, { role: 'assistant', content: resp }]);
+    } catch (e) {
+      setToast({ message: 'Claude call failed: ' + e.message, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const examples = ['Optimize my GBP for "healthy ready to eat food near me"', 'Create a GBP posting calendar for Kiro Foods', 'What\'s my GBP profile completeness score?', 'How to get 50 reviews in 60 days?'];
+
+  return (
+    <div style={{ padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
+      <h1 className="card-title" style={{ marginBottom: 20 }}>Waylay — GBP Manager</h1>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 12, marginBottom: 20 }}>
+        <div className="card"><div className="card-header"><h3 className="card-title">Profile Completeness</h3></div><div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)', padding: '12px 0' }}>78%</div></div>
+        <div className="card"><div className="card-header"><h3 className="card-title">Review Target</h3></div><div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)', padding: '12px 0' }}>12/50</div></div>
+        <div className="card"><div className="card-header"><h3 className="card-title">Posts This Month</h3></div><div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent)', padding: '12px 0' }}>0/4</div></div>
+      </div>
+      <div className="card" style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', height: 500 }}>
+        <div className="card-header"><h3 className="card-title">GBP AI Chat</h3></div>
+        <div style={{ flex: 1, overflow: 'auto', padding: 16, borderTop: '1px solid var(--border)' }}>
+          {messages.map((m, i) => (
+            <div key={i} style={{ marginBottom: 12, display: 'flex', flexDirection: m.role === 'user' ? 'row-reverse' : 'row', gap: 8 }}>
+              <div style={{ maxWidth: '70%', padding: 12, borderRadius: 8, background: m.role === 'user' ? 'var(--accent)' : 'var(--bg-tertiary)', color: m.role === 'user' ? '#fff' : 'var(--text-primary)', fontSize: 13, lineHeight: 1.6 }}>
+                <ReactMarkdown>{m.content}</ReactMarkdown>
+              </div>
+            </div>
+          ))}
+          {loading && <LoadingDots />}
+          <div ref={bottomRef} />
+        </div>
+        <div style={{ padding: 12, borderTop: '1px solid var(--border)', display: 'flex', gap: 8 }}>
+          <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()} placeholder="Ask about GBP optimization..." style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+          <button onClick={send} disabled={loading} className="btn btn-primary">Send</button>
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 12 }}>
+        {examples.map((ex, i) => <button key={i} onClick={() => { setInput(ex); }} style={{ padding: 12, background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 6, cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 12, textAlign: 'left' }}>{ex}</button>)}
+      </div>
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+    </div>
+  );
+}
+
+function WaylayKeywordPlanner() {
+  const [seed, setSeed] = useState('healthy ready to eat food');
+  const [location, setLocation] = useState('India');
+  const [keywords, setKeywords] = useState(() => safeJSON(localStorage.getItem('protocol_waylay_keywords'), []));
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const generate = async () => {
+    if (!seed.trim()) return;
+    setLoading(true);
+    try {
+      const prompt = `For the seed keyword "${seed}" in location "${location}" for Kiro Foods India (healthy RTE/RTC food), generate a keyword cluster JSON with these categories:
+- primary: 5 keywords (main market terms)
+- secondary: 5 keywords (related products/services)
+- longTail: 5 keywords (4+ word specific phrases)
+- local: 5 keywords (location-based intent)
+- questions: 5 question-based keywords
+
+For each, include: keyword, intent (informational/transactional/navigational), estimatedVolume (1-1000), difficulty (Easy/Medium/Hard), priority (P0/P1/P2).
+
+Return as valid JSON only.`;
+      const resp = await callClaude(prompt, WAYLAY_SYSTEM);
+      const parsed = JSON.parse(resp);
+      const flat = Object.values(parsed).flat();
+      setKeywords(flat);
+      localStorage.setItem('protocol_waylay_keywords', JSON.stringify(flat));
+      setToast({ message: `Generated ${flat.length} keywords`, type: 'success' });
+    } catch (e) {
+      setToast({ message: 'Generation failed: ' + e.message, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
+      <h1 className="card-title" style={{ marginBottom: 20 }}>Waylay — Keyword Planner</h1>
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="card-header"><h3 className="card-title">Generate Keywords</h3></div>
+        <div style={{ padding: 16, display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, alignItems: 'end' }}>
+          <div><label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Seed Keyword</label><input type="text" value={seed} onChange={(e) => setSeed(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
+          <div><label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Location</label><input type="text" value={location} onChange={(e) => setLocation(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
+          <button onClick={generate} disabled={loading} className="btn btn-primary">{loading ? 'Generating...' : 'Generate'}</button>
+        </div>
+      </div>
+      {keywords.length > 0 && (
+        <div className="card">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 className="card-title">Keywords ({keywords.length})</h3>
+            <button onClick={() => { const csv = keywords.map(k => `"${k.keyword}",${k.intent},${k.estimatedVolume},${k.difficulty},${k.priority}`).join('\n'); const a = document.createElement('a'); a.href = 'data:text/csv,' + encodeURIComponent(csv); a.download = 'keywords.csv'; a.click(); }} className="btn btn-primary" style={{ padding: '6px 12px', fontSize: 12 }}>Export CSV</button>
+          </div>
+          <div style={{ padding: 16, overflow: 'auto', maxHeight: 400 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead style={{ borderBottom: '1px solid var(--border)' }}>
+                <tr style={{ color: 'var(--text-tertiary)' }}>
+                  <th style={{ textAlign: 'left', padding: '8px 0' }}>Keyword</th>
+                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Intent</th>
+                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Volume</th>
+                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Difficulty</th>
+                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Priority</th>
+                </tr>
+              </thead>
+              <tbody>
+                {keywords.map((k, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid var(--border)', opacity: k.priority === 'P0' ? 1 : 0.7 }}>
+                    <td style={{ padding: '8px 0' }}>{k.keyword}</td>
+                    <td style={{ textAlign: 'center', padding: '8px 0', fontSize: 11 }}>{k.intent}</td>
+                    <td style={{ textAlign: 'center', padding: '8px 0' }}>{k.estimatedVolume}</td>
+                    <td style={{ textAlign: 'center', padding: '8px 0', fontSize: 11, color: k.difficulty === 'Easy' ? '#059669' : k.difficulty === 'Medium' ? '#f59e0b' : '#dc2626' }}>{k.difficulty}</td>
+                    <td style={{ textAlign: 'center', padding: '8px 0', fontWeight: 600, color: k.priority === 'P0' ? 'var(--accent)' : 'var(--text-tertiary)' }}>{k.priority}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+    </div>
+  );
+}
+
+function WaylayLocalSEO() {
+  const [business, setBusiness] = useState('Kiro Foods');
+  const [location, setLocation] = useState('Delhi');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(() => safeJSON(localStorage.getItem('protocol_waylay_local_seo'), null));
+  const [toast, setToast] = useState(null);
+
+  const audit = async () => {
+    setLoading(true);
+    try {
+      const prompt = `For "${business}" in ${location}, perform a local SEO audit. Return JSON with:
+- nap: {name, address, phone, status} (consistency score)
+- citations: [{directory, status, importance}] (top 15 for Indian food businesses)
+- reviews: {target, strategy, timeline}
+- backlinks: {topSources, gaps}
+- localPackFocus: [{keyword, competition, opportunity}]
+- score: 0-100`;
+      const resp = await callClaude(prompt, WAYLAY_SYSTEM);
+      const parsed = JSON.parse(resp);
+      setResult(parsed);
+      localStorage.setItem('protocol_waylay_local_seo', JSON.stringify(parsed));
+      setToast({ message: 'Local SEO audit complete', type: 'success' });
+    } catch (e) {
+      setToast({ message: 'Audit failed: ' + e.message, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
+      <h1 className="card-title" style={{ marginBottom: 20 }}>Waylay — Local SEO Audit</h1>
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="card-header"><h3 className="card-title">Audit Configuration</h3></div>
+        <div style={{ padding: 16, display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, alignItems: 'end' }}>
+          <div><label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Business Name</label><input type="text" value={business} onChange={(e) => setBusiness(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
+          <div><label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Location</label><input type="text" value={location} onChange={(e) => setLocation(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
+          <button onClick={audit} disabled={loading} className="btn btn-primary">{loading ? 'Auditing...' : 'Run Audit'}</button>
+        </div>
+      </div>
+      {result && (
+        <>
+          <div className="card" style={{ marginBottom: 20, background: `linear-gradient(135deg, rgba(255,70,85,${result.score > 70 ? 0.1 : result.score > 50 ? 0.08 : 0.06}), rgba(99,102,241,0.05))` }}>
+            <div style={{ padding: 24, textAlign: 'center' }}>
+              <div style={{ fontSize: 48, fontWeight: 900, color: result.score > 70 ? '#059669' : result.score > 50 ? '#f59e0b' : '#dc2626' }}>{result.score}</div>
+              <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 4 }}>Local SEO Score</div>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+            <div className="card">
+              <div className="card-header"><h3 className="card-title">NAP Consistency</h3></div>
+              <div style={{ padding: 12, fontSize: 13, lineHeight: 1.8 }}>
+                <div><strong>Name:</strong> {result.nap?.name}</div>
+                <div><strong>Address:</strong> {result.nap?.address}</div>
+                <div><strong>Phone:</strong> {result.nap?.phone}</div>
+                <div style={{ marginTop: 8, padding: 8, background: 'var(--bg-tertiary)', borderRadius: 4, fontSize: 12 }}><strong>Status:</strong> {result.nap?.status}</div>
+              </div>
+            </div>
+            <div className="card">
+              <div className="card-header"><h3 className="card-title">Top Citation Directories</h3></div>
+              <div style={{ padding: 12, fontSize: 13 }}>
+                {result.citations?.slice(0, 5).map((c, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: i < 4 ? '1px solid var(--border)' : 'none' }}>
+                    <span>{c.directory}</span>
+                    <span style={{ fontSize: 11, color: c.status === 'Listed' ? '#059669' : '#f59e0b' }}>{c.status}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+    </div>
+  );
+}
+
+function WaylayContentPlanner() {
+  const [loading, setLoading] = useState(false);
+  const [plan, setPlan] = useState(() => safeJSON(localStorage.getItem('protocol_waylay_content_plan'), []));
+  const [toast, setToast] = useState(null);
+
+  const generate = async () => {
+    setLoading(true);
+    try {
+      const prompt = `Generate a 12-week SEO content calendar for Kiro Foods India. Return JSON array of 12 items with:
+{topic, targetKeyword, contentType (blog/landing/faq), wordCount, internalLinks, priority (P0/P1/P2), week}
+Focus on healthy food, local SEO, product launches, seasonal themes.`;
+      const resp = await callClaude(prompt, WAYLAY_SYSTEM);
+      const parsed = JSON.parse(resp);
+      setPlan(parsed);
+      localStorage.setItem('protocol_waylay_content_plan', JSON.stringify(parsed));
+      setToast({ message: 'Content plan generated', type: 'success' });
+    } catch (e) {
+      setToast({ message: 'Generation failed: ' + e.message, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
+      <h1 className="card-title" style={{ marginBottom: 20 }}>Waylay — Content Planner</h1>
+      <button onClick={generate} disabled={loading} className="btn btn-primary" style={{ marginBottom: 20 }}>{loading ? 'Generating...' : 'Generate 12-Week Calendar'}</button>
+      {plan.length > 0 && (
+        <div className="card">
+          <div className="card-header"><h3 className="card-title">Content Calendar</h3></div>
+          <div style={{ padding: 16, overflow: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead style={{ borderBottom: '1px solid var(--border)' }}>
+                <tr style={{ color: 'var(--text-tertiary)' }}>
+                  <th style={{ textAlign: 'left', padding: '8px 0' }}>Week</th>
+                  <th style={{ textAlign: 'left', padding: '8px 0' }}>Topic</th>
+                  <th style={{ textAlign: 'left', padding: '8px 0' }}>Target Keyword</th>
+                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Type</th>
+                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Words</th>
+                  <th style={{ textAlign: 'center', padding: '8px 0' }}>Priority</th>
+                </tr>
+              </thead>
+              <tbody>
+                {plan.map((item, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <td style={{ padding: '8px 0', fontWeight: 600 }}>W{item.week}</td>
+                    <td style={{ padding: '8px 0' }}>{item.topic}</td>
+                    <td style={{ padding: '8px 0', color: 'var(--accent)' }}>{item.targetKeyword}</td>
+                    <td style={{ textAlign: 'center', padding: '8px 0', fontSize: 11 }}>{item.contentType}</td>
+                    <td style={{ textAlign: 'center', padding: '8px 0' }}>{item.wordCount}</td>
+                    <td style={{ textAlign: 'center', padding: '8px 0', fontWeight: 600, color: item.priority === 'P0' ? 'var(--accent)' : 'var(--text-tertiary)' }}>{item.priority}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+    </div>
+  );
+}
+
+function WaylayActionPlans() {
+  const [planType, setPlanType] = useState('GBP Launch');
+  const [loading, setLoading] = useState(false);
+  const [plans, setPlans] = useState(() => safeJSON(localStorage.getItem('protocol_waylay_plans'), []));
+  const [toast, setToast] = useState(null);
+
+  const types = ['GBP Launch', 'Local SEO Sprint', 'Keyword Domination', 'Content Blitz', 'Review Acquisition'];
+
+  const generate = async () => {
+    setLoading(true);
+    try {
+      const prompt = `Generate a detailed weekly action plan for "${planType}" for Kiro Foods India. Return JSON with:
+{type, duration, weeks: [{week, tasks: [{task, owner, deadline, kpi}]}]}
+Make tasks specific, measurable, with clear owners and KPIs.`;
+      const resp = await callClaude(prompt, WAYLAY_SYSTEM);
+      const parsed = JSON.parse(resp);
+      setPlans([...plans, parsed]);
+      localStorage.setItem('protocol_waylay_plans', JSON.stringify([...plans, parsed]));
+      setToast({ message: 'Action plan created', type: 'success' });
+    } catch (e) {
+      setToast({ message: 'Generation failed: ' + e.message, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
+      <h1 className="card-title" style={{ marginBottom: 20 }}>Waylay — Action Plans</h1>
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="card-header"><h3 className="card-title">Create Action Plan</h3></div>
+        <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 12, alignItems: 'center' }}>
+          <select value={planType} onChange={(e) => setPlanType(e.target.value)} style={{ padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
+            {types.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <button onClick={generate} disabled={loading} className="btn btn-primary">{loading ? 'Generating...' : 'Generate Plan'}</button>
+        </div>
+      </div>
+      {plans.length > 0 && (
+        <div style={{ display: 'grid', gap: 16 }}>
+          {plans.map((p, i) => (
+            <div key={i} className="card">
+              <div className="card-header"><h3 className="card-title">{p.type} ({p.duration})</h3></div>
+              <div style={{ padding: 16 }}>
+                {p.weeks?.map((w, wi) => (
+                  <div key={wi} style={{ marginBottom: 16 }}>
+                    <div style={{ fontWeight: 600, marginBottom: 8, color: 'var(--accent)' }}>Week {w.week}</div>
+                    {w.tasks?.map((t, ti) => (
+                      <div key={ti} style={{ padding: 8, background: 'var(--bg-tertiary)', borderRadius: 4, marginBottom: 6, fontSize: 12, lineHeight: 1.6 }}>
+                        <div><strong>{t.task}</strong></div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: 11, marginTop: 4 }}>Owner: {t.owner} | KPI: {t.kpi}</div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+    </div>
+  );
+}
+
+function WaylayCompetitorMap() {
+  const [location, setLocation] = useState('Delhi');
+  const [category, setCategory] = useState('Healthy Food Delivery');
+  const [loading, setLoading] = useState(false);
+  const [competitors, setCompetitors] = useState(() => safeJSON(localStorage.getItem('protocol_waylay_competitors'), []));
+  const [toast, setToast] = useState(null);
+
+  const analyze = async () => {
+    setLoading(true);
+    try {
+      const prompt = `Analyze top 3 local competitors for "${category}" in ${location}. Return JSON with competitors: [{name, strength, weakness, gbpScore, reviewCount, keywordGaps, beatThem}]`;
+      const resp = await callClaude(prompt, WAYLAY_SYSTEM);
+      const parsed = JSON.parse(resp);
+      setCompetitors(parsed.competitors || []);
+      localStorage.setItem('protocol_waylay_competitors', JSON.stringify(parsed.competitors || []));
+      setToast({ message: 'Competitor map created', type: 'success' });
+    } catch (e) {
+      setToast({ message: 'Analysis failed: ' + e.message, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ padding: '20px', maxWidth: 1200, margin: '0 auto' }}>
+      <h1 className="card-title" style={{ marginBottom: 20 }}>Waylay — Competitor Map</h1>
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="card-header"><h3 className="card-title">Analyze Competitors</h3></div>
+        <div style={{ padding: 16, display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, alignItems: 'end' }}>
+          <div><label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Location</label><input type="text" value={location} onChange={(e) => setLocation(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
+          <div><label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>Category</label><input type="text" value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} /></div>
+          <button onClick={analyze} disabled={loading} className="btn btn-primary">{loading ? 'Analyzing...' : 'Analyze'}</button>
+        </div>
+      </div>
+      {competitors.length > 0 && (
+        <div style={{ display: 'grid', gap: 16 }}>
+          {competitors.map((comp, i) => (
+            <div key={i} className="card" style={{ borderLeft: '3px solid var(--accent)' }}>
+              <div className="card-header"><h3 className="card-title">{comp.name} (Score: {comp.gbpScore})</h3></div>
+              <div style={{ padding: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: '#059669' }}>Strengths</div>
+                  <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--text-secondary)' }}>{comp.strength}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: '#dc2626' }}>Weaknesses</div>
+                  <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--text-secondary)' }}>{comp.weakness}</div>
+                </div>
+                <div style={{ gridColumn: '1/-1' }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: 'var(--accent)' }}>Beat Them Strategy</div>
+                  <div style={{ fontSize: 12, lineHeight: 1.6, color: 'var(--text-secondary)', padding: 8, background: 'var(--bg-tertiary)', borderRadius: 4 }}>{comp.beatThem}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+    </div>
+  );
+}
+
 // ========= LOBBY EMAIL — IMAP Email Client =========
 function LobbyEmail() {
   const [accounts, setAccounts] = useState(() => JSON.parse(localStorage.getItem('protocol_email_accounts') || '[]'));
@@ -12120,6 +12608,7 @@ const YORU_AGENTS = [
   { name: 'Omen', role: 'Task & Project Mgmt', tools: ['Task board', 'Projects', 'Timeline', 'Meeting notes', 'Brief builder', 'SOW generator'] },
   { name: 'Skye', role: 'Influencer Relations', tools: ['Influencer DB', 'Campaigns', 'Outreach', 'ROI tracking', 'Content approval', 'Contracts'] },
   { name: 'Tejo', role: 'Govt Schemes & Funding', tools: ['Scheme explorer', 'Scheme database', 'Eligibility checker', 'Application tracker', 'Document prep', 'Funding roadmap', 'State comparator'] },
+  { name: 'Waylay', role: 'GBP & Local SEO', tools: ['GBP manager', 'Keyword planner', 'Local SEO audit', 'Content planner', 'Action plans', 'Competitor map'] },
 ];
 
 const YORU_SYSTEM = `You are YORU, the autonomous workflow orchestrator inside PROTOCOL — the Valorant-themed marketing platform for Kiro Foods India. Named after the Valorant agent Yoru, you rift between dimensions — meaning you seamlessly move between ALL other agents and their tools to complete complex tasks.
@@ -14509,6 +14998,37 @@ export default function App() {
           chime2.connect(chime2G); chime2G.connect(ctx.destination);
           chime2.start(now + 0.18); chime2.stop(now + 0.45);
         },
+
+        waylay: () => {
+          // LOCAL MAP MASTER: Radar ping sweep → map unfold → location lock-on
+          // Radar ping — circular sweep gesture
+          const radar = ctx.createOscillator(); const rG = ctx.createGain();
+          radar.type = 'sine'; radar.frequency.setValueAtTime(800, now);
+          radar.frequency.linearRampToValueAtTime(1200, now + 0.1);
+          rG.gain.setValueAtTime(0.08, now);
+          rG.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          radar.connect(rG); rG.connect(ctx.destination);
+          radar.start(now); radar.stop(now + 0.12);
+          // Map unfold — spreading ascending tones like a map opening
+          [0, 0.05, 0.1].forEach((d, i) => {
+            const unfold = ctx.createOscillator(); const uG = ctx.createGain();
+            unfold.type = 'sine';
+            unfold.frequency.setValueAtTime(400 + i * 200, now + d);
+            unfold.frequency.exponentialRampToValueAtTime(600 + i * 300, now + d + 0.08);
+            uG.gain.setValueAtTime(0.07, now + d);
+            uG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.1);
+            unfold.connect(uG); uG.connect(ctx.destination);
+            unfold.start(now + d); unfold.stop(now + d + 0.1);
+          });
+          // Location lock-on — precise click & confirmation tone
+          const lock = ctx.createOscillator(); const lockG = ctx.createGain();
+          lock.type = 'square'; lock.frequency.setValueAtTime(2000, now + 0.15);
+          lock.frequency.exponentialRampToValueAtTime(1000, now + 0.2);
+          lockG.gain.setValueAtTime(0.1, now + 0.15);
+          lockG.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          lock.connect(lockG); lockG.connect(ctx.destination);
+          lock.start(now + 0.15); lock.stop(now + 0.22);
+        },
       };
 
       if (sounds[agent]) sounds[agent]();
@@ -14793,6 +15313,17 @@ export default function App() {
         { path: '/tejo-funding', icon: Coins, label: 'Funding Roadmap' },
         { path: '/tejo-states', icon: MapPinned, label: 'State Comparator' },
       ]
+    },
+    {
+      title: 'Waylay (GBP & SEO)', icon: MapPinned, agent: 'waylay',
+      items: [
+        { path: '/waylay-gbp', icon: MapPinned, label: 'GBP Manager' },
+        { path: '/waylay-keywords', icon: Hash, label: 'Keyword Planner' },
+        { path: '/waylay-local-seo', icon: Radar, label: 'Local SEO' },
+        { path: '/waylay-content', icon: Calendar, label: 'Content Planner' },
+        { path: '/waylay-plans', icon: ClipboardList, label: 'Action Plans' },
+        { path: '/waylay-competitors', icon: Target, label: 'Competitor Map' },
+      ]
     }
   ];
 
@@ -15032,6 +15563,12 @@ export default function App() {
             <Route path="/tejo-documents" element={<TejoDocumentPrep />} />
             <Route path="/tejo-funding" element={<TejoFundingMap />} />
             <Route path="/tejo-states" element={<TejoStateComparator />} />
+            <Route path="/waylay-gbp" element={<WaylayGBPManager />} />
+            <Route path="/waylay-keywords" element={<WaylayKeywordPlanner />} />
+            <Route path="/waylay-local-seo" element={<WaylayLocalSEO />} />
+            <Route path="/waylay-content" element={<WaylayContentPlanner />} />
+            <Route path="/waylay-plans" element={<WaylayActionPlans />} />
+            <Route path="/waylay-competitors" element={<WaylayCompetitorMap />} />
           </Routes>
         </main>
       </div>

@@ -87,6 +87,9 @@ const SYNC_KEYS = [
   'protocol_kayo_gh_token', 'protocol_kayo_gh_repo', 'protocol_kayo_gh_branch',
   // Tejo — Government Schemes
   'protocol_tejo_messages', 'protocol_tejo_schemes', 'protocol_tejo_applications',
+  // Waylay — GBP & SEO
+  'protocol_waylay_messages', 'protocol_waylay_keywords', 'protocol_waylay_local_seo',
+  'protocol_waylay_content_plan', 'protocol_waylay_plans', 'protocol_waylay_competitors',
   // Email
   'protocol_email_accounts',
   // Firebase config (so other devices can auto-connect)
