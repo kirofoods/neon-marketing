@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { flushSync } from 'react-dom';
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { PieChart as RechartsPieChart, Pie, Cell, BarChart as RechartsBarChart, Bar, LineChart as RechartsLineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 import { initSync, isSyncEnabled, pushToCloud, pullFromCloud, parseFirebaseConfig, getSyncStatus } from './utils/sync.js';
@@ -61,6 +60,28 @@ import {
   authenticatePin, getUsers, saveUsers, getAllUsernames,
   getUserDataAs, getAggregatedData, migrateOldData, removeUserData
 } from './utils/userStorage';
+
+// ---- ERROR BOUNDARY — catches render errors in dashboard after login ----
+class AppErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+  static getDerivedStateFromError(error) { return { hasError: true, error }; }
+  componentDidCatch(error, info) { console.error('[PROTOCOL] Render error caught:', error, info); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: '#0f1923', color: '#ece8e1', fontFamily: 'Inter, sans-serif', flexDirection: 'column', gap: 16 }}>
+          <div style={{ fontSize: 48, fontWeight: 900, color: '#ff4655', letterSpacing: 4 }}>PROTOCOL</div>
+          <div style={{ fontSize: 14, opacity: 0.7, letterSpacing: 2, textTransform: 'uppercase' }}>System Error — Reloading</div>
+          <div style={{ fontSize: 11, opacity: 0.4, maxWidth: 400, textAlign: 'center' }}>
+            {this.state.error?.message || 'Unknown render error'}
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ---- TOAST ----
 function Toast({ message, type, onClose }) {
@@ -11305,12 +11326,8 @@ function PinLogin({ onSuccess }) {
 
   useEffect(() => {
     setTimeout(() => inputRefs[0].current?.focus(), 100);
-    return () => {
-      // Cleanup audio context on unmount
-      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
-        audioCtxRef.current.close().catch(() => {});
-      }
-    };
+    // No cleanup of AudioContext on unmount — the page reloads on login success,
+    // and closing the AudioContext mid-playback could kill the "locked in" sound.
   }, []);
 
   const authAttempted = useRef(false);
@@ -11766,21 +11783,17 @@ export default function App() {
     } catch (e) {}
   }, [location.pathname]);
 
-  const handleLogout = () => { clearCurrentUser(); setAuthenticated(false); };
+  const handleLogout = () => { clearCurrentUser(); sessionStorage.removeItem('kj_user_role'); window.location.reload(); };
 
   const handleLoginSuccess = (username, role) => {
-    // Ensure sessionStorage is set BEFORE React state triggers re-render
+    // Persist auth to sessionStorage so the fresh page load picks it up
     setCurrentUser(username);
     sessionStorage.setItem('kj_auth', 'true');
-    // flushSync forces React to synchronously flush all state updates
-    // and commit the resulting DOM changes before returning.
-    // This prevents the blank-frame issue where React batches the updates
-    // and the old PinLogin is unmounted before the new content paints.
-    flushSync(() => {
-      setCurrentUserState(username);
-      setCurrentRole(role || 'Viewer');
-      setAuthenticated(true);
-    });
+    sessionStorage.setItem('kj_user_role', role || 'Viewer');
+    // Reload the page — this is the most reliable transition for a large SPA.
+    // On reload, useState initializers read sessionStorage → authenticated=true
+    // → dashboard renders directly without any React state transition issues.
+    window.location.reload();
   };
 
   if (!authenticated) return <PinLogin onSuccess={handleLoginSuccess} />;
@@ -12870,6 +12883,7 @@ export default function App() {
   ];
 
   return (
+    <AppErrorBoundary>
     <>
       <NotificationBell />
       <div className="mobile-header">
@@ -13098,5 +13112,6 @@ export default function App() {
         </main>
       </div>
     </>
+    </AppErrorBoundary>
   );
 }
