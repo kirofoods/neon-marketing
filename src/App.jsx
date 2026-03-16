@@ -10526,6 +10526,40 @@ function SettingsPage() {
             </div>
           </div>
 
+          {/* Theme Settings */}
+          <div className="card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <h3 className="card-title">Theme</h3>
+                <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>
+                  Switch between dark tactical mode and light mode
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {['dark', 'light'].map(t => {
+                  const current = localStorage.getItem('protocol_theme') || 'dark';
+                  const isActive = current === t;
+                  return (
+                    <button key={t}
+                      onClick={() => {
+                        localStorage.setItem('protocol_theme', t);
+                        document.documentElement.setAttribute('data-theme', t === 'dark' ? '' : t);
+                        setToast({ message: t === 'dark' ? 'Dark mode activated' : 'Light mode activated', type: 'info' });
+                        // Force re-render
+                        window.location.reload();
+                      }}
+                      className={`btn ${isActive ? 'btn-primary' : 'btn-secondary'}`}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
+                        ...(isActive ? {} : { opacity: 0.6 }) }}
+                    >
+                      {t === 'dark' ? <><Flame size={14} /> Dark</> : <><Sparkles size={14} /> Light</>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
           {/* Cloud Sync */}
           <div className="card" style={{ border: '1px solid rgba(124,58,237,0.2)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>

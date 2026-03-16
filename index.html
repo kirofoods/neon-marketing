@@ -13,6 +13,13 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Apply saved theme before React renders (prevents flash) -->
+    <script>
+      (function() {
+        var t = localStorage.getItem('protocol_theme');
+        if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      })();
+    </script>
     <!-- Unregister any old PWA service workers that are caching stale builds -->
     <script>
       if ('serviceWorker' in navigator) {
