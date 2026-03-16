@@ -22,7 +22,8 @@ import {
   MessageCircle, SmartphoneNfc, QrCode, UsersRound, ThumbsUp,
   Anchor, Ship, ClipboardList, Route as RouteIcon, FileCheck, Scale, Boxes,
   Factory, Wrench, Beaker, FlaskConical, Barcode, PackageCheck, Leaf,
-  BadgeDollarSign, PiggyBank, ArrowUpDown, FileBarChart, Banknote, TrendingDown, Percent
+  BadgeDollarSign, PiggyBank, ArrowUpDown, FileBarChart, Banknote, TrendingDown, Percent,
+  Ghost, TreePine, Bird, FolderKanban, Milestone, BriefcaseBusiness, StickyNote, GitBranch
 } from 'lucide-react';
 import { callClaude, isApiKeySet, AI_PROVIDERS, getActiveProvider, setActiveProvider, SYSTEM_PROMPTS, KIRO_CONTEXT, MARKETING_SKILLS, getMarketingPrompt, getSkillsByCategory, detectSkill, getSkillListForAI } from './utils/api';
 import {
@@ -9202,6 +9203,561 @@ function KayoMarginAnalysis() {
 }
 
 // =============================================
+// OMEN — Task & Project Management
+// =============================================
+
+function OmenTaskBoard() {
+  const [tasks, setTasks] = useState(() => JSON.parse(localStorage.getItem('protocol_omen_tasks') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [filter, setFilter] = useState('All');
+  const [search, setSearch] = useState('');
+  const [form, setForm] = useState({ title: '', description: '', priority: 'Medium', status: 'To Do', assignee: '', department: 'Marketing', dueDate: '', tags: '', effort: 'Medium' });
+  const save = (d) => { setTasks(d); localStorage.setItem('protocol_omen_tasks', JSON.stringify(d)); };
+  const addTask = () => { if (!form.title) return; save([...tasks, { ...form, id: Date.now(), createdAt: new Date().toISOString(), comments: [] }]); setForm({ title: '', description: '', priority: 'Medium', status: 'To Do', assignee: '', department: 'Marketing', dueDate: '', tags: '', effort: 'Medium' }); setShowForm(false); };
+  const updateStatus = (id, status) => save(tasks.map(t => t.id === id ? { ...t, status, ...(status === 'Done' ? { completedAt: new Date().toISOString() } : {}) } : t));
+  const deleteTask = (id) => save(tasks.filter(t => t.id !== id));
+  const statuses = ['To Do', 'In Progress', 'In Review', 'Done'];
+  const filtered = tasks.filter(t => (filter === 'All' || t.status === filter) && (!search || t.title.toLowerCase().includes(search.toLowerCase()) || t.assignee?.toLowerCase().includes(search.toLowerCase())));
+  const stats = { total: tasks.length, todo: tasks.filter(t=>t.status==='To Do').length, inProgress: tasks.filter(t=>t.status==='In Progress').length, done: tasks.filter(t=>t.status==='Done').length };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><LayoutDashboard size={22} /> Task Board</h2>
+      <div className="stats-row">{[['Total', stats.total, '#a855f7'], ['To Do', stats.todo, '#3b82f6'], ['In Progress', stats.inProgress, '#f59e0b'], ['Done', stats.done, '#10b981']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        <input className="input" placeholder="Search tasks..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: 150 }} />
+        <select className="input" value={filter} onChange={e => setFilter(e.target.value)} style={{ width: 130 }}><option>All</option>{statuses.map(s => <option key={s}>{s}</option>)}</select>
+        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>+ New Task</button>
+      </div>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Task title *" value={form.title} onChange={e => setForm({...form, title: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <select className="input" value={form.priority} onChange={e => setForm({...form, priority: e.target.value})}><option>Low</option><option>Medium</option><option>High</option><option>Urgent</option></select>
+          <textarea className="input" placeholder="Description" rows={2} value={form.description} onChange={e => setForm({...form, description: e.target.value})} style={{ gridColumn: 'span 3' }} />
+          <input className="input" placeholder="Assignee" value={form.assignee} onChange={e => setForm({...form, assignee: e.target.value})} />
+          <select className="input" value={form.department} onChange={e => setForm({...form, department: e.target.value})}><option>Marketing</option><option>Production</option><option>Sales</option><option>Distribution</option><option>Finance</option><option>Creative</option><option>Digital</option><option>PR</option><option>R&D</option></select>
+          <input className="input" type="date" value={form.dueDate} onChange={e => setForm({...form, dueDate: e.target.value})} />
+          <input className="input" placeholder="Tags (comma separated)" value={form.tags} onChange={e => setForm({...form, tags: e.target.value})} />
+          <select className="input" value={form.effort} onChange={e => setForm({...form, effort: e.target.value})}><option>Small</option><option>Medium</option><option>Large</option><option>Epic</option></select>
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addTask}>Create Task</button>
+      </div>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, minHeight: 200 }}>
+        {statuses.map(status => <div key={status} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 8, padding: 10, border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 10, display: 'flex', justifyContent: 'space-between' }}><span>{status}</span><span style={{ opacity: 0.4 }}>{filtered.filter(t=>t.status===status).length}</span></div>
+          {filtered.filter(t => t.status === status).map(t => <div key={t.id} className="card" style={{ padding: 10, marginBottom: 8, cursor: 'pointer' }}>
+            <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{t.title}</div>
+            <div style={{ fontSize: 11, opacity: 0.5, marginBottom: 6 }}>{t.department} {t.assignee ? '• ' + t.assignee : ''}</div>
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ padding: '1px 6px', borderRadius: 3, fontSize: 10, background: t.priority==='Urgent'?'#ef4444':t.priority==='High'?'#f59e0b':t.priority==='Medium'?'#3b82f6':'#6b7280', color: '#fff' }}>{t.priority}</span>
+              {t.dueDate && <span style={{ fontSize: 10, opacity: 0.5 }}>{t.dueDate}</span>}
+              <select className="input" style={{ fontSize: 10, padding: '1px 4px', marginLeft: 'auto', width: 90 }} value={t.status} onChange={e => updateStatus(t.id, e.target.value)}>{statuses.map(s => <option key={s}>{s}</option>)}</select>
+              <button onClick={() => deleteTask(t.id)} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer',padding:0}}><Trash2 size={12}/></button>
+            </div>
+          </div>)}
+        </div>)}
+      </div>
+    </div>
+  );
+}
+
+function OmenProjectTracker() {
+  const [projects, setProjects] = useState(() => JSON.parse(localStorage.getItem('protocol_omen_projects') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name: '', description: '', status: 'Planning', owner: '', startDate: '', endDate: '', budget: '', department: 'Marketing' });
+  const save = (d) => { setProjects(d); localStorage.setItem('protocol_omen_projects', JSON.stringify(d)); };
+  const addProject = () => { if (!form.name) return; save([...projects, { ...form, id: Date.now(), budget: Number(form.budget) || 0, milestones: [], createdAt: new Date().toISOString() }]); setForm({ name: '', description: '', status: 'Planning', owner: '', startDate: '', endDate: '', budget: '', department: 'Marketing' }); setShowForm(false); };
+  const updateStatus = (id, status) => save(projects.map(p => p.id === id ? { ...p, status } : p));
+  const deleteProject = (id) => save(projects.filter(p => p.id !== id));
+  const tasks = JSON.parse(localStorage.getItem('protocol_omen_tasks') || '[]');
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Layers size={22} /> Project Tracker</h2>
+      <div className="stats-row">{[['Total Projects', projects.length, '#a855f7'], ['Active', projects.filter(p=>p.status==='Active').length, '#10b981'], ['Planning', projects.filter(p=>p.status==='Planning').length, '#3b82f6'], ['Tasks', tasks.length, '#f59e0b']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <button className="btn-primary" onClick={() => setShowForm(!showForm)} style={{ marginBottom: 16 }}>+ New Project</button>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Project name *" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+          <select className="input" value={form.department} onChange={e => setForm({...form, department: e.target.value})}><option>Marketing</option><option>Production</option><option>Sales</option><option>Distribution</option><option>Finance</option><option>Creative</option><option>Digital</option><option>PR</option><option>R&D</option><option>Cross-functional</option></select>
+          <textarea className="input" placeholder="Description" rows={2} value={form.description} onChange={e => setForm({...form, description: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <input className="input" placeholder="Owner" value={form.owner} onChange={e => setForm({...form, owner: e.target.value})} />
+          <input className="input" type="number" placeholder="Budget (₹)" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} />
+          <input className="input" type="date" value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} />
+          <input className="input" type="date" value={form.endDate} onChange={e => setForm({...form, endDate: e.target.value})} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addProject}>Create Project</button>
+      </div>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12 }}>
+        {projects.map(p => <div key={p.id} className="card" style={{ padding: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
+            <div><div style={{ fontWeight: 700, fontSize: 15 }}>{p.name}</div><div style={{ fontSize: 12, opacity: 0.5 }}>{p.department} • {p.owner || 'Unassigned'}</div></div>
+            <button onClick={() => deleteProject(p.id)} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button>
+          </div>
+          {p.description && <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 8 }}>{p.description}</div>}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12 }}>
+            <select className="input" style={{ fontSize: 11, padding: '2px 6px' }} value={p.status} onChange={e => updateStatus(p.id, e.target.value)}><option>Planning</option><option>Active</option><option>On Hold</option><option>Completed</option><option>Cancelled</option></select>
+            {p.budget > 0 && <span style={{ opacity: 0.5 }}>₹{p.budget.toLocaleString()}</span>}
+            {p.startDate && <span style={{ opacity: 0.5 }}>{p.startDate} → {p.endDate || '?'}</span>}
+          </div>
+        </div>)}
+      </div>
+    </div>
+  );
+}
+
+function OmenTimeline() {
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [goal, setGoal] = useState('');
+  const generateTimeline = async () => {
+    setAiLoading(true);
+    try {
+      const projects = JSON.parse(localStorage.getItem('protocol_omen_projects') || '[]');
+      const tasks = JSON.parse(localStorage.getItem('protocol_omen_tasks') || '[]');
+      const res = await callClaude(`You are a project management expert for an FMCG food brand (Kiro Foods India, pre-launch). Goal: "${goal || 'Full brand launch'}". Current projects: ${JSON.stringify(projects.slice(0,10))}. Current tasks: ${JSON.stringify(tasks.slice(0,20))}. Generate a comprehensive project timeline with: Gantt-style breakdown (in markdown table), critical path identification, dependencies between tasks, milestone markers, resource allocation suggestions, risk flags, weekly sprint breakdown for next 4 weeks. Include cross-departmental dependencies (Marketing, Production, Distribution, Finance).`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><CalendarDays size={22} /> Timeline Generator</h2>
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <p style={{ fontSize: 13, opacity: 0.7, marginBottom: 12 }}>AI-powered project timeline generator. Uses your projects and tasks data to create Gantt-style breakdowns with dependencies and critical paths.</p>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <input className="input" placeholder="Goal (e.g., Product launch in Q3, Marketing campaign)" value={goal} onChange={e => setGoal(e.target.value)} style={{ flex: 1 }} />
+          <button className="btn-primary" onClick={generateTimeline} disabled={aiLoading}>{aiLoading ? 'Generating...' : '✦ Generate Timeline'}</button>
+        </div>
+      </div>
+      {aiResult && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+function OmenMeetingNotes() {
+  const [meetings, setMeetings] = useState(() => JSON.parse(localStorage.getItem('protocol_omen_meetings') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ title: '', date: new Date().toISOString().slice(0,10), attendees: '', agenda: '', notes: '', actionItems: '', department: 'Cross-functional' });
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const save = (d) => { setMeetings(d); localStorage.setItem('protocol_omen_meetings', JSON.stringify(d)); };
+  const addMeeting = () => { if (!form.title) return; save([...meetings, { ...form, id: Date.now() }]); setForm({ title: '', date: new Date().toISOString().slice(0,10), attendees: '', agenda: '', notes: '', actionItems: '', department: 'Cross-functional' }); setShowForm(false); };
+  const deleteMeeting = (id) => save(meetings.filter(m => m.id !== id));
+  const generateMOM = async (meeting) => {
+    setAiLoading(true);
+    try {
+      const res = await callClaude(`You are an executive assistant for Kiro Foods India. Generate professional Minutes of Meeting (MOM) from these details: Title: ${meeting.title}, Date: ${meeting.date}, Attendees: ${meeting.attendees}, Agenda: ${meeting.agenda}, Notes: ${meeting.notes}. Format with: header, attendees list, agenda items discussed, key decisions, action items with owners and deadlines, next meeting date suggestion. Make it professional and actionable.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><FileText size={22} /> Meeting Notes</h2>
+      <button className="btn-primary" onClick={() => setShowForm(!showForm)} style={{ marginBottom: 16 }}>+ New Meeting</button>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Meeting title *" value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
+          <input className="input" type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
+          <input className="input" placeholder="Attendees" value={form.attendees} onChange={e => setForm({...form, attendees: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <textarea className="input" placeholder="Agenda" rows={2} value={form.agenda} onChange={e => setForm({...form, agenda: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <textarea className="input" placeholder="Notes" rows={3} value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <textarea className="input" placeholder="Action items" rows={2} value={form.actionItems} onChange={e => setForm({...form, actionItems: e.target.value})} style={{ gridColumn: 'span 2' }} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addMeeting}>Save Meeting</button>
+      </div>}
+      {aiResult && <div className="card" style={{ padding: 16, marginBottom: 16, maxHeight: 400, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+      <div style={{ display: 'grid', gap: 12 }}>
+        {meetings.sort((a,b) => b.date?.localeCompare(a.date)).map(m => <div key={m.id} className="card" style={{ padding: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+            <div><div style={{ fontWeight: 700 }}>{m.title}</div><div style={{ fontSize: 12, opacity: 0.5 }}>{m.date} • {m.attendees}</div></div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => generateMOM(m)} disabled={aiLoading} style={{ background: 'none', border: '1px solid #a855f7', color: '#a855f7', borderRadius: 4, padding: '2px 8px', fontSize: 11, cursor: 'pointer' }}>✦ MOM</button>
+              <button onClick={() => deleteMeeting(m.id)} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button>
+            </div>
+          </div>
+          {m.notes && <div style={{ fontSize: 12, opacity: 0.7, marginTop: 8 }}>{m.notes.slice(0, 200)}{m.notes.length > 200 ? '...' : ''}</div>}
+          {m.actionItems && <div style={{ fontSize: 12, marginTop: 6, padding: '6px 8px', background: 'rgba(168,85,247,0.1)', borderRadius: 4 }}><strong>Actions:</strong> {m.actionItems}</div>}
+        </div>)}
+      </div>
+    </div>
+  );
+}
+
+function OmenBriefBuilder() {
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [form, setForm] = useState({ type: 'Campaign Brief', objective: '', audience: '', budget: '', timeline: '', channels: '', notes: '' });
+  const generateBrief = async () => {
+    setAiLoading(true);
+    try {
+      const res = await callClaude(`You are a senior account manager at an FMCG marketing agency for Kiro Foods India (pre-launch clean-label RTE/RTC brand). Generate a professional ${form.type}. Details — Objective: ${form.objective}, Target Audience: ${form.audience}, Budget: ${form.budget || 'TBD'}, Timeline: ${form.timeline || 'TBD'}, Channels: ${form.channels || 'All'}, Additional Notes: ${form.notes}. Include: background, objective, target audience, key message, deliverables, KPIs, timeline, budget allocation, approval workflow. Make it agency-ready.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Feather size={22} /> Brief Builder</h2>
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <select className="input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}><option>Campaign Brief</option><option>Creative Brief</option><option>Media Brief</option><option>PR Brief</option><option>Digital Brief</option><option>Production Brief</option><option>Research Brief</option></select>
+          <input className="input" placeholder="Budget" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} />
+          <input className="input" placeholder="Objective *" value={form.objective} onChange={e => setForm({...form, objective: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <input className="input" placeholder="Target audience" value={form.audience} onChange={e => setForm({...form, audience: e.target.value})} />
+          <input className="input" placeholder="Timeline" value={form.timeline} onChange={e => setForm({...form, timeline: e.target.value})} />
+          <input className="input" placeholder="Channels" value={form.channels} onChange={e => setForm({...form, channels: e.target.value})} />
+          <input className="input" placeholder="Additional notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 12 }} onClick={generateBrief} disabled={aiLoading || !form.objective}>{aiLoading ? 'Generating...' : '✦ Generate Brief'}</button>
+      </div>
+      {aiResult && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+function OmenDependencyMap() {
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const generateMap = async () => {
+    setAiLoading(true);
+    try {
+      const projects = JSON.parse(localStorage.getItem('protocol_omen_projects') || '[]');
+      const tasks = JSON.parse(localStorage.getItem('protocol_omen_tasks') || '[]');
+      const partners = JSON.parse(localStorage.getItem('protocol_harbor_partners') || '[]');
+      const plans = JSON.parse(localStorage.getItem('protocol_deadlock_plans') || '[]');
+      const res = await callClaude(`You are a project management expert for Kiro Foods India. Map all cross-functional dependencies. Data: Projects: ${JSON.stringify(projects.slice(0,10))}. Tasks: ${JSON.stringify(tasks.slice(0,20))}. Distribution partners: ${partners.length} total. Production plans: ${JSON.stringify(plans.slice(0,10))}. Generate: dependency matrix between departments, critical blockers, bottleneck analysis, resource conflicts, recommended sequencing, risk register with probability and impact scores. Identify which tasks block others across Marketing, Production, Distribution, Finance. Format as actionable dependency report.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Waypoints size={22} /> Dependency Map</h2>
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <p style={{ fontSize: 13, opacity: 0.7, marginBottom: 12 }}>AI-powered cross-functional dependency analysis. Maps blockers between Marketing, Production, Distribution, and Finance using all agent data.</p>
+        <button className="btn-primary" onClick={generateMap} disabled={aiLoading}>{aiLoading ? 'Mapping...' : '✦ Generate Dependency Map'}</button>
+      </div>
+      {aiResult && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+function OmenSOWGenerator() {
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [form, setForm] = useState({ vendorName: '', scope: '', deliverables: '', timeline: '', budget: '', paymentTerms: '' });
+  const generateSOW = async () => {
+    setAiLoading(true);
+    try {
+      const res = await callClaude(`You are a procurement and project management expert for Kiro Foods India. Generate a professional Statement of Work (SOW). Vendor: ${form.vendorName}, Scope: ${form.scope}, Deliverables: ${form.deliverables}, Timeline: ${form.timeline || 'TBD'}, Budget: ${form.budget || 'TBD'}, Payment Terms: ${form.paymentTerms || 'milestone-based'}. Include: project overview, scope of work, deliverables with acceptance criteria, timeline/milestones, payment schedule, roles & responsibilities, assumptions, change management process, confidentiality, termination clause. Indian contract standards.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><FileCheck size={22} /> SOW Generator</h2>
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Vendor name *" value={form.vendorName} onChange={e => setForm({...form, vendorName: e.target.value})} />
+          <input className="input" placeholder="Budget" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} />
+          <textarea className="input" placeholder="Scope of work *" rows={2} value={form.scope} onChange={e => setForm({...form, scope: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <textarea className="input" placeholder="Deliverables" rows={2} value={form.deliverables} onChange={e => setForm({...form, deliverables: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <input className="input" placeholder="Timeline" value={form.timeline} onChange={e => setForm({...form, timeline: e.target.value})} />
+          <input className="input" placeholder="Payment terms" value={form.paymentTerms} onChange={e => setForm({...form, paymentTerms: e.target.value})} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 12 }} onClick={generateSOW} disabled={aiLoading || !form.vendorName}>{aiLoading ? 'Generating...' : '✦ Generate SOW'}</button>
+      </div>
+      {aiResult && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+// =============================================
+// SKYE — Influencer Management
+// =============================================
+
+function SkyeInfluencerDB() {
+  const [influencers, setInfluencers] = useState(() => JSON.parse(localStorage.getItem('protocol_skye_influencers') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filterTier, setFilterTier] = useState('All');
+  const [viewInfluencer, setViewInfluencer] = useState(null);
+  const [form, setForm] = useState({ name: '', handle: '', platform: 'Instagram', tier: 'Micro', niche: 'Food', followers: '', engagement: '', city: '', state: '', language: '', phone: '', email: '', rate: '', pastBrands: '', notes: '' });
+  const save = (d) => { setInfluencers(d); localStorage.setItem('protocol_skye_influencers', JSON.stringify(d)); };
+  const addInfluencer = () => { if (!form.name || !form.handle) return; save([...influencers, { ...form, id: Date.now(), followers: Number(form.followers) || 0, engagement: Number(form.engagement) || 0, rate: Number(form.rate) || 0, status: 'Prospect', createdAt: new Date().toISOString() }]); setForm({ name: '', handle: '', platform: 'Instagram', tier: 'Micro', niche: 'Food', followers: '', engagement: '', city: '', state: '', language: '', phone: '', email: '', rate: '', pastBrands: '', notes: '' }); setShowForm(false); };
+  const deleteInfluencer = (id) => save(influencers.filter(i => i.id !== id));
+  const tiers = ['All', 'Nano', 'Micro', 'Mid', 'Macro', 'Mega', 'Celebrity'];
+  const filtered = influencers.filter(i => (filterTier === 'All' || i.tier === filterTier) && (!search || i.name.toLowerCase().includes(search.toLowerCase()) || i.handle.toLowerCase().includes(search.toLowerCase())));
+  const totalReach = influencers.reduce((s, i) => s + i.followers, 0);
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Users size={22} /> Influencer Database</h2>
+      <div className="stats-row">{[['Total Influencers', influencers.length, '#a855f7'], ['Total Reach', totalReach > 1000000 ? (totalReach/1000000).toFixed(1) + 'M' : totalReach > 1000 ? (totalReach/1000).toFixed(0) + 'K' : totalReach, '#3b82f6'], ['Avg Engagement', influencers.length ? (influencers.reduce((s,i)=>s+i.engagement,0)/influencers.length).toFixed(1) + '%' : '0%', '#10b981'], ['Active', influencers.filter(i=>i.status==='Active').length, '#f59e0b']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <input className="input" placeholder="Search influencers..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1 }} />
+        <select className="input" value={filterTier} onChange={e => setFilterTier(e.target.value)} style={{ width: 120 }}>{tiers.map(t => <option key={t}>{t}</option>)}</select>
+        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>+ Add Influencer</button>
+      </div>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Name *" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+          <input className="input" placeholder="@handle *" value={form.handle} onChange={e => setForm({...form, handle: e.target.value})} />
+          <select className="input" value={form.platform} onChange={e => setForm({...form, platform: e.target.value})}><option>Instagram</option><option>YouTube</option><option>Twitter/X</option><option>LinkedIn</option><option>Facebook</option><option>Moj/Josh</option><option>Multiple</option></select>
+          <select className="input" value={form.tier} onChange={e => setForm({...form, tier: e.target.value})}><option>Nano</option><option>Micro</option><option>Mid</option><option>Macro</option><option>Mega</option><option>Celebrity</option></select>
+          <select className="input" value={form.niche} onChange={e => setForm({...form, niche: e.target.value})}><option>Food</option><option>Health/Fitness</option><option>Lifestyle</option><option>Cooking</option><option>Mom/Parenting</option><option>Regional Food</option><option>Nutrition</option><option>Entertainment</option><option>Tech</option></select>
+          <input className="input" type="number" placeholder="Followers" value={form.followers} onChange={e => setForm({...form, followers: e.target.value})} />
+          <input className="input" type="number" placeholder="Engagement %" value={form.engagement} onChange={e => setForm({...form, engagement: e.target.value})} />
+          <input className="input" placeholder="City" value={form.city} onChange={e => setForm({...form, city: e.target.value})} />
+          <input className="input" placeholder="Language" value={form.language} onChange={e => setForm({...form, language: e.target.value})} />
+          <input className="input" placeholder="Phone" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} />
+          <input className="input" placeholder="Email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+          <input className="input" type="number" placeholder="Rate per post (₹)" value={form.rate} onChange={e => setForm({...form, rate: e.target.value})} />
+          <input className="input" placeholder="Past brand collabs" value={form.pastBrands} onChange={e => setForm({...form, pastBrands: e.target.value})} style={{ gridColumn: 'span 2' }} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addInfluencer}>Save Influencer</button>
+      </div>}
+      {viewInfluencer && <div className="modal-overlay" onClick={() => setViewInfluencer(null)}><div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: 500 }}>
+        <h3>{viewInfluencer.name}</h3>
+        <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 12 }}>@{viewInfluencer.handle} • {viewInfluencer.platform} • {viewInfluencer.tier}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 13, marginBottom: 16 }}>
+          <div><span style={{opacity:0.5}}>Followers:</span> {viewInfluencer.followers?.toLocaleString()}</div>
+          <div><span style={{opacity:0.5}}>Engagement:</span> {viewInfluencer.engagement}%</div>
+          <div><span style={{opacity:0.5}}>Niche:</span> {viewInfluencer.niche}</div>
+          <div><span style={{opacity:0.5}}>City:</span> {viewInfluencer.city || '—'}</div>
+          <div><span style={{opacity:0.5}}>Language:</span> {viewInfluencer.language || '—'}</div>
+          <div><span style={{opacity:0.5}}>Rate:</span> ₹{viewInfluencer.rate?.toLocaleString() || '—'}/post</div>
+          <div style={{gridColumn:'span 2'}}><span style={{opacity:0.5}}>Past Brands:</span> {viewInfluencer.pastBrands || '—'}</div>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {viewInfluencer.phone && <a href={`tel:${viewInfluencer.phone}`} className="btn-primary" style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}><Phone size={14}/> Call</a>}
+          {viewInfluencer.phone && <a href={`https://wa.me/91${viewInfluencer.phone.replace(/\D/g,'')}`} target="_blank" className="btn-secondary" style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}>WhatsApp</a>}
+          {viewInfluencer.email && <a href={`mailto:${viewInfluencer.email}`} className="btn-secondary" style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}><Mail size={14}/> Email</a>}
+          <a href={`https://instagram.com/${viewInfluencer.handle.replace('@','')}`} target="_blank" className="btn-secondary" style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}><Instagram size={14}/> Profile</a>
+        </div>
+      </div></div>}
+      <div className="table-wrapper"><table className="data-table"><thead><tr><th>Name</th><th>Handle</th><th>Platform</th><th>Tier</th><th>Followers</th><th>ER%</th><th>Niche</th><th>Rate</th><th>Actions</th></tr></thead><tbody>
+        {filtered.map(i => <tr key={i.id} onClick={() => setViewInfluencer(i)} style={{ cursor: 'pointer' }}>
+          <td style={{fontWeight:600}}>{i.name}</td><td style={{opacity:0.7}}>@{i.handle}</td><td>{i.platform}</td>
+          <td><span style={{padding:'2px 6px',borderRadius:3,fontSize:10,background:i.tier==='Celebrity'?'#a855f7':i.tier==='Mega'?'#ef4444':i.tier==='Macro'?'#f59e0b':'#3b82f6',color:'#fff'}}>{i.tier}</span></td>
+          <td>{i.followers?.toLocaleString()}</td><td>{i.engagement}%</td><td>{i.niche}</td><td>₹{i.rate?.toLocaleString()}</td>
+          <td><button onClick={e => { e.stopPropagation(); deleteInfluencer(i.id); }} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button></td></tr>)}
+      </tbody></table></div>
+    </div>
+  );
+}
+
+function SkyeCampaignManager() {
+  const [campaigns, setCampaigns] = useState(() => JSON.parse(localStorage.getItem('protocol_skye_campaigns') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name: '', objective: '', platform: 'Instagram', type: 'Product Review', budget: '', startDate: '', endDate: '', hashtag: '', deliverables: '', status: 'Draft' });
+  const save = (d) => { setCampaigns(d); localStorage.setItem('protocol_skye_campaigns', JSON.stringify(d)); };
+  const addCampaign = () => { if (!form.name) return; save([...campaigns, { ...form, id: Date.now(), budget: Number(form.budget) || 0, influencers: [], createdAt: new Date().toISOString() }]); setForm({ name: '', objective: '', platform: 'Instagram', type: 'Product Review', budget: '', startDate: '', endDate: '', hashtag: '', deliverables: '', status: 'Draft' }); setShowForm(false); };
+  const updateStatus = (id, status) => save(campaigns.map(c => c.id === id ? { ...c, status } : c));
+  const deleteCampaign = (id) => save(campaigns.filter(c => c.id !== id));
+  const totalBudget = campaigns.reduce((s, c) => s + c.budget, 0);
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Megaphone size={22} /> Campaign Manager</h2>
+      <div className="stats-row">{[['Campaigns', campaigns.length, '#a855f7'], ['Active', campaigns.filter(c=>c.status==='Live').length, '#10b981'], ['Total Budget', '₹' + totalBudget.toLocaleString(), '#3b82f6']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <button className="btn-primary" onClick={() => setShowForm(!showForm)} style={{ marginBottom: 16 }}>+ New Campaign</button>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Campaign name *" value={form.name} onChange={e => setForm({...form, name: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <select className="input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}><option>Product Review</option><option>Brand Awareness</option><option>Recipe Creation</option><option>Unboxing</option><option>Giveaway</option><option>Event Coverage</option><option>Long-term Ambassador</option></select>
+          <input className="input" placeholder="Objective" value={form.objective} onChange={e => setForm({...form, objective: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <select className="input" value={form.platform} onChange={e => setForm({...form, platform: e.target.value})}><option>Instagram</option><option>YouTube</option><option>Twitter/X</option><option>Multi-platform</option></select>
+          <input className="input" type="number" placeholder="Budget (₹)" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} />
+          <input className="input" type="date" value={form.startDate} onChange={e => setForm({...form, startDate: e.target.value})} />
+          <input className="input" type="date" value={form.endDate} onChange={e => setForm({...form, endDate: e.target.value})} />
+          <input className="input" placeholder="#hashtag" value={form.hashtag} onChange={e => setForm({...form, hashtag: e.target.value})} />
+          <input className="input" placeholder="Deliverables (e.g., 2 reels + 3 stories)" value={form.deliverables} onChange={e => setForm({...form, deliverables: e.target.value})} style={{ gridColumn: 'span 2' }} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addCampaign}>Create Campaign</button>
+      </div>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+        {campaigns.map(c => <div key={c.id} className="card" style={{ padding: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+            <div><div style={{ fontWeight: 700 }}>{c.name}</div><div style={{ fontSize: 12, opacity: 0.5 }}>{c.type} • {c.platform} {c.hashtag ? '• ' + c.hashtag : ''}</div></div>
+            <button onClick={() => deleteCampaign(c.id)} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button>
+          </div>
+          {c.objective && <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>{c.objective}</div>}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8, fontSize: 12 }}>
+            <select className="input" style={{ fontSize: 11, padding: '2px 6px' }} value={c.status} onChange={e => updateStatus(c.id, e.target.value)}><option>Draft</option><option>Outreach</option><option>Negotiation</option><option>Live</option><option>Completed</option><option>Cancelled</option></select>
+            {c.budget > 0 && <span style={{ opacity: 0.5 }}>₹{c.budget.toLocaleString()}</span>}
+            {c.startDate && <span style={{ opacity: 0.5 }}>{c.startDate} → {c.endDate || '?'}</span>}
+          </div>
+        </div>)}
+      </div>
+    </div>
+  );
+}
+
+function SkyeOutreach() {
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [form, setForm] = useState({ influencerName: '', platform: 'Instagram', campaignType: 'Product Review', product: '', budget: '', tone: 'Professional' });
+  const generateOutreach = async () => {
+    setAiLoading(true);
+    try {
+      const res = await callClaude(`You are an influencer marketing manager for Kiro Foods India (clean-label RTE/RTC brand). Generate personalized outreach messages for influencer: ${form.influencerName}. Platform: ${form.platform}. Campaign: ${form.campaignType}. Product: ${form.product || 'Kiro Foods range'}. Budget: ${form.budget || 'negotiable'}. Tone: ${form.tone}. Generate: 1) Initial DM (short, catchy, personalized), 2) Formal email pitch, 3) Follow-up message, 4) Negotiation template, 5) Contract terms template. Include talking points about clean-label, health-conscious, Indian flavors. Make each message feel genuine, not templated.`, SYSTEM_PROMPTS.creative);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Send size={22} /> Outreach Templates</h2>
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Influencer name *" value={form.influencerName} onChange={e => setForm({...form, influencerName: e.target.value})} />
+          <select className="input" value={form.platform} onChange={e => setForm({...form, platform: e.target.value})}><option>Instagram</option><option>YouTube</option><option>Twitter/X</option></select>
+          <select className="input" value={form.campaignType} onChange={e => setForm({...form, campaignType: e.target.value})}><option>Product Review</option><option>Recipe Creation</option><option>Brand Ambassador</option><option>Unboxing</option><option>Giveaway</option><option>Event</option></select>
+          <input className="input" placeholder="Product" value={form.product} onChange={e => setForm({...form, product: e.target.value})} />
+          <input className="input" placeholder="Budget per post (₹)" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} />
+          <select className="input" value={form.tone} onChange={e => setForm({...form, tone: e.target.value})}><option>Professional</option><option>Casual</option><option>Enthusiastic</option><option>Premium</option></select>
+        </div>
+        <button className="btn-primary" style={{ marginTop: 12 }} onClick={generateOutreach} disabled={aiLoading || !form.influencerName}>{aiLoading ? 'Generating...' : '✦ Generate Outreach Pack'}</button>
+      </div>
+      {aiResult && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+function SkyeROITracker() {
+  const [entries, setEntries] = useState(() => JSON.parse(localStorage.getItem('protocol_skye_roi') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ influencer: '', campaign: '', amountPaid: '', impressions: '', reach: '', likes: '', comments: '', shares: '', saves: '', clicks: '', conversions: '', revenue: '' });
+  const save = (d) => { setEntries(d); localStorage.setItem('protocol_skye_roi', JSON.stringify(d)); };
+  const addEntry = () => { if (!form.influencer || !form.amountPaid) return; save([...entries, { ...form, id: Date.now(), amountPaid: Number(form.amountPaid), impressions: Number(form.impressions) || 0, reach: Number(form.reach) || 0, likes: Number(form.likes) || 0, comments: Number(form.comments) || 0, shares: Number(form.shares) || 0, saves: Number(form.saves) || 0, clicks: Number(form.clicks) || 0, conversions: Number(form.conversions) || 0, revenue: Number(form.revenue) || 0, date: new Date().toISOString() }]); setForm({ influencer: '', campaign: '', amountPaid: '', impressions: '', reach: '', likes: '', comments: '', shares: '', saves: '', clicks: '', conversions: '', revenue: '' }); setShowForm(false); };
+  const deleteEntry = (id) => save(entries.filter(e => e.id !== id));
+  const totalSpend = entries.reduce((s, e) => s + e.amountPaid, 0);
+  const totalRevenue = entries.reduce((s, e) => s + e.revenue, 0);
+  const totalImpressions = entries.reduce((s, e) => s + e.impressions, 0);
+  const cpm = totalImpressions ? ((totalSpend / totalImpressions) * 1000).toFixed(2) : 0;
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><TrendingUp size={22} /> ROI Tracker</h2>
+      <div className="stats-row">{[['Total Spend', '₹' + totalSpend.toLocaleString(), '#ef4444'], ['Revenue', '₹' + totalRevenue.toLocaleString(), '#10b981'], ['ROI', totalSpend ? ((totalRevenue - totalSpend) / totalSpend * 100).toFixed(0) + '%' : '0%', totalRevenue > totalSpend ? '#10b981' : '#ef4444'], ['CPM', '₹' + cpm, '#3b82f6']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <button className="btn-primary" onClick={() => setShowForm(!showForm)} style={{ marginBottom: 16 }}>+ Log Performance</button>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Influencer *" value={form.influencer} onChange={e => setForm({...form, influencer: e.target.value})} />
+          <input className="input" placeholder="Campaign" value={form.campaign} onChange={e => setForm({...form, campaign: e.target.value})} />
+          <input className="input" type="number" placeholder="Amount paid (₹) *" value={form.amountPaid} onChange={e => setForm({...form, amountPaid: e.target.value})} />
+          <input className="input" type="number" placeholder="Impressions" value={form.impressions} onChange={e => setForm({...form, impressions: e.target.value})} />
+          <input className="input" type="number" placeholder="Reach" value={form.reach} onChange={e => setForm({...form, reach: e.target.value})} />
+          <input className="input" type="number" placeholder="Likes" value={form.likes} onChange={e => setForm({...form, likes: e.target.value})} />
+          <input className="input" type="number" placeholder="Comments" value={form.comments} onChange={e => setForm({...form, comments: e.target.value})} />
+          <input className="input" type="number" placeholder="Shares" value={form.shares} onChange={e => setForm({...form, shares: e.target.value})} />
+          <input className="input" type="number" placeholder="Link clicks" value={form.clicks} onChange={e => setForm({...form, clicks: e.target.value})} />
+          <input className="input" type="number" placeholder="Conversions" value={form.conversions} onChange={e => setForm({...form, conversions: e.target.value})} />
+          <input className="input" type="number" placeholder="Revenue (₹)" value={form.revenue} onChange={e => setForm({...form, revenue: e.target.value})} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addEntry}>Save</button>
+      </div>}
+      <div className="table-wrapper"><table className="data-table"><thead><tr><th>Influencer</th><th>Campaign</th><th>Paid</th><th>Impressions</th><th>Engagement</th><th>Clicks</th><th>Revenue</th><th>ROI</th><th>Del</th></tr></thead><tbody>
+        {entries.map(e => { const eng = e.likes + e.comments + e.shares + e.saves; const roi = e.amountPaid ? ((e.revenue - e.amountPaid) / e.amountPaid * 100).toFixed(0) : 0; return <tr key={e.id}>
+          <td style={{fontWeight:600}}>{e.influencer}</td><td>{e.campaign || '—'}</td><td>₹{e.amountPaid.toLocaleString()}</td><td>{e.impressions.toLocaleString()}</td>
+          <td>{eng.toLocaleString()}</td><td>{e.clicks}</td><td>₹{e.revenue.toLocaleString()}</td>
+          <td style={{color: Number(roi) >= 0 ? '#10b981' : '#ef4444', fontWeight: 600}}>{roi}%</td>
+          <td><button onClick={() => deleteEntry(e.id)} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button></td></tr>; })}
+      </tbody></table></div>
+    </div>
+  );
+}
+
+function SkyeContentApproval() {
+  const [posts, setPosts] = useState(() => JSON.parse(localStorage.getItem('protocol_skye_approvals') || '[]'));
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ influencer: '', campaign: '', contentType: 'Reel', caption: '', hashtags: '', status: 'Pending Review', feedback: '' });
+  const save = (d) => { setPosts(d); localStorage.setItem('protocol_skye_approvals', JSON.stringify(d)); };
+  const addPost = () => { if (!form.influencer) return; save([...posts, { ...form, id: Date.now(), submittedAt: new Date().toISOString() }]); setForm({ influencer: '', campaign: '', contentType: 'Reel', caption: '', hashtags: '', status: 'Pending Review', feedback: '' }); setShowForm(false); };
+  const updateStatus = (id, status) => save(posts.map(p => p.id === id ? { ...p, status } : p));
+  const deletePost = (id) => save(posts.filter(p => p.id !== id));
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Eye size={22} /> Content Approval</h2>
+      <div className="stats-row">{[['Total', posts.length, '#a855f7'], ['Pending', posts.filter(p=>p.status==='Pending Review').length, '#f59e0b'], ['Approved', posts.filter(p=>p.status==='Approved').length, '#10b981'], ['Revision', posts.filter(p=>p.status==='Needs Revision').length, '#ef4444']].map(([l,v,c]) => <div key={l} className="stat-card"><div style={{fontSize:12,opacity:0.6}}>{l}</div><div style={{fontSize:24,fontWeight:700,color:c}}>{v}</div></div>)}</div>
+      <button className="btn-primary" onClick={() => setShowForm(!showForm)} style={{ marginBottom: 16 }}>+ Submit Content</button>
+      {showForm && <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Influencer *" value={form.influencer} onChange={e => setForm({...form, influencer: e.target.value})} />
+          <input className="input" placeholder="Campaign" value={form.campaign} onChange={e => setForm({...form, campaign: e.target.value})} />
+          <select className="input" value={form.contentType} onChange={e => setForm({...form, contentType: e.target.value})}><option>Reel</option><option>Story</option><option>Post</option><option>Video</option><option>Blog</option><option>Tweet</option></select>
+          <textarea className="input" placeholder="Caption / script" rows={3} value={form.caption} onChange={e => setForm({...form, caption: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <input className="input" placeholder="#hashtags" value={form.hashtags} onChange={e => setForm({...form, hashtags: e.target.value})} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 10 }} onClick={addPost}>Submit for Review</button>
+      </div>}
+      <div style={{ display: 'grid', gap: 12 }}>
+        {posts.sort((a,b) => b.submittedAt?.localeCompare(a.submittedAt)).map(p => <div key={p.id} className="card" style={{ padding: 16, borderLeft: `3px solid ${p.status==='Approved'?'#10b981':p.status==='Needs Revision'?'#ef4444':'#f59e0b'}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+            <div><div style={{ fontWeight: 600 }}>{p.influencer} — {p.contentType}</div><div style={{ fontSize: 12, opacity: 0.5 }}>{p.campaign} • {new Date(p.submittedAt).toLocaleDateString()}</div></div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <select className="input" style={{ fontSize: 11, padding: '2px 6px' }} value={p.status} onChange={e => updateStatus(p.id, e.target.value)}><option>Pending Review</option><option>Approved</option><option>Needs Revision</option><option>Published</option></select>
+              <button onClick={() => deletePost(p.id)} style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}}><Trash2 size={14}/></button>
+            </div>
+          </div>
+          {p.caption && <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6, background: 'rgba(255,255,255,0.03)', padding: 8, borderRadius: 4 }}>{p.caption}</div>}
+          {p.hashtags && <div style={{ fontSize: 11, color: '#3b82f6', marginTop: 4 }}>{p.hashtags}</div>}
+        </div>)}
+      </div>
+    </div>
+  );
+}
+
+function SkyeDiscovery() {
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [form, setForm] = useState({ niche: 'Food', platform: 'Instagram', tier: 'Micro', region: '', budget: '', objective: '' });
+  const discover = async () => {
+    setAiLoading(true);
+    try {
+      const existing = JSON.parse(localStorage.getItem('protocol_skye_influencers') || '[]');
+      const res = await callClaude(`You are an influencer marketing strategist for Kiro Foods India (clean-label RTE/RTC food brand). Find and recommend influencers matching: Niche: ${form.niche}, Platform: ${form.platform}, Tier: ${form.tier}, Region: ${form.region || 'Pan-India'}, Budget: ${form.budget || 'Flexible'}, Objective: ${form.objective || 'Brand awareness'}. Already working with: ${existing.map(e=>e.handle).join(', ') || 'None'}. For each recommendation provide: suggested search criteria, type of content creator to look for, engagement benchmarks for the tier, rate card expectations in India, outreach approach, content format suggestions, and how they fit into Kiro Foods' brand positioning. Also suggest emerging platforms (Moj, Josh, ShareChat) for regional reach. Recommend 10-15 profile types.`, SYSTEM_PROMPTS.creative);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Search size={22} /> Influencer Discovery</h2>
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <select className="input" value={form.niche} onChange={e => setForm({...form, niche: e.target.value})}><option>Food</option><option>Health/Fitness</option><option>Cooking</option><option>Lifestyle</option><option>Mom/Parenting</option><option>Regional Food</option><option>Nutrition</option></select>
+          <select className="input" value={form.platform} onChange={e => setForm({...form, platform: e.target.value})}><option>Instagram</option><option>YouTube</option><option>Twitter/X</option><option>Moj/Josh</option><option>ShareChat</option><option>Multi-platform</option></select>
+          <select className="input" value={form.tier} onChange={e => setForm({...form, tier: e.target.value})}><option>Nano</option><option>Micro</option><option>Mid</option><option>Macro</option><option>Mega</option><option>Mix</option></select>
+          <input className="input" placeholder="Region (e.g., Mumbai, South India)" value={form.region} onChange={e => setForm({...form, region: e.target.value})} />
+          <input className="input" placeholder="Budget per influencer (₹)" value={form.budget} onChange={e => setForm({...form, budget: e.target.value})} />
+          <input className="input" placeholder="Objective" value={form.objective} onChange={e => setForm({...form, objective: e.target.value})} />
+        </div>
+        <button className="btn-primary" style={{ marginTop: 12 }} onClick={discover} disabled={aiLoading}>{aiLoading ? 'Discovering...' : '✦ Discover Influencers'}</button>
+      </div>
+      {aiResult && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+function SkyeContractGen() {
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [form, setForm] = useState({ influencerName: '', platform: 'Instagram', deliverables: '', compensation: '', duration: '', exclusivity: 'Non-exclusive', usageRights: '6 months' });
+  const generateContract = async () => {
+    setAiLoading(true);
+    try {
+      const res = await callClaude(`You are a legal expert specializing in influencer marketing contracts in India. Generate a professional influencer collaboration agreement. Brand: Kiro Foods India Pvt Ltd. Influencer: ${form.influencerName}. Platform: ${form.platform}. Deliverables: ${form.deliverables}. Compensation: ₹${form.compensation}. Duration: ${form.duration || '30 days'}. Exclusivity: ${form.exclusivity}. Content usage rights: ${form.usageRights}. Include: parties, scope of work, content guidelines, approval process, payment terms, content ownership & usage rights, exclusivity clause, FTC/ASCI disclosure requirements, confidentiality, termination, dispute resolution (Indian Arbitration Act), governing law. Make it legally sound for Indian jurisdiction.`, SYSTEM_PROMPTS.strategy);
+      setAiResult(res);
+    } catch(e) { setAiResult('Error: ' + e.message); }
+    setAiLoading(false);
+  };
+  return (
+    <div className="tool-page"><h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><FileText size={22} /> Contract Generator</h2>
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <input className="input" placeholder="Influencer name *" value={form.influencerName} onChange={e => setForm({...form, influencerName: e.target.value})} />
+          <select className="input" value={form.platform} onChange={e => setForm({...form, platform: e.target.value})}><option>Instagram</option><option>YouTube</option><option>Twitter/X</option><option>Multi-platform</option></select>
+          <input className="input" placeholder="Deliverables (e.g., 3 reels + 5 stories)" value={form.deliverables} onChange={e => setForm({...form, deliverables: e.target.value})} style={{ gridColumn: 'span 2' }} />
+          <input className="input" placeholder="Compensation (₹)" value={form.compensation} onChange={e => setForm({...form, compensation: e.target.value})} />
+          <input className="input" placeholder="Duration (e.g., 30 days, 3 months)" value={form.duration} onChange={e => setForm({...form, duration: e.target.value})} />
+          <select className="input" value={form.exclusivity} onChange={e => setForm({...form, exclusivity: e.target.value})}><option>Non-exclusive</option><option>Category exclusive (food)</option><option>Full exclusive</option></select>
+          <select className="input" value={form.usageRights} onChange={e => setForm({...form, usageRights: e.target.value})}><option>Campaign only</option><option>3 months</option><option>6 months</option><option>1 year</option><option>Perpetual</option></select>
+        </div>
+        <button className="btn-primary" style={{ marginTop: 12 }} onClick={generateContract} disabled={aiLoading || !form.influencerName}>{aiLoading ? 'Generating...' : '✦ Generate Contract'}</button>
+      </div>
+      {aiResult && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{aiResult}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+// =============================================
 // USER MANAGEMENT / ADMIN PANEL
 // =============================================
 const ALL_TOOLS = [
@@ -9307,6 +9863,20 @@ const ALL_TOOLS = [
   { id: 'kayo-cashflow', label: 'Cash Flow', section: 'KAY/O' },
   { id: 'kayo-budgets', label: 'Budget Tracker', section: 'KAY/O' },
   { id: 'kayo-margins', label: 'Margin Analysis', section: 'KAY/O' },
+  { id: 'omen-tasks', label: 'Task Board', section: 'Omen' },
+  { id: 'omen-projects', label: 'Project Tracker', section: 'Omen' },
+  { id: 'omen-timeline', label: 'Timeline', section: 'Omen' },
+  { id: 'omen-meetings', label: 'Meeting Notes', section: 'Omen' },
+  { id: 'omen-briefs', label: 'Brief Builder', section: 'Omen' },
+  { id: 'omen-dependencies', label: 'Dependencies', section: 'Omen' },
+  { id: 'omen-sow', label: 'SOW Generator', section: 'Omen' },
+  { id: 'skye-influencers', label: 'Influencer DB', section: 'Skye' },
+  { id: 'skye-campaigns', label: 'Campaigns', section: 'Skye' },
+  { id: 'skye-outreach', label: 'Outreach', section: 'Skye' },
+  { id: 'skye-roi', label: 'ROI Tracker', section: 'Skye' },
+  { id: 'skye-approvals', label: 'Content Approval', section: 'Skye' },
+  { id: 'skye-discovery', label: 'Discovery', section: 'Skye' },
+  { id: 'skye-contracts', label: 'Contracts', section: 'Skye' },
   { id: 'settings', label: 'Settings', section: 'Lobby' },
 ];
 
@@ -10746,6 +11316,8 @@ export default function App() {
         harbor: "I control the tide.",
         deadlock: "No one escapes my grasp.",
         kayo: "No more tricks.",
+        omen: "I am everywhere.",
+        skye: "Seek them out!",
         lobby: "Choose your agent."
       };
       const line = lines[agent];
@@ -11216,6 +11788,66 @@ export default function App() {
           tone.start(now + 0.22); tone.stop(now + 0.35);
         },
 
+        omen: () => {
+          // SHADOW CONTROLLER: Dark portal whoosh → eerie whisper tone → void echo
+          // Dark portal — descending filtered noise
+          const portal = ctx.createOscillator(); const pG = ctx.createGain();
+          const pF = ctx.createBiquadFilter();
+          portal.type = 'sawtooth'; portal.frequency.setValueAtTime(800, now);
+          portal.frequency.exponentialRampToValueAtTime(100, now + 0.2);
+          pF.type = 'lowpass'; pF.frequency.setValueAtTime(600, now);
+          pF.frequency.exponentialRampToValueAtTime(150, now + 0.2);
+          pG.gain.setValueAtTime(0.08, now);
+          pG.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          portal.connect(pF); pF.connect(pG); pG.connect(ctx.destination);
+          portal.start(now); portal.stop(now + 0.25);
+          // Eerie whisper — high sine with tremolo
+          const whisp = ctx.createOscillator(); const wG = ctx.createGain();
+          whisp.type = 'sine'; whisp.frequency.setValueAtTime(1600, now + 0.1);
+          whisp.frequency.linearRampToValueAtTime(1200, now + 0.3);
+          wG.gain.setValueAtTime(0.04, now + 0.1);
+          wG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          whisp.connect(wG); wG.connect(ctx.destination);
+          whisp.start(now + 0.1); whisp.stop(now + 0.35);
+          // Void echo — deep reverb hit
+          const echo = ctx.createOscillator(); const eG = ctx.createGain();
+          echo.type = 'sine'; echo.frequency.setValueAtTime(80, now + 0.05);
+          eG.gain.setValueAtTime(0.1, now + 0.05);
+          eG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          echo.connect(eG); eG.connect(ctx.destination);
+          echo.start(now + 0.05); echo.stop(now + 0.3);
+        },
+
+        skye: () => {
+          // NATURE INITIATOR: Bird call chirp → forest wind whoosh → hawk screech
+          // Bird chirp — quick ascending trill
+          const chirp = ctx.createOscillator(); const cG = ctx.createGain();
+          chirp.type = 'sine'; chirp.frequency.setValueAtTime(2000, now);
+          chirp.frequency.exponentialRampToValueAtTime(3500, now + 0.06);
+          chirp.frequency.exponentialRampToValueAtTime(2200, now + 0.1);
+          cG.gain.setValueAtTime(0.1, now);
+          cG.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+          chirp.connect(cG); cG.connect(ctx.destination);
+          chirp.start(now); chirp.stop(now + 0.12);
+          // Second chirp
+          const chirp2 = ctx.createOscillator(); const c2G = ctx.createGain();
+          chirp2.type = 'sine'; chirp2.frequency.setValueAtTime(2400, now + 0.08);
+          chirp2.frequency.exponentialRampToValueAtTime(3800, now + 0.14);
+          c2G.gain.setValueAtTime(0.08, now + 0.08);
+          c2G.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+          chirp2.connect(c2G); c2G.connect(ctx.destination);
+          chirp2.start(now + 0.08); chirp2.stop(now + 0.16);
+          // Nature wind — filtered noise texture
+          const wind = ctx.createOscillator(); const wG = ctx.createGain();
+          const wF = ctx.createBiquadFilter();
+          wind.type = 'sawtooth'; wind.frequency.setValueAtTime(200, now + 0.12);
+          wF.type = 'bandpass'; wF.frequency.setValueAtTime(800, now); wF.Q.setValueAtTime(1, now);
+          wG.gain.setValueAtTime(0.04, now + 0.12);
+          wG.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          wind.connect(wF); wF.connect(wG); wG.connect(ctx.destination);
+          wind.start(now + 0.12); wind.stop(now + 0.3);
+        },
+
         lobby: () => {
           // HOME BASE: Clean menu open → ambient system hum → ready indicator
           // Menu open — two-note chime (like Valorant main menu)
@@ -11479,6 +12111,32 @@ export default function App() {
       ]
     },
     {
+      title: 'Omen', icon: Ghost, agentFace: 'omen',
+      subtitle: 'Controller — task & project management',
+      items: [
+        { path: '/omen-tasks', icon: FolderKanban, label: 'Task Board' },
+        { path: '/omen-projects', icon: Layers, label: 'Project Tracker' },
+        { path: '/omen-timeline', icon: CalendarDays, label: 'Timeline' },
+        { path: '/omen-meetings', icon: StickyNote, label: 'Meeting Notes' },
+        { path: '/omen-briefs', icon: Feather, label: 'Brief Builder' },
+        { path: '/omen-dependencies', icon: Waypoints, label: 'Dependencies' },
+        { path: '/omen-sow', icon: FileCheck, label: 'SOW Generator' },
+      ]
+    },
+    {
+      title: 'Skye', icon: Bird, agentFace: 'skye',
+      subtitle: 'Initiator — influencer management',
+      items: [
+        { path: '/skye-influencers', icon: Users, label: 'Influencer DB' },
+        { path: '/skye-campaigns', icon: Megaphone, label: 'Campaigns' },
+        { path: '/skye-outreach', icon: Send, label: 'Outreach' },
+        { path: '/skye-roi', icon: TrendingUp, label: 'ROI Tracker' },
+        { path: '/skye-approvals', icon: Eye, label: 'Content Approval' },
+        { path: '/skye-discovery', icon: Search, label: 'Discovery' },
+        { path: '/skye-contracts', icon: FileText, label: 'Contracts' },
+      ]
+    },
+    {
       title: 'Lobby', icon: Settings, agentFace: 'lobby',
       subtitle: 'Home base — settings, sync & admin',
       items: [
@@ -11696,6 +12354,20 @@ export default function App() {
             <Route path="/kayo-cashflow" element={<KayoCashFlow />} />
             <Route path="/kayo-budgets" element={<KayoBudgetTracker />} />
             <Route path="/kayo-margins" element={<KayoMarginAnalysis />} />
+            <Route path="/omen-tasks" element={<OmenTaskBoard />} />
+            <Route path="/omen-projects" element={<OmenProjectTracker />} />
+            <Route path="/omen-timeline" element={<OmenTimeline />} />
+            <Route path="/omen-meetings" element={<OmenMeetingNotes />} />
+            <Route path="/omen-briefs" element={<OmenBriefBuilder />} />
+            <Route path="/omen-dependencies" element={<OmenDependencyMap />} />
+            <Route path="/omen-sow" element={<OmenSOWGenerator />} />
+            <Route path="/skye-influencers" element={<SkyeInfluencerDB />} />
+            <Route path="/skye-campaigns" element={<SkyeCampaignManager />} />
+            <Route path="/skye-outreach" element={<SkyeOutreach />} />
+            <Route path="/skye-roi" element={<SkyeROITracker />} />
+            <Route path="/skye-approvals" element={<SkyeContentApproval />} />
+            <Route path="/skye-discovery" element={<SkyeDiscovery />} />
+            <Route path="/skye-contracts" element={<SkyeContractGen />} />
             {isAdmin && <Route path="/admin-panel" element={<AdminPanel />} />}
             {isAdmin && <Route path="/user-management" element={<UserManagement />} />}
             <Route path="/settings" element={<SettingsPage />} />
