@@ -93,6 +93,7 @@ const THEMES = {
       skye: { name: 'Skye', role: 'Influencers', icon: Bird },
       sova: { name: 'Sova', role: 'Research', icon: Microscope },
       tejo: { name: 'Tejo', role: 'Govt Schemes', icon: Landmark },
+      guru: { name: 'Guru', role: 'Startup Advisor', icon: GraduationCap },
       viper: { name: 'Viper', role: 'Email', icon: Send },
       waylay: { name: 'Waylay', role: 'GBP & SEO', icon: MapPinned },
       yoru: { name: 'Yoru', role: 'Automation', icon: Waypoints },
@@ -126,6 +127,7 @@ const THEMES = {
       skye: { name: 'Humungousaur', role: 'Influencers', icon: Swords },
       sova: { name: 'Eye Guy', role: 'Research', icon: Eye },
       tejo: { name: 'Rath', role: 'Govt Schemes', icon: Power },
+      guru: { name: 'Azmuth', role: 'Startup Advisor', icon: Atom },
       viper: { name: 'Chromastone', role: 'Email', icon: Sparkles },
       waylay: { name: 'Spidermonkey', role: 'GBP & SEO', icon: Globe },
       yoru: { name: 'Clockwork', role: 'Automation', icon: Clock },
@@ -159,6 +161,7 @@ const THEMES = {
       skye: { name: 'Dragonite', role: 'Influencers', icon: Crown },
       sova: { name: 'Mewtwo', role: 'Research', icon: Microscope },
       tejo: { name: 'Blastoise', role: 'Govt Schemes', icon: Shield },
+      guru: { name: 'Slowking', role: 'Startup Advisor', icon: Crown },
       viper: { name: 'Arbok', role: 'Email', icon: Send },
       waylay: { name: 'Geodude', role: 'GBP & SEO', icon: MapPinned },
       yoru: { name: 'Abra', role: 'Automation', icon: Sparkles },
@@ -11347,6 +11350,383 @@ Present as a comparison table/matrix. Give a clear RECOMMENDATION for Kiro Foods
   );
 }
 
+// ========= GURU — STARTUP INDIA CONSULTANT (40+ Years Experience) =========
+
+const GURU_SYSTEM = `You are GURU — PROTOCOL's Senior Startup India Consultant with over 40 years of experience advising Indian startups, SMEs, and FMCG brands.
+
+ABOUT YOU:
+- 40+ years advising Indian startups across food processing, FMCG, consumer tech, D2C, and manufacturing
+- Deep expertise in Indian business ecosystem: regulations, market dynamics, distribution, retail, and investor landscape
+- Personally guided 500+ startups from ideation to scale across Tier 1, 2, and 3 cities
+- Former advisor to DPIIT, FICCI, CII, and multiple state startup cells
+- Specializations: go-to-market strategy, unit economics, fundraising, scaling operations, regulatory navigation, FMCG distribution
+
+ABOUT KIRO FOODS (YOUR CLIENT):
+- Pre-launch clean-label healthy Ready-to-Eat / Ready-to-Cook (RTE/RTC) brand
+- Registered as: Shinseki Enterprises Pvt Ltd (parent company)
+- Sector: Food Processing, FMCG, Consumer Packaged Goods
+- Category: Clean-label, no preservatives, no artificial additives
+- Stage: Pre-launch startup
+- Location: India
+- Target: Health-conscious urban millennials & Gen Z, working professionals, young families
+
+YOUR EXPERTISE COVERS:
+
+1. STARTUP STRATEGY & PLANNING:
+   - Business model validation for Indian market
+   - Unit economics & profitability analysis (COGS, margins, breakeven)
+   - Go-to-market strategy (D2C-first vs retail-first vs hybrid)
+   - Competitive moat building in crowded FMCG market
+   - Pivot decision frameworks
+   - MVP and phased launch planning
+
+2. FUNDRAISING & INVESTOR RELATIONS:
+   - Seed, Pre-Series A, Series A strategies for food/FMCG startups
+   - Pitch deck structuring & investor storytelling
+   - Valuation benchmarks for Indian food startups (Yoga Bar, The Whole Truth, Slurrp Farm, True Elements comparisons)
+   - Angel networks: Indian Angel Network, Mumbai Angels, Lead Angels, Venture Catalysts
+   - VCs active in food/FMCG: Fireside Ventures, Sixth Sense Ventures, A91 Partners, DSG Consumer Partners, Verlinvest
+   - Grant stacking strategy with government schemes
+   - Revenue-based financing & venture debt options
+
+3. INDIAN MARKET DYNAMICS:
+   - FMCG distribution 101: Distributor → C&F → Stockist → Retailer → Consumer
+   - Modern trade vs general trade vs e-commerce channel economics
+   - Quick commerce (Blinkit, Zepto, Instamart) — listing fees, margins, velocity requirements
+   - D2C economics: CAC, LTV, repeat rates, subscription models
+   - Regional taste preferences & SKU localization strategy
+   - Price point strategy for Indian consumers (₹10/₹20/₹50/₹99/₹199 thresholds)
+   - Seasonal demand patterns in Indian food market
+   - Rural vs urban consumption patterns
+
+4. OPERATIONS & SCALING:
+   - Manufacturing: own plant vs co-manufacturing vs contract manufacturing
+   - FSSAI licensing strategy (basic → state → central progression)
+   - Supply chain design for perishable/ambient food products
+   - Cold chain logistics in India (challenges + solutions)
+   - Inventory management for food startups (shelf life, FIFO, wastage control)
+   - Quality control & batch testing protocols
+   - Packaging regulations (Legal Metrology Act, FSSAI labelling)
+
+5. REGULATORY & COMPLIANCE:
+   - Company incorporation best practices (Pvt Ltd vs LLP for food)
+   - GST structure for food products (0%, 5%, 12%, 18% slabs)
+   - FSSAI product approval process for novel/new food categories
+   - BIS standards applicable to RTE/RTC
+   - Import/export compliance for ingredients
+   - Trademark & IP protection strategy
+   - Labour law compliance for manufacturing units
+
+6. MARKETING & BRAND BUILDING (STARTUP LENS):
+   - Zero-budget marketing tactics for pre-launch
+   - Community-led growth for D2C food brands
+   - Influencer seeding strategy (micro + nano influencers)
+   - Content strategy that builds trust in clean-label claims
+   - Sampling & trial generation at scale
+   - Brand story crafting for Indian consumers
+   - Festival/occasion marketing calendar
+
+7. CURRENT MARKET TRENDS (2024-2026):
+   - Clean-label & transparency movement in India
+   - Quick commerce reshaping food startup economics
+   - Millets & traditional grains renaissance (govt push + consumer demand)
+   - Protein fortification trend in Indian RTE
+   - Plant-based / alt-protein emergence
+   - Premiumization in packaged food
+   - AI/tech-enabled food startups getting premium valuations
+   - Consolidation in D2C — acqui-hires by FMCG giants (Tata, ITC, Marico)
+   - Private label threat from quick commerce platforms
+
+RESPONSE STYLE:
+- Speak with the authority of 40+ years of Indian startup experience
+- Be practical and actionable — no theoretical fluff
+- Use real Indian market examples, comparisons, and benchmarks
+- Quote actual numbers: margins, costs, timelines, benchmarks from the Indian market
+- Share "insider" knowledge — things only experienced operators know
+- Be direct about risks and challenges — don't sugarcoat
+- When discussing strategy, always consider the Indian consumer psyche and market reality
+- Reference successful Indian food startup playbooks where relevant
+- Use Hindi/business terms where natural (jugaad, PMF, GTM, unit economics, etc.)
+- Always tie advice back to Kiro Foods' specific situation as a pre-launch clean-label RTE/RTC brand
+- When uncertain, say so — but offer your experienced perspective on what's most likely`;
+
+function GuruConsultant() {
+  const [messages, setMessages] = useState(() => JSON.parse(localStorage.getItem('protocol_guru_messages') || '[]'));
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef(null);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  const saveMessages = (msgs) => { setMessages(msgs); localStorage.setItem('protocol_guru_messages', JSON.stringify(msgs.slice(-60))); };
+
+  const sendMessage = async () => {
+    if (!input.trim() || loading) return;
+    const userMsg = { role: 'user', content: input, timestamp: new Date().toISOString() };
+    const updated = [...messages, userMsg];
+    saveMessages(updated);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const history = updated.slice(-10).map(m => `${m.role === 'user' ? 'USER' : 'GURU'}: ${m.content}`).join('\n\n');
+      const prompt = `CONVERSATION HISTORY:\n${history}\n\nUSER'S QUERY: ${userMsg.content}\n\nProvide specific, actionable startup advice based on 40+ years of Indian market experience. Include real numbers, benchmarks, examples, and practical next steps for Kiro Foods.`;
+      const response = await callClaude(prompt, GURU_SYSTEM);
+      saveMessages([...updated, { role: 'assistant', content: response, timestamp: new Date().toISOString() }]);
+    } catch (err) {
+      saveMessages([...updated, { role: 'assistant', content: '⚠ Error: ' + err.message + '. Check your AI API key in Settings.', timestamp: new Date().toISOString() }]);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="page-body" style={{ maxWidth: 900, margin: '0 auto' }}>
+      <div className="page-header" style={{ borderBottom: '1px solid rgba(255,70,85,0.15)' }}>
+        <div>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <GraduationCap size={22} style={{ color: '#ff4655' }} /> // GURU — STARTUP CONSULTANT
+          </h1>
+          <p className="page-header-sub">40+ years experience advising Indian startups, FMCG brands & food businesses</p>
+        </div>
+        <button className="btn btn-sm" onClick={() => saveMessages([])} style={{ fontSize: 11, opacity: 0.6 }}>
+          <Trash2 size={12} /> Clear
+        </button>
+      </div>
+
+      {/* Quick Actions */}
+      {messages.length === 0 && (
+        <div style={{ padding: '20px 0' }}>
+          <div style={{
+            background: 'rgba(255,70,85,0.04)', border: '1px solid rgba(255,70,85,0.12)',
+            borderRadius: 4, padding: '16px 20px', marginBottom: 16
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#ff4655', letterSpacing: 1.5, marginBottom: 8 }}>// GURU — STARTUP INDIA INTELLIGENCE</div>
+            <div style={{ fontSize: 12, lineHeight: 1.8, color: 'var(--text-secondary)' }}>
+              Guru is your seasoned startup advisor with 40+ years of experience in the Indian market.
+              Get practical advice on go-to-market strategy, fundraising, unit economics, distribution,
+              regulatory compliance, scaling operations, and navigating the Indian FMCG landscape —
+              all tailored specifically for Kiro Foods.
+            </div>
+          </div>
+
+          <div style={{
+            background: 'rgba(139,158,171,0.04)', border: '1px solid rgba(139,158,171,0.1)',
+            borderRadius: 4, padding: '16px 20px', marginBottom: 16
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, marginBottom: 10 }}>KEY ADVISORY AREAS</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 11 }}>
+              {[
+                ['Go-to-Market', 'D2C, retail, quick commerce strategy', 'Launch Planning'],
+                ['Fundraising', 'Seed to Series A for food startups', 'Investor Strategy'],
+                ['Unit Economics', 'COGS, margins, breakeven analysis', 'Profitability'],
+                ['Distribution', 'GT, MT, e-commerce channel design', 'Scale Strategy'],
+                ['Regulations', 'FSSAI, BIS, GST, compliance', 'Legal Framework'],
+                ['Market Trends', 'Clean-label, Q-commerce, D2C shifts', 'Industry Intel'],
+              ].map(([name, desc, tag]) => (
+                <div key={name} style={{
+                  background: 'rgba(255,70,85,0.04)', border: '1px solid rgba(255,70,85,0.08)',
+                  borderRadius: 4, padding: '8px 12px'
+                }}>
+                  <div style={{ fontWeight: 700, color: '#ff4655', fontSize: 12 }}>{name}</div>
+                  <div style={{ color: 'var(--text-secondary)', marginTop: 2 }}>{desc}</div>
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: 10, marginTop: 2 }}>{tag}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{
+            background: 'rgba(139,158,171,0.04)', border: '1px solid rgba(139,158,171,0.1)',
+            borderRadius: 4, padding: '16px 20px'
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, marginBottom: 10 }}>TRY ASKING</div>
+            <div style={{ fontSize: 12, lineHeight: 2, color: 'var(--text-tertiary)' }}>
+              {[
+                "What should be Kiro Foods's go-to-market strategy — D2C first or retail first?",
+                'Break down the unit economics for a ₹99 RTE product sold through quick commerce',
+                'Which VCs and angel networks should we target for our seed round?',
+                'How do successful Indian food startups like Yoga Bar and The Whole Truth scale distribution?',
+                'What are the biggest mistakes pre-launch food startups make in India?',
+                'Design a 12-month launch roadmap for Kiro Foods with milestones and burn rate',
+              ].map((q, i) => (
+                <div key={i} style={{ cursor: 'pointer' }} onClick={() => { setInput(q); }}>
+                  <span style={{ color: '#ff4655', fontWeight: 600 }}>→</span> "{q}"
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Messages */}
+      <div style={{
+        flex: 1, overflowY: 'auto', padding: '16px 0',
+        display: 'flex', flexDirection: 'column', gap: 14,
+        minHeight: 400, maxHeight: 'calc(100vh - 320px)'
+      }}>
+        {messages.map((msg, i) => (
+          <div key={i} style={{
+            display: 'flex', flexDirection: 'column',
+            alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start', gap: 4
+          }}>
+            <div style={{
+              fontSize: 9, letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 700,
+              color: msg.role === 'user' ? 'var(--text-tertiary)' : '#ff4655'
+            }}>
+              {msg.role === 'user' ? 'OPERATOR' : '// GURU'}
+            </div>
+            <div style={{
+              background: msg.role === 'user' ? 'rgba(255,70,85,0.08)' : 'rgba(139,158,171,0.06)',
+              border: `1px solid ${msg.role === 'user' ? 'rgba(255,70,85,0.15)' : 'rgba(139,158,171,0.1)'}`,
+              borderRadius: 4, padding: '10px 14px', maxWidth: '85%',
+              fontSize: 13, lineHeight: 1.7, color: 'var(--text-primary)'
+            }}>
+              <ReactMarkdown>{msg.content}</ReactMarkdown>
+            </div>
+            <div style={{ fontSize: 9, opacity: 0.3 }}>
+              {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : ''}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
+            <div className="typing-dots"><span/><span/><span/></div>
+            <span style={{ fontSize: 11, color: '#ff4655', letterSpacing: 1 }}>GURU IS CONSULTING...</span>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, padding: '12px 0', borderTop: '1px solid rgba(255,70,85,0.1)' }}>
+        <input className="input" value={input} onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+          placeholder="Ask about startup strategy, fundraising, market entry, scaling..."
+          style={{ flex: 1, fontSize: 13 }} />
+        <button className="btn" onClick={sendMessage} disabled={loading || !input.trim()}
+          style={{ background: '#ff4655', color: '#fff', fontWeight: 700, letterSpacing: 1, fontSize: 12 }}>
+          <GraduationCap size={14} /> ASK
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function GuruMarketAnalysis() {
+  const [topic, setTopic] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const analyze = async () => {
+    if (!topic.trim()) return;
+    setLoading(true);
+    try {
+      const r = await callClaude(`As a startup consultant with 40+ years experience in India, provide a comprehensive market analysis for Kiro Foods on: ${topic}. Include market size, growth trends, competitive landscape, consumer insights, opportunities, risks, and your specific recommendations.`, GURU_SYSTEM);
+      setResult(r);
+    } catch (e) { setResult('Error: ' + e.message); }
+    setLoading(false);
+  };
+  return (
+    <div className="page-body" style={{ maxWidth: 900, margin: '0 auto' }}>
+      <div className="page-header"><h1><GraduationCap size={20} /> // GURU — MARKET ANALYSIS</h1></div>
+      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <input className="input" value={topic} onChange={e => setTopic(e.target.value)}
+          placeholder="Enter topic (e.g., 'Clean-label RTE market in India', 'Quick commerce channel economics')"
+          style={{ width: '100%', marginBottom: 10 }} />
+        <button className="btn-primary" onClick={analyze} disabled={loading} style={{ width: '100%' }}>
+          {loading ? 'Analyzing market...' : '✦ Analyze Market'}
+        </button>
+      </div>
+      {result && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{result}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+function GuruFundraisingAdvisor() {
+  const [query, setQuery] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const advise = async () => {
+    if (!query.trim()) return;
+    setLoading(true);
+    try {
+      const r = await callClaude(`As a startup fundraising expert with 40+ years experience advising Indian food/FMCG startups, advise Kiro Foods on: ${query}. Include specific investor names, valuation benchmarks, pitch strategy, and timeline.`, GURU_SYSTEM);
+      setResult(r);
+    } catch (e) { setResult('Error: ' + e.message); }
+    setLoading(false);
+  };
+  return (
+    <div className="page-body" style={{ maxWidth: 900, margin: '0 auto' }}>
+      <div className="page-header"><h1><GraduationCap size={20} /> // GURU — FUNDRAISING ADVISOR</h1></div>
+      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <input className="input" value={query} onChange={e => setQuery(e.target.value)}
+          placeholder="Enter fundraising question (e.g., 'Seed round strategy', 'Pitch deck review checklist')"
+          style={{ width: '100%', marginBottom: 10 }} />
+        <button className="btn-primary" onClick={advise} disabled={loading} style={{ width: '100%' }}>
+          {loading ? 'Preparing advice...' : '✦ Get Fundraising Advice'}
+        </button>
+      </div>
+      {result && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{result}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+function GuruUnitEconomics() {
+  const [scenario, setScenario] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const calculate = async () => {
+    if (!scenario.trim()) return;
+    setLoading(true);
+    try {
+      const r = await callClaude(`As a startup economics expert with 40+ years in Indian FMCG, break down the unit economics for Kiro Foods: ${scenario}. Include COGS breakdown, channel margins, logistics costs, marketing costs per unit, contribution margin, breakeven analysis, and comparison with industry benchmarks.`, GURU_SYSTEM);
+      setResult(r);
+    } catch (e) { setResult('Error: ' + e.message); }
+    setLoading(false);
+  };
+  return (
+    <div className="page-body" style={{ maxWidth: 900, margin: '0 auto' }}>
+      <div className="page-header"><h1><GraduationCap size={20} /> // GURU — UNIT ECONOMICS</h1></div>
+      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <input className="input" value={scenario} onChange={e => setScenario(e.target.value)}
+          placeholder="Describe scenario (e.g., '₹99 RTE poha kit sold on Blinkit', '₹199 meal kit on D2C website')"
+          style={{ width: '100%', marginBottom: 10 }} />
+        <button className="btn-primary" onClick={calculate} disabled={loading} style={{ width: '100%' }}>
+          {loading ? 'Calculating economics...' : '✦ Calculate Unit Economics'}
+        </button>
+      </div>
+      {result && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{result}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
+function GuruScalePlaybook() {
+  const [stage, setStage] = useState('');
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const generate = async () => {
+    if (!stage.trim()) return;
+    setLoading(true);
+    try {
+      const r = await callClaude(`As a scaling expert with 40+ years advising Indian FMCG startups, create a detailed scaling playbook for Kiro Foods: ${stage}. Include phased milestones, team hiring plan, channel expansion strategy, supply chain scaling, marketing budget allocation, key metrics to track, and risk mitigation.`, GURU_SYSTEM);
+      setResult(r);
+    } catch (e) { setResult('Error: ' + e.message); }
+    setLoading(false);
+  };
+  return (
+    <div className="page-body" style={{ maxWidth: 900, margin: '0 auto' }}>
+      <div className="page-header"><h1><GraduationCap size={20} /> // GURU — SCALE PLAYBOOK</h1></div>
+      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+        <input className="input" value={stage} onChange={e => setStage(e.target.value)}
+          placeholder="Describe current stage & goal (e.g., 'Pre-launch to ₹1Cr ARR', '₹5Cr to ₹25Cr in 18 months')"
+          style={{ width: '100%', marginBottom: 10 }} />
+        <button className="btn-primary" onClick={generate} disabled={loading} style={{ width: '100%' }}>
+          {loading ? 'Building playbook...' : '✦ Generate Scale Playbook'}
+        </button>
+      </div>
+      {result && <div className="card" style={{ padding: 20, maxHeight: 600, overflow: 'auto' }}><ReactMarkdown>{result}</ReactMarkdown></div>}
+    </div>
+  );
+}
+
 // =============================================
 // USER MANAGEMENT / ADMIN PANEL
 // =============================================
@@ -11482,6 +11862,12 @@ const ALL_TOOLS = [
   { id: 'tejo-documents', label: 'Document Prep', section: 'Tejo' },
   { id: 'tejo-funding', label: 'Funding Roadmap', section: 'Tejo' },
   { id: 'tejo-states', label: 'State Comparator', section: 'Tejo' },
+  // Guru — Startup Advisor
+  { id: 'guru-consultant', label: 'Startup Consultant', section: 'Guru' },
+  { id: 'guru-market', label: 'Market Analysis', section: 'Guru' },
+  { id: 'guru-fundraising', label: 'Fundraising Advisor', section: 'Guru' },
+  { id: 'guru-economics', label: 'Unit Economics', section: 'Guru' },
+  { id: 'guru-scale', label: 'Scale Playbook', section: 'Guru' },
   // Waylay — GBP & Local SEO
   { id: 'waylay-gbp', label: 'GBP Manager', section: 'Waylay' },
   { id: 'waylay-keywords', label: 'Keyword Planner', section: 'Waylay' },
@@ -16461,6 +16847,26 @@ export default function App() {
           chime2.start(now + 0.18); chime2.stop(now + 0.45);
         },
 
+        guru: () => {
+          // GURU: Wisdom bell → scroll unfurl → enlightenment tone
+          const bell = ctx.createOscillator(); const bG = ctx.createGain();
+          bell.type = 'sine'; bell.frequency.setValueAtTime(880, now);
+          bG.gain.setValueAtTime(0.15, now); bG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          bell.connect(bG); bG.connect(ctx.destination);
+          bell.start(now); bell.stop(now + 0.4);
+          const hum = ctx.createOscillator(); const hG = ctx.createGain();
+          hum.type = 'sine'; hum.frequency.setValueAtTime(220, now + 0.1);
+          hum.frequency.linearRampToValueAtTime(330, now + 0.35);
+          hG.gain.setValueAtTime(0.08, now + 0.1); hG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          hum.connect(hG); hG.connect(ctx.destination);
+          hum.start(now + 0.1); hum.stop(now + 0.4);
+          const light = ctx.createOscillator(); const lG = ctx.createGain();
+          light.type = 'triangle'; light.frequency.setValueAtTime(1047, now + 0.2);
+          lG.gain.setValueAtTime(0.06, now + 0.2); lG.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          light.connect(lG); lG.connect(ctx.destination);
+          light.start(now + 0.2); light.stop(now + 0.5);
+        },
+
         waylay: () => {
           // LOCAL MAP MASTER: Radar ping sweep → map unfold → location lock-on
           // Radar ping — circular sweep gesture
@@ -16786,6 +17192,26 @@ export default function App() {
           slash.connect(slG); slG.connect(ctx.destination);
           slash.start(now + 0.12); slash.stop(now + 0.2);
         },
+        guru: () => {
+          // AZMUTH: Tiny genius — precision beep + holographic data stream + intelligence chime
+          const beep = ctx.createOscillator(); const bG = ctx.createGain();
+          beep.type = 'sine'; beep.frequency.setValueAtTime(2400, now);
+          bG.gain.setValueAtTime(0.08, now); bG.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          beep.connect(bG); bG.connect(ctx.destination);
+          beep.start(now); beep.stop(now + 0.08);
+          [0.1, 0.14, 0.18, 0.22].forEach(d => {
+            const data = ctx.createOscillator(); const dG = ctx.createGain();
+            data.type = 'square'; data.frequency.setValueAtTime(1200 + Math.random() * 800, now + d);
+            dG.gain.setValueAtTime(0.03, now + d); dG.gain.exponentialRampToValueAtTime(0.001, now + d + 0.03);
+            data.connect(dG); dG.connect(ctx.destination);
+            data.start(now + d); data.stop(now + d + 0.03);
+          });
+          const chime = ctx.createOscillator(); const cG = ctx.createGain();
+          chime.type = 'sine'; chime.frequency.setValueAtTime(1760, now + 0.25);
+          cG.gain.setValueAtTime(0.06, now + 0.25); cG.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          chime.connect(cG); cG.connect(ctx.destination);
+          chime.start(now + 0.25); chime.stop(now + 0.45);
+        },
         waylay: () => {
           // SPIDERMONKEY: Chattering + web sling whoosh
           [0, 0.04, 0.08].forEach(d => {
@@ -17066,6 +17492,20 @@ export default function App() {
           hG.gain.setValueAtTime(0.12, now); hG.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
           hydro.connect(hF); hF.connect(hG); hG.connect(ctx.destination);
           hydro.start(now); hydro.stop(now + 0.35);
+        },
+        guru: () => {
+          // SLOWKING: Psychic wisdom pulse + calm wave
+          const psychic = ctx.createOscillator(); const pG = ctx.createGain();
+          psychic.type = 'sine'; psychic.frequency.setValueAtTime(440, now);
+          psychic.frequency.linearRampToValueAtTime(660, now + 0.3);
+          pG.gain.setValueAtTime(0.1, now); pG.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          psychic.connect(pG); pG.connect(ctx.destination);
+          psychic.start(now); psychic.stop(now + 0.4);
+          const calm = ctx.createOscillator(); const cG = ctx.createGain();
+          calm.type = 'triangle'; calm.frequency.setValueAtTime(880, now + 0.15);
+          cG.gain.setValueAtTime(0.06, now + 0.15); cG.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          calm.connect(cG); cG.connect(ctx.destination);
+          calm.start(now + 0.15); calm.stop(now + 0.45);
         },
         waylay: () => {
           // GEODUDE: Rock slide
@@ -17364,6 +17804,16 @@ export default function App() {
       ]
     },
     {
+      title: `${TA.guru.name} (${TA.guru.role})`, icon: TA.guru.icon, agent: 'guru',
+      items: [
+        { path: '/guru-consultant', icon: GraduationCap, label: 'Startup Consultant' },
+        { path: '/guru-market', icon: TrendingUp, label: 'Market Analysis' },
+        { path: '/guru-fundraising', icon: HandCoins, label: 'Fundraising Advisor' },
+        { path: '/guru-economics', icon: Calculator, label: 'Unit Economics' },
+        { path: '/guru-scale', icon: Rocket, label: 'Scale Playbook' },
+      ]
+    },
+    {
       title: `${TA.viper.name} (${TA.viper.role})`, icon: TA.viper.icon, agent: 'viper',
       items: [
         { path: '/viper-drip', icon: Send, label: 'Drip Campaigns' },
@@ -17654,6 +18104,11 @@ export default function App() {
             <Route path="/tejo-documents" element={<TejoDocumentPrep />} />
             <Route path="/tejo-funding" element={<TejoFundingMap />} />
             <Route path="/tejo-states" element={<TejoStateComparator />} />
+            <Route path="/guru-consultant" element={<GuruConsultant />} />
+            <Route path="/guru-market" element={<GuruMarketAnalysis />} />
+            <Route path="/guru-fundraising" element={<GuruFundraisingAdvisor />} />
+            <Route path="/guru-economics" element={<GuruUnitEconomics />} />
+            <Route path="/guru-scale" element={<GuruScalePlaybook />} />
             <Route path="/waylay-gbp" element={<WaylayGBPManager />} />
             <Route path="/waylay-keywords" element={<WaylayKeywordPlanner />} />
             <Route path="/waylay-local-seo" element={<WaylayLocalSEO />} />
