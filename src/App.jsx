@@ -93,7 +93,7 @@ const THEMES = {
       skye: { name: 'Skye', role: 'Influencers', icon: Bird },
       sova: { name: 'Sova', role: 'Research', icon: Microscope },
       tejo: { name: 'Tejo', role: 'Govt Schemes', icon: Landmark },
-      guru: { name: 'Guru', role: 'Startup Advisor', icon: GraduationCap },
+      guru: { name: 'Vyse', role: 'Startup Advisor', icon: GraduationCap },
       viper: { name: 'Viper', role: 'Email', icon: Send },
       waylay: { name: 'Waylay', role: 'GBP & SEO', icon: MapPinned },
       yoru: { name: 'Yoru', role: 'Automation', icon: Waypoints },
